@@ -1,0 +1,346 @@
+.page {
+  min-height: 100vh;
+}
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* 좌측 지도 — sticky로 화면에 고정 */
+.mapPane {
+  flex: 1;
+  position: sticky;
+  top: var(--header-height);
+  height: calc(100vh - var(--header-height));
+}
+
+/* 우측 패널 */
+.listPane {
+  width: 420px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--bg-tertiary);
+  background: var(--bg-primary);
+  height: calc(100vh - var(--header-height));
+  position: sticky;
+  top: var(--header-height);
+  overflow: hidden;
+}
+
+/* 필터 영역 */
+.filterBar {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--bg-tertiary);
+  background: var(--bg-primary);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* 검색창 행 */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.searchWrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 11px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 9px 12px 9px 32px;
+  border: 1.5px solid rgba(168,123,81,0.18);
+  border-radius: 100px;
+  font-size: 0.84rem;
+  background: var(--bg-secondary);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.searchInput:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(168,123,81,0.1);
+}
+
+.countBadge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent-primary);
+  padding: 4px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 필터 그룹 */
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filterLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.filterTab {
+  padding: 5px 11px;
+  border-radius: 100px;
+  font-size: 0.77rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--bg-tertiary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filterTab:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.filterTabActive {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+  font-weight: 700;
+}
+
+/* 클러스터 선택 배너 */
+.clusterBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: rgba(168,123,81,0.08);
+  border-bottom: 1px solid rgba(168,123,81,0.18);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-hover);
+}
+
+.boundsBanner {
+  padding: 7px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--bg-tertiary);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.clusterClear {
+  padding: 3px 10px;
+  background: var(--accent-primary);
+  color: #fff;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+/* 리스트 바디 */
+.listBody {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* 카드 아이템 */
+.card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin: 12px 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+
+.card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  transform: translateY(-2px);
+}
+
+.cardThumb {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+}
+
+.cardImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardImgFallback {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cardBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.cardRec {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1rem;
+}
+
+.cardBody {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cardNum {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.cardPrice {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-hover);
+}
+
+.cardAddr {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--bg-tertiary);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+/* 로딩 / 빈 상태 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 60px 0;
+  color: var(--color-text-muted);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--bg-tertiary);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 60px 20px;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.empty span {
+  font-size: 2rem;
+}
+
+.resetBtn {
+  padding: 8px 18px;
+  background: var(--accent-primary);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  margin-top: 4px;
+}
+
+/* 모바일 */
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .mapPane {
+    position: static;
+    height: 300px;
+    width: 100%;
+  }
+
+  .listPane {
+    position: static;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .listBody {
+    overflow-y: visible;
+  }
+
+  .card {
+    margin: 10px 12px;
+  }
+
+  .cardThumb {
+    height: 160px;
+  }
+}

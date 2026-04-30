@@ -1,0 +1,157 @@
+.statsBar {
+  background: var(--color-black);
+  padding: 28px 24px;
+}
+
+.statsInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 40px;
+}
+
+.statNum {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-wood-light);
+  letter-spacing: -0.02em;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  margin-top: 2px;
+}
+
+.statDivider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255,255,255,0.12);
+}
+
+.sectionWrapper {
+  background: var(--bg-primary);
+}
+
+.sectionWrapperAlt {
+  background: var(--bg-secondary);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 24px;
+  color: var(--color-text-muted);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--bg-tertiary);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.ctaBanner {
+  background: linear-gradient(135deg, var(--color-black) 0%, #2c1f0f 100%);
+  padding: 72px 24px;
+}
+
+.ctaInner {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.ctaTitle {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.ctaDesc {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+
+.ctaActions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.ctaCall {
+  padding: 16px 32px;
+  background: var(--accent-primary);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.ctaCall:hover {
+  background: var(--accent-hover);
+}
+
+.ctaLink {
+  padding: 16px 32px;
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.ctaLink:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+@media (max-width: 768px) {
+  .stat {
+    padding: 0 20px;
+  }
+
+  .statNum {
+    font-size: 1.3rem;
+  }
+
+  .statDivider {
+    height: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsInner {
+    gap: 16px;
+  }
+
+  .statDivider {
+    display: none;
+  }
+}

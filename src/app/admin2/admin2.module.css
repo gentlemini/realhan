@@ -1,0 +1,211 @@
+/* ── 전체 래퍼 ── */
+.wrap {
+  min-height: 100vh;
+  background: #f0ebe4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 80px;
+}
+
+/* ── 헤더 ── */
+.header {
+  width: 100%;
+  background: linear-gradient(to right, #1c1917 0%, #2a1e11 100%);
+  border-bottom: 1px solid rgba(193,154,107,0.2);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  padding: 22px 40px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.headerIcon { font-size: 26px; }
+
+.headerTitle {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.headerSub {
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+/* ── 본문 ── */
+.body {
+  width: 100%;
+  max-width: 900px;
+  padding: 36px 24px 0;
+  box-sizing: border-box;
+}
+
+/* ── 전체보기 버튼 ── */
+.viewAllBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #2a1e11, #3a2a18);
+  border: 1px solid rgba(193,154,107,0.3);
+  border-radius: 12px;
+  padding: 16px 22px;
+  cursor: pointer;
+  margin-bottom: 28px;
+  transition: all 0.15s;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+.viewAllBtn:hover {
+  border-color: rgba(193,154,107,0.6);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  transform: translateY(-1px);
+}
+
+.viewAllIcon { font-size: 18px; }
+
+.viewAllLabel {
+  flex: 1;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.viewAllArrow {
+  color: #c19a6b;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sectionTitle {
+  color: #7a5c3a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+/* ── 그리드 ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: rgba(0,0,0,0.08);
+  margin: 4px 0;
+}
+
+/* ── 버튼 공통 ── */
+.btn {
+  position: relative;
+  border-radius: 12px;
+  padding: 18px 14px;
+  text-align: center;
+  border: none;
+  cursor: not-allowed;
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+/* 비활성 어둡게 */
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.28);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+/* ── 활성 버튼 ── */
+.btnActive {
+  background: linear-gradient(135deg, #a87b51 0%, #c8a060 50%, #a87b51 100%) !important;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(168,123,81,0.45);
+}
+
+.btnActive::after { display: none; }
+
+.btnActive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168,123,81,0.55);
+}
+
+.btnActive:active { transform: translateY(0); }
+
+/* ── 빈 칸 ── */
+.btnEmpty {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  cursor: default;
+  pointer-events: none;
+}
+.btnEmpty::after { display: none; }
+
+/* ── 아이콘 / 배지 ── */
+.lockIcon {
+  position: absolute;
+  top: 9px;
+  right: 11px;
+  font-size: 11px;
+  opacity: 0.55;
+  z-index: 1;
+}
+
+.activeBadge {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+  z-index: 1;
+}
+
+/* ── 텍스트 ── */
+.btnLabel {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  line-height: 1.35;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+
+.btnSub {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  position: relative;
+  z-index: 1;
+  line-height: 1.4;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}

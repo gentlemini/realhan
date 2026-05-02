@@ -318,6 +318,7 @@
   .nav { display: none; }
   .adminBtn { display: none; }
   .inner { grid-template-columns: 1fr auto; }
+  .mobileMenuBtn { display: flex; }
 }
 
 .mobileNavOpen { display: flex; }

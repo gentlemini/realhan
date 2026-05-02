@@ -360,7 +360,7 @@ function CategoryBtn({ label }) {
         borderRadius: 6,
         background: hovered ? '#ede8e2' : '#fff',
         color: '#3a2a1a',
-        fontSize: '0.78rem',
+        fontSize: '0.68rem',
         fontWeight: 600,
         textDecoration: 'none',
         border: '1.5px solid #d6cfc7',
@@ -462,7 +462,7 @@ export default function HomePage() {
       </div>
 
       <section style={{ background: '#faf7f4', padding: '16px 24px', borderBottom: '1px solid #ede8e2' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))', gap: 6 }}>
+        <div className={styles.categoryGrid}>
           {['아파트','오피스텔','단독주택','다가구','다세대','원룸','투룸','쓰리룸','상가','오피스','공장/창고','빌딩','토지','재개발','분양'].map(label => (
             <CategoryBtn key={label} label={label} />
           ))}

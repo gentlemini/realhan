@@ -221,6 +221,17 @@ function PreviewModal({ item, onClose }) {
                 </div>
               </div>
 
+              {/* 모바일 전용 인라인 지도 (매물번호 위) */}
+              {!detLoading && (
+                <div className={modalStyles.pvMobileMap}>
+                  {hasMap ? (
+                    <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
+                  ) : (
+                    <span className={modalStyles.pvMapPlaceholder}>지도 위치 미등록</span>
+                  )}
+                </div>
+              )}
+
               {detLoading ? (
                 <div className={modalStyles.pvDetailLoading}>
                   <div className={modalStyles.spinner} />
@@ -377,6 +388,23 @@ function PropertyItem({ property, onClick }) {
   );
 }
 
+function BottomSheet({ items, onClose, onCardClick }) {
+  return (
+    <div className={styles.bottomSheet}>
+      <div className={styles.bottomSheetHandle} />
+      <div className={styles.bottomSheetHeader}>
+        <span className={styles.bottomSheetTitle}>매물 {items.length}건</span>
+        <button className={styles.bottomSheetClose} onClick={onClose}>✕</button>
+      </div>
+      <div className={styles.bottomSheetBody}>
+        {items.map(prop => (
+          <PropertyItem key={prop.id} property={prop} onClick={() => onCardClick(prop)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PropertiesPageInner() {
   const searchParams = useSearchParams();
   const initCategory = searchParams.get('category') || '전체';
@@ -390,6 +418,9 @@ function PropertiesPageInner() {
   const [boundsProps,  setBoundsProps]  = useState(null);
   const [mapBounds,    setMapBounds]    = useState(null);
   const [geocodedIds,  setGeocodedIds]  = useState(new Set());
+  const [filterOpen,    setFilterOpen]   = useState(false);
+  const [viewMode,      setViewMode]     = useState('list');
+  const [mapSheetItems, setMapSheetItems] = useState(null);
 
   useEffect(() => { setClusterProps(null); setBoundsProps(null); setMapBounds(null); setGeocodedIds(new Set()); }, [selectedType, selectedTx, keyword]);
 
@@ -457,17 +488,41 @@ function PropertiesPageInner() {
 
   return (
     <div className={styles.page}>
+      {/* 모바일 전용 목록/지도 탭 토글 */}
+      <div className={styles.viewToggle}>
+        <button
+          className={`${styles.viewTab} ${viewMode === 'list' ? styles.viewTabActive : ''}`}
+          onClick={() => setViewMode('list')}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+          목록보기
+        </button>
+        <button
+          className={`${styles.viewTab} ${viewMode === 'map' ? styles.viewTabActive : ''}`}
+          onClick={() => setViewMode('map')}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+            <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+          </svg>
+          지도보기
+        </button>
+      </div>
+
       <div className={styles.layout}>
         <div className={styles.mapPane}>
           <KakaoMap
             properties={mapProps}
             onGeocodedIds={ids => setGeocodedIds(ids)}
-            onClusterClick={props => { setClusterProps(props); }}
-            onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); }}
+            onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
+            onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); setMapSheetItems(null); }}
           />
         </div>
 
-        <div className={styles.listPane}>
+        <div className={`${styles.listPane} ${viewMode === 'map' ? styles.listPaneHidden : ''}`}>
           <div className={styles.filterBar}>
             <div className={styles.searchRow}>
               <div className={styles.searchWrap}>
@@ -483,34 +538,38 @@ function PropertiesPageInner() {
                   className={styles.searchInput}
                 />
               </div>
-              <span className={styles.countBadge}>
-                {(() => {
-                  return `${listItems.length}건`;
-                })()}
-              </span>
+              <span className={styles.countBadge}>{listItems.length}건</span>
+              <button
+                className={`${styles.filterToggleBtn} ${(selectedType !== '전체' || selectedTx !== '전체') ? styles.filterToggleBtnActive : ''}`}
+                onClick={() => setFilterOpen(v => !v)}
+              >
+                필터{(selectedType !== '전체' || selectedTx !== '전체') ? ' ●' : ''} {filterOpen ? '▲' : '▼'}
+              </button>
             </div>
-            <div className={styles.filterGroup}>
-              <span className={styles.filterLabel}>건물유형</span>
-              <div className={styles.filterRow}>
-                {TYPES.map(t => (
-                  <button
-                    key={t}
-                    className={`${styles.filterTab} ${selectedType === t ? styles.filterTabActive : ''}`}
-                    onClick={() => setSelectedType(t)}
-                  >{t}</button>
-                ))}
+            <div className={`${styles.filterContent} ${filterOpen ? styles.filterContentOpen : ''}`}>
+              <div className={styles.filterGroup}>
+                <span className={styles.filterLabel}>건물유형</span>
+                <div className={styles.filterRow}>
+                  {TYPES.map(t => (
+                    <button
+                      key={t}
+                      className={`${styles.filterTab} ${selectedType === t ? styles.filterTabActive : ''}`}
+                      onClick={() => setSelectedType(t)}
+                    >{t}</button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className={styles.filterGroup}>
-              <span className={styles.filterLabel}>거래유형</span>
-              <div className={styles.filterRow}>
-                {TX_TYPES.map(t => (
-                  <button
-                    key={t}
-                    className={`${styles.filterTab} ${selectedTx === t ? styles.filterTabActive : ''}`}
-                    onClick={() => setSelectedTx(t)}
-                  >{t}</button>
-                ))}
+              <div className={styles.filterGroup}>
+                <span className={styles.filterLabel}>거래유형</span>
+                <div className={styles.filterRow}>
+                  {TX_TYPES.map(t => (
+                    <button
+                      key={t}
+                      className={`${styles.filterTab} ${selectedTx === t ? styles.filterTabActive : ''}`}
+                      onClick={() => setSelectedTx(t)}
+                    >{t}</button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -554,6 +613,23 @@ function PropertiesPageInner() {
       </div>
 
       {selectedItem && <PreviewModal item={selectedItem} onClose={handleClose} />}
+
+      {/* 지도 모드: 범위 내 매물 알림 바 */}
+      {viewMode === 'map' && !mapSheetItems && boundsProps !== null && listItems.length > 0 && (
+        <div className={styles.mapBoundsBar} onClick={() => setMapSheetItems(listItems)}>
+          <span>📍 이 지역 매물 {listItems.length}건</span>
+          <span className={styles.mapBoundsBarArrow}>목록 보기 →</span>
+        </div>
+      )}
+
+      {/* 지도 모드: 하단 시트 */}
+      {viewMode === 'map' && mapSheetItems && (
+        <BottomSheet
+          items={mapSheetItems}
+          onClose={() => setMapSheetItems(null)}
+          onCardClick={handleCardClick}
+        />
+      )}
     </div>
   );
 }

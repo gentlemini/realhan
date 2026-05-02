@@ -67,15 +67,31 @@ function formatPrice(item) {
   return '';
 }
 
+function ensureKakaoSdk() {
+  if (typeof window.kakao?.maps?.LatLng === 'function') return;
+  if (window.kakao?.maps) { window.kakao.maps.load(() => {}); return; }
+  if (document.getElementById('kakao-map-sdk')) return;
+  const script = document.createElement('script');
+  script.id  = 'kakao-map-sdk';
+  script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
+  script.onload = () => window.kakao.maps.load(() => {});
+  document.head.appendChild(script);
+}
+
 function PreviewMap({ lat, lng, radius }) {
   const mapRef = useRef(null);
 
   useEffect(() => {
-    function initMap() {
+    ensureKakaoSdk();
+    let timer;
+
+    function tryInit() {
       if (!mapRef.current) return;
-      if (typeof window.kakao?.maps?.LatLng !== 'function') return;
-      // display:none 등 0×0 컨테이너는 건너뜀
       if (!mapRef.current.offsetWidth && !mapRef.current.offsetHeight) return;
+      if (typeof window.kakao?.maps?.LatLng !== 'function') {
+        timer = setTimeout(tryInit, 100);
+        return;
+      }
       const { kakao } = window;
       const center = new kakao.maps.LatLng(lat, lng);
       const map = new kakao.maps.Map(mapRef.current, { center, level: 5 });
@@ -92,19 +108,8 @@ function PreviewMap({ lat, lng, radius }) {
       }
     }
 
-    // 이미 완전히 초기화된 경우: load() 우회
-    if (typeof window.kakao?.maps?.LatLng === 'function') {
-      initMap();
-      return;
-    }
-    if (window.kakao?.maps) { window.kakao.maps.load(initMap); return; }
-    const existing = document.getElementById('kakao-map-sdk');
-    if (existing) { existing.addEventListener('load', () => window.kakao.maps.load(initMap)); return; }
-    const script = document.createElement('script');
-    script.id  = 'kakao-map-sdk';
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
-    script.onload = () => window.kakao.maps.load(initMap);
-    document.head.appendChild(script);
+    timer = setTimeout(tryInit, 50);
+    return () => clearTimeout(timer);
   }, [lat, lng, radius]);
 
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
@@ -231,12 +236,9 @@ function PreviewModal({ item, onClose }) {
               </div>
 
               {/* 모바일 전용 지도 (헤더 아래, 스크롤 영역 내) */}
-              {!detLoading && (
+              {!detLoading && hasMap && (
                 <div className={modalStyles.pvMobileMap}>
-                  {hasMap
-                    ? <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
-                    : <span className={modalStyles.pvMapPlaceholder}>지도 위치 미등록</span>
-                  }
+                  <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
                 </div>
               )}
 

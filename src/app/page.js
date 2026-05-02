@@ -45,15 +45,33 @@ function formatPrice(item) {
 }
 
 /* ── 카카오 지도 (미리보기용) ── */
+function ensureKakaoSdk() {
+  if (typeof window.kakao?.maps?.LatLng === 'function') return;
+  if (window.kakao?.maps) { window.kakao.maps.load(() => {}); return; }
+  if (document.getElementById('kakao-map-sdk')) return;
+  const script = document.createElement('script');
+  script.id  = 'kakao-map-sdk';
+  script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
+  script.onload = () => window.kakao.maps.load(() => {});
+  document.head.appendChild(script);
+}
+
 function PreviewMap({ lat, lng, radius }) {
   const mapRef = useRef(null);
 
   useEffect(() => {
-    function initMap() {
+    ensureKakaoSdk();
+    let timer;
+
+    function tryInit() {
       if (!mapRef.current) return;
-      if (typeof window.kakao?.maps?.LatLng !== 'function') return;
-      // display:none 등 0×0 컨테이너는 건너뜀 — 이후 콜백 큐를 막지 않기 위해
+      // 컨테이너가 화면에 없으면(0×0) 폴링 중단
       if (!mapRef.current.offsetWidth && !mapRef.current.offsetHeight) return;
+      // Kakao가 아직 준비 안 됐으면 100ms 후 재시도
+      if (typeof window.kakao?.maps?.LatLng !== 'function') {
+        timer = setTimeout(tryInit, 100);
+        return;
+      }
       const { kakao } = window;
       const center = new kakao.maps.LatLng(lat, lng);
       const map = new kakao.maps.Map(mapRef.current, { center, level: 5 });
@@ -70,26 +88,8 @@ function PreviewMap({ lat, lng, radius }) {
       }
     }
 
-    // 이미 완전히 초기화된 경우: load() 우회해서 직접 호출
-    if (typeof window.kakao?.maps?.LatLng === 'function') {
-      initMap();
-      return;
-    }
-    // SDK 로드됐지만 maps 미초기화
-    if (window.kakao?.maps) {
-      window.kakao.maps.load(initMap);
-      return;
-    }
-    const existing = document.getElementById('kakao-map-sdk');
-    if (existing) {
-      existing.addEventListener('load', () => window.kakao.maps.load(initMap));
-      return;
-    }
-    const script = document.createElement('script');
-    script.id  = 'kakao-map-sdk';
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
-    script.onload = () => window.kakao.maps.load(initMap);
-    document.head.appendChild(script);
+    timer = setTimeout(tryInit, 50);
+    return () => clearTimeout(timer);
   }, [lat, lng, radius]);
 
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
@@ -225,12 +225,9 @@ function PreviewModal({ item, onClose }) {
               </div>
 
               {/* 모바일 전용 지도 (헤더 아래, 스크롤 영역 내) */}
-              {!detLoading && (
+              {!detLoading && hasMap && (
                 <div className={styles.pvMobileMap}>
-                  {hasMap
-                    ? <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
-                    : <span className={styles.pvMapPlaceholder}>지도 위치 미등록</span>
-                  }
+                  <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
                 </div>
               )}
 

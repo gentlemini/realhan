@@ -629,6 +629,8 @@
     flex-shrink: 0;
     border-bottom: 1px solid #e8e0d6;
     background: #f5f2ee;
+    position: relative;
+    overflow: hidden;
   }
 }
 

@@ -69,7 +69,7 @@ function formatPrice(item) {
 
 function ensureKakaoSdk() {
   if (typeof window.kakao?.maps?.LatLng === 'function') return;
-  if (window.kakao?.maps) { window.kakao.maps.load(() => {}); return; }
+  if (window.kakao?.maps) return; // KakaoMap.js 가 이미 load() 중이면 간섭 금지
   if (document.getElementById('kakao-map-sdk')) return;
   const script = document.createElement('script');
   script.id  = 'kakao-map-sdk';

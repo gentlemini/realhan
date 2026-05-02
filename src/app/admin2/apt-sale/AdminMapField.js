@@ -8,6 +8,14 @@ const RADIUS_OPTIONS = [0, 50, 100, 200, 300, 500];
 function loadKakaoSdk(apiKey) {
   return new Promise((resolve, reject) => {
     if (typeof window.kakao?.maps?.LatLng === 'function') { resolve(); return; }
+    if (window.kakao?.maps && typeof window.kakao.maps.load === 'function') {
+      window.kakao.maps.load(resolve); return;
+    }
+    const existingAny = document.querySelector('script[src*="dapi.kakao.com/v2/maps"]');
+    if (existingAny) {
+      existingAny.addEventListener('load', () => window.kakao.maps.load(resolve));
+      return;
+    }
     const existing = document.getElementById('kakao-sdk');
     if (existing) {
       if (window.kakao?.maps) { window.kakao.maps.load(resolve); }

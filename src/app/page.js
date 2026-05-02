@@ -93,11 +93,6 @@ function PreviewModal({ item, onClose }) {
 
   const [detail,  setDetail]  = useState(null);
   const [detLoading, setDetLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    setIsMobile(window.matchMedia('(max-width: 900px)').matches);
-  }, []);
 
   /* 전체 필드 fetch */
   useEffect(() => {
@@ -198,12 +193,12 @@ function PreviewModal({ item, onClose }) {
 
           {/* 우: 지도 + 데이터 */}
           <div className={styles.pvDataCol}>
-            {/* 지도 영역 (데스크탑 전용) */}
+            {/* 지도 영역 — pvDataScroll 밖에 위치해 데스크탑은 고정, 모바일은 pvDataCol 스크롤 */}
             <div className={styles.pvMapBox}>
-              {!isMobile && hasMap ? (
+              {hasMap ? (
                 <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
               ) : (
-                <span className={styles.pvMapPlaceholder}>지도 위치</span>
+                <span className={styles.pvMapPlaceholder}>지도 위치 미등록</span>
               )}
             </div>
 
@@ -219,16 +214,6 @@ function PreviewModal({ item, onClose }) {
                   {modalTitle || <span className={styles.pvTitleEmpty}>매물제목 미입력</span>}
                 </div>
               </div>
-
-              {/* 모바일 전용 지도 (스크롤 영역 내) */}
-              {!detLoading && (
-                <div className={styles.pvMobileMap}>
-                  {hasMap
-                    ? <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
-                    : <span className={styles.pvMapPlaceholder}>지도 위치 미등록</span>
-                  }
-                </div>
-              )}
 
               {/* 필드 행 */}
               {detLoading ? (

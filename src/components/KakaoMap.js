@@ -40,57 +40,53 @@ function buildClusters(items, radiusM) {
   return clusters;
 }
 
-// 동 추출: "부산광역시 남구 대연동 ..." → "대연동"
 function extractDong(address) {
   const m = address.match(/([가-힣]+(?:동|가|읍|면|리))(?:\s|$|\d)/);
   return m ? m[1] : null;
 }
-
-// 구/군 추출: "부산광역시 남구 ..." → "남구"
 function extractGu(address) {
   const m = address.match(/([가-힣]+(?:구|군))(?:\s|$)/);
   return m ? m[1] : null;
 }
-
-// 시/도 추출 (단축): "부산광역시 ..." 또는 "부산 ..." → "부산"
-const CITY_SHORT = {
-  '부산광역시': '부산', '서울특별시': '서울', '인천광역시': '인천',
-  '대구광역시': '대구', '대전광역시': '대전', '광주광역시': '광주',
-  '울산광역시': '울산', '세종특별자치시': '세종',
-  '경기도': '경기', '강원도': '강원', '강원특별자치도': '강원',
-  '충청북도': '충북', '충청남도': '충남',
-  '전라북도': '전북', '전북특별자치도': '전북', '전라남도': '전남',
-  '경상북도': '경북', '경상남도': '경남', '제주특별자치도': '제주',
+const FULL_CITY_MAP = {
+  '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시',
+  '인천': '인천광역시', '광주': '광주광역시', '대전': '대전광역시',
+  '울산': '울산광역시', '세종': '세종특별자치시',
+  '경기': '경기도', '강원': '강원도',
+  '충북': '충청북도', '충남': '충청남도',
+  '전북': '전라북도', '전남': '전라남도',
+  '경북': '경상북도', '경남': '경상남도', '제주': '제주특별자치도',
 };
-// 단축 시/도명 목록 (노션 주소가 "부산 남구..." 형식인 경우)
-const CITY_SHORT_PREFIXES = [
-  '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
-  '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주',
-];
-function extractCity(address) {
-  for (const [full, short] of Object.entries(CITY_SHORT)) {
-    if (address.startsWith(full)) return short;
+function extractFullCity(address) {
+  if (!address) return null;
+  for (const full of Object.values(FULL_CITY_MAP)) {
+    if (address.startsWith(full)) return full;
   }
-  for (const short of CITY_SHORT_PREFIXES) {
-    if (address.startsWith(short + ' ')) return short;
+  for (const [short, full] of Object.entries(FULL_CITY_MAP)) {
+    if (address.startsWith(short)) return full;
   }
-  const m = address.match(/^([가-힣]+(?:시|도|특별시|광역시|자치시|자치도))/);
-  return m ? m[1] : '기타';
+  const m = address.match(/^([가-힣]+(?:특별시|광역시|특별자치시|도|특별자치도))/);
+  return m ? m[1] : null;
+}
+function groupByCity(geocoded) {
+  const groups = {};
+  geocoded.forEach(item => {
+    const addr = item.prop.address || item.prop.location || '';
+    const key = extractFullCity(addr) || item.regionName || '기타';
+    if (!groups[key]) groups[key] = { items: [], lats: [], lngs: [] };
+    groups[key].items.push(item);
+    groups[key].lats.push(item.lat);
+    groups[key].lngs.push(item.lng);
+  });
+  return groups;
 }
 
-// level → 표시 모드
-// level 4: 100m (minLevel, cluster)
-// level 5~6: 500m~1km → 동
-// level 7~8: 2km~4km → 구
-// level 9+: 8km+ → 지역
 function getMode(level) {
-  if (level >= 9) return 'city';
-  if (level >= 7) return 'gu';
-  if (level >= 5) return 'dong';
-  return 'cluster';
+  if (level >= 10) return 'city';   // 4km+  → 부산광역시
+  if (level >= 7)  return 'gu';     // 1km~2km → 남구
+  return 'cluster';                  // 500m 이하 → 숫자
 }
 
-// 모드별 스타일 (사이트 골드 계열)
 const MODE_STYLE = {
   cluster: { single: 'rgba(193,154,107,0.90)', multi: 'rgba(168,123,81,0.95)' },
   dong:    { bg: 'rgba(193,154,107,0.93)', border: '#fff' },
@@ -126,7 +122,8 @@ function makeLabelDiv(label, count, style, onClick) {
 function groupBy(geocoded, keyFn) {
   const groups = {};
   geocoded.forEach(item => {
-    const key = keyFn(item.prop.address) || '기타';
+    const addr = item.prop.address || item.prop.location || '';
+    const key = keyFn(addr) || '기타';
     if (!groups[key]) groups[key] = { items: [], lats: [], lngs: [] };
     groups[key].items.push(item);
     groups[key].lats.push(item.lat);
@@ -135,7 +132,7 @@ function groupBy(geocoded, keyFn) {
   return groups;
 }
 
-export default function KakaoMap({ address, radius = 20, level = 5, properties = null, onPropertyClick, onClusterClick, onBoundsChange }) {
+export default function KakaoMap({ address, radius = 20, level = 5, properties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapReadyRef = useRef(false);
@@ -144,9 +141,12 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
   const overlaysRef = useRef([]);
   const circlesRef = useRef([]);
   const geocodedRef = useRef([]);
+  const geocodingDoneRef = useRef(false);
   const prevModeRef = useRef(null);
   const onBoundsChangeRef = useRef(onBoundsChange);
   onBoundsChangeRef.current = onBoundsChange;
+  const onGeocodedIdsRef = useRef(onGeocodedIds);
+  onGeocodedIdsRef.current = onGeocodedIds;
   propertiesRef.current = properties;
 
   const [error, setError] = useState(false);
@@ -195,7 +195,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     const map = new window.kakao.maps.Map(mapRef.current, {
       center: new window.kakao.maps.LatLng(35.1336, 129.1010),
       level: 5,
-      minLevel: 4,
+      minLevel: 3,
     });
     mapInstanceRef.current = map;
     mapReadyRef.current = true;
@@ -207,12 +207,14 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
         prevModeRef.current = mode;
         renderOverlays(geocodedRef.current);
       }
-      if (!onBoundsChangeRef.current || geocodedRef.current.length === 0) return;
+      if (!onBoundsChangeRef.current || !geocodingDoneRef.current) return;
       const bounds = map.getBounds();
       const visible = geocodedRef.current
         .filter(item => bounds.contain(new window.kakao.maps.LatLng(item.lat, item.lng)))
         .map(item => item.prop);
-      onBoundsChangeRef.current(visible);
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+      onBoundsChangeRef.current(visible, { swLat: sw.getLat(), swLng: sw.getLng(), neLat: ne.getLat(), neLng: ne.getLng() });
     });
 
     updateMarkers(propertiesRef.current);
@@ -230,6 +232,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     clearOverlays();
     markersRef.current = [];
     geocodedRef.current = [];
+    geocodingDoneRef.current = false;
   }
 
   function renderOverlays(geocoded) {
@@ -262,10 +265,10 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
       return;
     }
 
-    // 동/구/지역 그룹핑
-    const keyFn = mode === 'dong' ? extractDong : mode === 'gu' ? extractGu : extractCity;
-    const style = MODE_STYLE[mode];
-    const groups = groupBy(geocoded, keyFn);
+    const style = MODE_STYLE[mode] || MODE_STYLE.city;
+    const groups = mode === 'city'
+      ? groupByCity(geocoded)
+      : groupBy(geocoded, mode === 'dong' ? extractDong : extractGu);
 
     Object.entries(groups).forEach(([label, { items, lats, lngs }]) => {
       const lat = lats.reduce((s, v) => s + v, 0) / lats.length;
@@ -286,40 +289,107 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     if (!map || !props) return;
     clearMapObjects();
 
-    const geocoder = new window.kakao.maps.services.Geocoder();
-    const todo = props.filter(p => p.address);
-    if (todo.length === 0) return;
+    /* 직접 좌표가 있는 매물과 지오코딩이 필요한 매물을 분리 */
+    const directCoords = props.filter(p => p.map_lat && p.map_lng);
+    const needsGeocode = props.filter(p => (!p.map_lat || !p.map_lng) && (p.address || p.location));
+
+    if (directCoords.length === 0 && needsGeocode.length === 0) {
+      geocodingDoneRef.current = true;
+      if (onGeocodedIdsRef.current) onGeocodedIdsRef.current(new Set());
+      if (onBoundsChangeRef.current) {
+        const mb = map.getBounds();
+        const sw = mb.getSouthWest(); const ne = mb.getNorthEast();
+        onBoundsChangeRef.current([], { swLat: sw.getLat(), swLng: sw.getLng(), neLat: ne.getLat(), neLng: ne.getLng() });
+      }
+      return;
+    }
 
     const geocoded = [];
-    let resolved = 0;
+
+    /* 직접 좌표 즉시 추가 */
+    directCoords.forEach(p => {
+      geocoded.push({ lat: p.map_lat, lng: p.map_lng, prop: p });
+    });
 
     const finalize = () => {
-      if (geocoded.length === 0) return;
       geocodedRef.current = geocoded;
-      prevModeRef.current = getMode(map.getLevel());
-      renderOverlays(geocoded);
-      const bounds = new window.kakao.maps.LatLngBounds();
-      geocoded.forEach(item => bounds.extend(new window.kakao.maps.LatLng(item.lat, item.lng)));
-      try { map.setBounds(bounds, 80); } catch {}
+      geocodingDoneRef.current = true;
+      if (onGeocodedIdsRef.current) {
+        onGeocodedIdsRef.current(new Set(geocoded.map(g => g.prop.id)));
+      }
+      if (geocoded.length === 0) {
+        if (onBoundsChangeRef.current) {
+          const mb = map.getBounds();
+          const sw = mb.getSouthWest(); const ne = mb.getNorthEast();
+          onBoundsChangeRef.current([], { swLat: sw.getLat(), swLng: sw.getLng(), neLat: ne.getLat(), neLng: ne.getLng() });
+        }
+        return;
+      }
+
+      const doRender = () => {
+        prevModeRef.current = getMode(map.getLevel());
+        renderOverlays(geocoded);
+        const b = new window.kakao.maps.LatLngBounds();
+        geocoded.forEach(it => b.extend(new window.kakao.maps.LatLng(it.lat, it.lng)));
+        try { map.setBounds(b, 80); } catch {}
+      };
+
+      // 주소에서 시/도를 못 추출한 매물 → 역지오코딩으로 보완
+      const unknowns = geocoded.filter(it => !extractFullCity(it.prop.address || it.prop.location || ''));
+      if (unknowns.length === 0) { doRender(); return; }
+
+      const rgeo = new window.kakao.maps.services.Geocoder();
+      let done2 = 0;
+      unknowns.forEach((item, i) => {
+        const cKey = `rgeo_${item.lat.toFixed(3)}_${item.lng.toFixed(3)}`;
+        const cached = tryGetCache(cKey);
+        if (cached !== null) {
+          if (cached) item.regionName = cached;
+          if (++done2 === unknowns.length) doRender();
+          return;
+        }
+        setTimeout(() => {
+          rgeo.coord2RegionCode(item.lng, item.lat, (result, status) => {
+            if (status === window.kakao.maps.services.Status.OK && result.length) {
+              const name = result[0].region_1depth_name || '';
+              item.regionName = name;
+              trySetCache(cKey, name);
+            } else {
+              trySetCache(cKey, '');
+            }
+            if (++done2 === unknowns.length) doRender();
+          });
+        }, i * 150);
+      });
     };
 
-    todo.forEach((prop, i) => {
-      const cached = tryGetCache(prop.address);
+    /* 지오코딩 불필요한 경우 바로 렌더링 */
+    if (needsGeocode.length === 0) {
+      finalize();
+      return;
+    }
+
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    let resolved = 0;
+
+    needsGeocode.forEach((prop, i) => {
+      const addr = prop.address || prop.location || '';
+      const cached = tryGetCache(addr);
       if (cached) {
         geocoded.push({ lat: cached.lat, lng: cached.lng, prop });
         resolved++;
-        if (resolved === todo.length) finalize();
+        if (resolved === needsGeocode.length) finalize();
         return;
       }
       setTimeout(() => {
-        geocoder.addressSearch(prop.address, (result, status) => {
+        geocoder.addressSearch(addr, (result, status) => {
           if (status === window.kakao.maps.services.Status.OK) {
             const c = { lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) };
-            trySetCache(prop.address, c);
+            trySetCache(addr, c);
             geocoded.push({ lat: c.lat, lng: c.lng, prop });
           }
           resolved++;
-          if (resolved === todo.length) finalize();
+          if (resolved === needsGeocode.length) finalize();
         });
       }, i * 250);
     });
@@ -330,39 +400,25 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     geocoder.addressSearch(address || '부산광역시 남구 대연동', (result, status) => {
       if (status !== window.kakao.maps.services.Status.OK) { setError(true); return; }
       const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
-
-      // 동 단위 주소 감지: 동/읍/면/리 뒤에 번지 없음
       const isDongLevel = /[가-힣]+(?:동|가|읍|면|리)\s*$/.test((address || '').trim());
 
       if (isDongLevel) {
-        // 500m 축척 고정
         const map = new window.kakao.maps.Map(mapRef.current, { center: coords, level: 5 });
         map.setMinLevel(5);
         map.setMaxLevel(5);
         new ResizeObserver(() => map.relayout()).observe(mapRef.current);
-
-        // 베이지 불투명 사각형 오버레이
         const dongName = extractDong(address) || address;
         const div = document.createElement('div');
         div.style.cssText = [
-          'background:#c8a97e',
-          'border-radius:8px',
-          'padding:9px 18px',
-          'color:#fff',
-          'font-size:13px',
-          'font-weight:800',
-          'pointer-events:none',
-          'box-shadow:0 3px 12px rgba(0,0,0,0.22)',
-          'white-space:nowrap',
-          'letter-spacing:-0.02em',
+          'background:#c8a97e', 'border-radius:8px', 'padding:9px 18px',
+          'color:#fff', 'font-size:13px', 'font-weight:800',
+          'pointer-events:none', 'box-shadow:0 3px 12px rgba(0,0,0,0.22)',
+          'white-space:nowrap', 'letter-spacing:-0.02em',
           'border:2px solid rgba(255,255,255,0.55)',
         ].join(';');
         div.textContent = dongName;
-        new window.kakao.maps.CustomOverlay({
-          position: coords, content: div, map, xAnchor: 0.5, yAnchor: 0.5,
-        });
+        new window.kakao.maps.CustomOverlay({ position: coords, content: div, map, xAnchor: 0.5, yAnchor: 0.5 });
       } else {
-        // 전체 주소: 정확한 핀 표시
         const map = new window.kakao.maps.Map(mapRef.current, { center: coords, level: 3 });
         new ResizeObserver(() => map.relayout()).observe(mapRef.current);
         new window.kakao.maps.Marker({ map, position: coords });

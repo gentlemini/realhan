@@ -1,0 +1,172 @@
+.page {
+  min-height: 100vh;
+  background: #f8f6f2;
+  padding: 48px 40px;
+  box-sizing: border-box;
+}
+
+.header {
+  margin-bottom: 36px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1c1917;
+  margin-bottom: 6px;
+}
+
+.desc {
+  font-size: 0.85rem;
+  color: #9d9189;
+}
+
+/* 4열 그리드 */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* 카드 */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #ede8e1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* 이미지 */
+.imgWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #ede8e1;
+  overflow: hidden;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.card:hover .img {
+  transform: scale(1.04);
+}
+
+.imgPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ede8e1 0%, #ddd5c8 100%);
+}
+
+.imgPlaceholderIcon {
+  font-size: 2.5rem;
+  opacity: 0.4;
+}
+
+.recommendBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #a87b51;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.05em;
+}
+
+/* 카드 본문 */
+.cardBody {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 배지 */
+.badgeRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 100px;
+  letter-spacing: 0.03em;
+}
+
+/* 건물명 */
+.buildingName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1c1917;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 1.35em;
+}
+
+/* 소재지 */
+.location {
+  font-size: 0.78rem;
+  color: #78716c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 1.2em;
+}
+
+/* 구분선 */
+.divider {
+  height: 1px;
+  background: #f0ebe4;
+  margin: 4px 0;
+}
+
+/* 금액 */
+.price {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #a87b51;
+  min-height: 1.3em;
+}
+
+/* 해당층 */
+.floor {
+  font-size: 0.76rem;
+  color: #9d9189;
+  min-height: 1.2em;
+}
+
+.empty {
+  display: inline-block;
+}
+
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+  .page { padding: 32px 16px; }
+}

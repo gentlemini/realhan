@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import styles from './SlideInDrawer.module.css';
-import { renderPrice } from '@/lib/utils';
 import PropertyImageFallback from './PropertyImageFallback';
 
 const KakaoMap = dynamic(() => import('./KakaoMap'), { ssr: false });
@@ -138,8 +137,6 @@ export default function SlideInDrawer({ isOpen, onClose, property }) {
   const currentImage = allImages[imgIndex] || null;
 
   const commonSpecs = [
-    { label: '매물 유형', value: prop.type },
-    { label: '거래 유형', value: prop.transactionType?.join(' / ') },
     { label: '공급면적', value: prop.area ? `${prop.area}㎡` : null },
     { label: '전용면적', value: prop.exclusiveArea ? `${prop.exclusiveArea}㎡` : null },
     { label: '해당층 / 전체층', value: prop.currentFloor ? `${prop.currentFloor}층 / ${prop.totalFloors || '-'}층` : null },
@@ -250,7 +247,31 @@ export default function SlideInDrawer({ isOpen, onClose, property }) {
 
               <div className={styles.price}>
                 <p className={styles.priceLabel}>매물 가격</p>
-                <p className={styles.priceValue}>{renderPrice(prop)}</p>
+                <div className={styles.priceBadges}>
+                  {prop.price > 0 && (
+                    <span className={`${styles.priceBadge} ${styles.priceBadgeAccent}`}>
+                      매매 {prop.price.toLocaleString()}만원
+                    </span>
+                  )}
+                  {prop.deposit > 0 && (
+                    <span className={`${styles.priceBadge} ${styles.priceBadgeAccent}`}>
+                      보증금 {prop.deposit.toLocaleString()}만원
+                    </span>
+                  )}
+                  {prop.monthlyRent > 0 && (
+                    <span className={`${styles.priceBadge} ${styles.priceBadgeSub}`}>
+                      월세 {prop.monthlyRent.toLocaleString()}만원
+                    </span>
+                  )}
+                  {prop.maintenanceFee > 0 && (
+                    <span className={`${styles.priceBadge} ${styles.priceBadgeMuted}`}>
+                      관리비 {prop.maintenanceFee.toLocaleString()}만원
+                    </span>
+                  )}
+                  {prop.price === 0 && prop.deposit === 0 && prop.monthlyRent === 0 && (
+                    <span className={`${styles.priceBadge} ${styles.priceBadgeMuted}`}>가격 협의</span>
+                  )}
+                </div>
               </div>
 
               {commonSpecs.length > 0 && (
@@ -280,8 +301,13 @@ export default function SlideInDrawer({ isOpen, onClose, property }) {
 
               {prop.features && (
                 <div className={styles.features}>
-                  <p className={styles.featuresTitle}>특이사항</p>
-                  <p className={styles.featuresText}>{prop.features}</p>
+                  <p className={styles.featuresTitle}>매물 특징</p>
+                  <div className={styles.featureTags}>
+                    {prop.features.split(/[,\n]/).map((f, i) => {
+                      const text = f.trim();
+                      return text ? <span key={i} className={styles.featureTag}>{text}</span> : null;
+                    })}
+                  </div>
                 </div>
               )}
 

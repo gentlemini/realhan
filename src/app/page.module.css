@@ -155,3 +155,454 @@
     display: none;
   }
 }
+
+/* ── 매물 섹션 공통 ── */
+.propSection {
+  padding: 56px 24px 64px;
+}
+
+.propInner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.sectionHead {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1c1917;
+  margin-bottom: 6px;
+}
+
+.sectionDesc {
+  font-size: 0.85rem;
+  color: #9d9189;
+}
+
+.emptyMsg {
+  text-align: center;
+  color: #9d9189;
+  padding: 60px 0;
+  font-size: 0.9rem;
+}
+
+/* 4열 그리드 */
+.featuredGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1100px) {
+  .featuredGrid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .featuredGrid { grid-template-columns: repeat(2, 1fr); }
+  .propSection { padding: 40px 16px 48px; }
+}
+
+@media (max-width: 480px) {
+  .featuredGrid { grid-template-columns: 1fr; }
+}
+
+/* 카드 */
+.fCard {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #ede8e1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* 이미지 썸네일 (오버레이 지원) */
+.fCardThumb {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background: #ede8e1;
+  overflow: hidden;
+}
+
+.fCardImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.fCard:hover .fCardImg {
+  transform: scale(1.04);
+}
+
+.fImgPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ede8e1 0%, #ddd5c8 100%);
+}
+
+.fImgIcon {
+  font-size: 2.5rem;
+  opacity: 0.4;
+}
+
+/* 카드 본문 */
+.fCardBody {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 100px;
+  letter-spacing: 0.03em;
+}
+
+/* ── 상세보기 모달 (admin2 미리보기와 동일 레이아웃) ── */
+.pvOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.52);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pvBox {
+  background: #fff;
+  border-radius: 16px;
+  width: 90vw;
+  max-width: 1100px;
+  height: 86vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.28);
+  overflow: hidden;
+  position: relative;
+}
+
+/* 닫기 버튼 */
+.pvClose {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 20;
+  background: rgba(0,0,0,0.07);
+  border: none;
+  color: #5a3e28;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.pvClose:hover { background: rgba(0,0,0,0.15); }
+
+/* 카카오 버튼 */
+.pvKakaoBtn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEE500;
+  border: none;
+  border-radius: 50px;
+  padding: 8px 12px 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #3A1D1D;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.pvKakaoBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.22); }
+.pvKakaoIcon { width: 24px; height: 24px; object-fit: contain; }
+
+/* 2단 레이아웃 */
+.pvLayout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 좌: 사진 */
+.pvPhotoCol {
+  width: 65%;
+  flex-shrink: 0;
+  border-right: 1px solid #e8e0d6;
+  overflow: hidden;
+}
+
+.pvPhotoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #f5f2ee;
+}
+
+.pvPhotoArea {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+/* 슬라이더 버튼 */
+.pvSlidePrev,
+.pvSlideNext {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: background 0.15s;
+  padding: 0;
+}
+.pvSlidePrev:hover,
+.pvSlideNext:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+.pvSlidePrev { left: 10px; }
+.pvSlideNext { right: 10px; }
+
+/* 하단 도트 */
+.pvSlideDots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+.pvSlideDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: 1px solid rgba(255,255,255,0.5);
+}
+
+/* 우하단 카운터 */
+.pvSlideCount {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.pvPhotoGhost {
+  font-size: 32px;
+  font-weight: 700;
+  color: #3a2a1a;
+  opacity: 0.12;
+  letter-spacing: 2px;
+}
+
+.pvPhotoFallback { text-align: center; line-height: 2; }
+.pvFallbackSub   { font-size: 15px; color: #7a6050; margin-bottom: 4px; }
+.pvFallbackName  { font-size: 22px; font-weight: 700; color: #3a2a1a; }
+.pvFallbackPhone { font-size: 22px; font-weight: 700; color: #3a2a1a; }
+
+/* 우: 지도 + 데이터 */
+.pvDataCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.pvMapBox {
+  height: 300px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e8e0d6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.pvMapPlaceholder {
+  font-size: 22px;
+  font-weight: 700;
+  color: #3a2a1a;
+  opacity: 0.18;
+}
+
+.pvDataScroll { flex: 1; overflow-y: auto; }
+
+.pvDataHeader {
+  padding: 12px 16px 14px;
+  background: #faf7f4;
+  border-bottom: 2px solid #e8ddd0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.pvHeaderSub {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pvTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: #2a1a0a;
+  line-height: 1.4;
+}
+
+.pvTitleEmpty { font-size: 13px; color: #ccc; font-weight: 400; }
+
+/* 데이터 행 */
+.pvRow {
+  display: flex;
+  border-bottom: 1px solid #f5f0eb;
+  min-height: 40px;
+  align-items: stretch;
+}
+.pvRow:last-child { border-bottom: none; }
+.pvRowHighlight { background: #fffaf5; }
+
+.pvLabel {
+  width: 90px;
+  min-width: 90px;
+  background: #faf7f4;
+  border-right: 1px solid #f0ebe4;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5a3e28;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: right;
+  word-break: keep-all;
+  line-height: 1.4;
+}
+
+.pvValue {
+  flex: 1;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: #3a2a1a;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+}
+
+.pvValuePrice {
+  font-size: 17px;
+  font-weight: 700;
+  color: #a87b51;
+}
+
+/* 담당자 카드 */
+.pvAgentCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-top: 2px solid #f0ebe4;
+  background: #faf7f4;
+}
+
+.pvAgentAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid #e8ddd0;
+}
+
+.pvAgentInfo { display: flex; flex-direction: column; gap: 3px; }
+.pvAgentName { font-size: 13px; font-weight: 700; color: #3a2a1a; }
+.pvAgentRole { font-size: 11.5px; color: #a87b51; font-weight: 600; }
+
+.pvDetailLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.pvPrivate { color: #a87b51; font-style: italic; font-size: 12px; }
+
+.pvBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pvPriceBadge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 100px;
+  background: #a87b51;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 모바일 대응 */
+@media (max-width: 700px) {
+  .pvBox { width: 100vw; height: 100dvh; border-radius: 0; }
+  .pvLayout { flex-direction: column; }
+  .pvPhotoCol { width: 100%; height: 240px; border-right: none; border-bottom: 1px solid #e8e0d6; }
+  .pvMapBox { height: 200px; }
+}

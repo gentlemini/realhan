@@ -1,7 +1,9 @@
 /* ── 헤더 기본 ── */
 .header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   height: var(--header-height);
   background: linear-gradient(to right, #1c1917 0%, #2a1e11 100%);

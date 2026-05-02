@@ -50,6 +50,103 @@
   padding: 3px 12px;
 }
 
+/* ── 전체 DB 매물번호 검색 ── */
+.globalSearchBar {
+  background: #fff;
+  border-bottom: 1px solid #e8e0d8;
+  padding: 10px 20px;
+  flex-shrink: 0;
+}
+
+.globalSearchWrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  max-width: 480px;
+}
+
+.globalSearchIcon {
+  position: absolute;
+  left: 12px;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.globalSearchInput {
+  width: 100%;
+  padding: 9px 36px 9px 36px;
+  border: 1.5px solid #c19a6b;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #3a2a1a;
+  background: #fffdf9;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 6px rgba(193,154,107,0.1);
+}
+.globalSearchInput:focus {
+  border-color: #a87b51;
+  box-shadow: 0 0 0 3px rgba(193,154,107,0.15);
+}
+.globalSearchInput::placeholder { color: #c0b0a0; }
+
+.globalSearchClear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #b0a090;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.globalSearchClear:hover { color: #7a5530; }
+
+/* 전역검색 결과 유형 뱃지 */
+.typeLabel {
+  display: inline-block;
+  background: rgba(168,123,81,0.12);
+  border: 1px solid rgba(168,123,81,0.25);
+  color: #7a5530;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+/* ── 탭 바 ── */
+.tabBar {
+  display: flex;
+  gap: 0;
+  background: #1c1917;
+  border-bottom: 2px solid #a87b51;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+
+.tabBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.45);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tabBtn:hover { color: rgba(255,255,255,0.75); }
+.tabBtnActive {
+  color: #c19a6b;
+  border-bottom-color: #c19a6b;
+}
+
 /* ── 본문 ── */
 .body {
   flex: 1;
@@ -127,8 +224,10 @@
   overflow: hidden;
 }
 
-.th:nth-child(1) { text-align: center; } /* 사진 */
-.th:nth-child(3) { text-align: center; } /* 수정 버튼 */
+/* 유형(1) 사진(2) 매물번호(3) 추천(4) 소재지(5) 등록일(6) */
+.th:nth-child(2) { text-align: center; }
+.th:nth-child(3) { text-align: center; }
+.th:nth-child(4) { text-align: center; }
 
 .row {
   border-bottom: 1px solid #f0ebe4;
@@ -147,7 +246,9 @@
   text-overflow: ellipsis;
 }
 
-.td:first-child { text-align: center; padding: 4px 6px; }
+.td:nth-child(2) { text-align: center; padding: 4px 6px; }
+.td:nth-child(3) { text-align: center; }
+.td:nth-child(4) { text-align: center; }
 
 /* ── 셀 타입 ── */
 .thumb {
@@ -394,4 +495,38 @@
   white-space: pre-wrap;
   line-height: 1.6;
   font-size: 13px;
+}
+
+/* ── 대분류 그룹 바 ── */
+.groupBar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px 20px 10px;
+  background: #f8f4ef;
+  border-bottom: 1px solid #e8e0d8;
+  flex-shrink: 0;
+}
+
+.groupBtn {
+  background: #fff;
+  border: 1.5px solid #d8cfc4;
+  color: #7a5a30;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.groupBtn:hover {
+  background: #f0ebe4;
+  border-color: #a87b51;
+  color: #5a3e20;
+}
+.groupBtnActive {
+  background: #2a1e11;
+  border-color: #2a1e11;
+  color: #c19a6b;
 }

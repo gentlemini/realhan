@@ -181,6 +181,17 @@
   color: var(--color-text-muted);
 }
 
+.cardFeatures {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
 @media (max-width: 768px) {
   .section {
     padding: 40px 16px;

@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
     <html lang="ko">
       <body>
         <Header />
-        <main>{children}</main>
+        <main style={{ paddingTop: 'var(--header-height)' }}>{children}</main>
         <Footer />
         <FloatingNav />
       </body>

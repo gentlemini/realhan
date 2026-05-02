@@ -1,0 +1,32 @@
+.wrap { width: 100%; display: flex; flex-direction: column; gap: 0; background: #fff; }
+.searchBar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #f0ebe4; background: #fdfcfb; }
+.searchInput { flex: 1; background: #fff; border: 1px solid #e8e0d6; border-radius: 7px; padding: 7px 11px; font-size: 13px; color: #3a2a1a; outline: none; transition: border-color 0.15s; }
+.searchInput:focus { border-color: #a87b51; }
+.searchBtn { background: #a87b51; border: none; color: #fff; border-radius: 7px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
+.searchBtn:hover { opacity: 0.85; }
+.status { font-size: 12px; color: #a87b51; white-space: nowrap; font-weight: 600; }
+.resultList { background: #fff; border-bottom: 1px solid #f0ebe4; max-height: 200px; overflow-y: auto; }
+.resultItem { width: 100%; background: transparent; border: none; border-bottom: 1px solid #f8f4f0; padding: 9px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; cursor: pointer; text-align: left; transition: background 0.1s; }
+.resultItem:last-child { border-bottom: none; }
+.resultItem:hover { background: #fff8f3; }
+.resultName { font-size: 13px; font-weight: 600; color: #3a2a1a; }
+.resultAddr { font-size: 11px; color: #b8a898; }
+.map { width: 100%; height: 280px; background: #f0ebe4; }
+.controls { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #f0ebe4; background: #fdfcfb; }
+.controlGroup { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.controlLabel { font-size: 12px; font-weight: 700; color: #7a5c3a; white-space: nowrap; min-width: 56px; }
+.radioBtns { display: flex; gap: 5px; flex-wrap: wrap; }
+.radioBtn { background: #f4f0ec; border: 1.5px solid #e0d8cc; border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #7a5c3a; cursor: pointer; transition: all 0.12s; }
+.radioBtn:hover { border-color: #a87b51; color: #a87b51; }
+.radioBtnActive { background: #a87b51; border-color: #a87b51; color: #fff; }
+.controlHint { font-size: 11px; color: #b8a898; }
+.coordInfo { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8a7060; font-family: monospace; }
+.coordHint { font-size: 11px; color: #b8a898; font-family: inherit; }
+.hiddenToggle { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #5a3e28; font-weight: 600; cursor: pointer; }
+.hiddenToggle input { accent-color: #a87b51; width: 15px; height: 15px; cursor: pointer; }
+.hiddenState { padding: 20px 14px; display: flex; align-items: center; gap: 10px; background: #fdfcfb; }
+.hiddenIcon { font-size: 20px; opacity: 0.4; }
+.hiddenText { font-size: 13px; color: #b8a898; font-weight: 600; flex: 1; }
+.toggleBtn { background: transparent; border: 1px solid #e0d8cc; border-radius: 6px; padding: 5px 14px; font-size: 12px; color: #a87b51; cursor: pointer; font-weight: 600; transition: all 0.15s; }
+.toggleBtn:hover { border-color: #a87b51; background: #fff8f3; }
+.hiddenNotice { background: #fff8f0; border: 1px solid #e8d5b8; border-radius: 6px; padding: 8px 12px; font-size: 11.5px; color: #7a5c3a; line-height: 1.6; margin: 0 14px 10px; }

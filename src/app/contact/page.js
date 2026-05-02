@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import styles from './contact.module.css';
 
 export default function ContactPage() {
@@ -13,19 +14,31 @@ export default function ContactPage() {
     message: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`[한결부동산 상담] ${form.name}님의 상담 문의`);
-    const body = encodeURIComponent(
-      `이름: ${form.name}\n연락처: ${form.phone}\n이메일: ${form.email}\n관심 매물: ${form.type}\n예산: ${form.budget}\n\n문의 내용:\n${form.message}`
-    );
-    window.location.href = `mailto:zsaza@naver.com?subject=${subject}&body=${body}`;
-    setSubmitted(true);
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || '전송 실패'); return; }
+      setSubmitted(true);
+    } catch {
+      setError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -71,13 +84,29 @@ export default function ContactPage() {
           </a>
         </div>
 
+        <Link href="/property-request" className={styles.quickBtn} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '20px 24px', background: 'linear-gradient(135deg, #1c1917, #2a1e11)', border: '1px solid rgba(193,154,107,0.3)', textDecoration: 'none' }}>
+          <span style={{ fontSize: '1.8rem' }}>🏠</span>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', marginBottom: 2 }}>소유하신 매물을 맡겨주세요</p>
+            <p style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>내 매물 접수하기 →</p>
+          </div>
+        </Link>
+
         <div className={styles.formSection}>
           <h2 className={styles.formTitle}>온라인 상담 신청</h2>
           {submitted ? (
             <div className={styles.successMsg}>
               <span>✅</span>
-              <p>메일 클라이언트가 열립니다. 전송 후 1-2 영업일 내 답변드립니다.</p>
-              <button onClick={() => setSubmitted(false)} className={styles.resetBtn}>
+              <p>문의가 접수되었습니다.<br />1-2 영업일 내 연락드리겠습니다.</p>
+              <a
+                href="http://pf.kakao.com/_QaxliG/chat"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ padding: '12px 28px', background: '#FAE100', color: '#3A1D1D', borderRadius: 8, fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none' }}
+              >
+                💬 카카오톡으로 빠른 상담
+              </a>
+              <button onClick={() => { setSubmitted(false); setForm({ name:'', phone:'', email:'', type:'', budget:'', message:'' }); }} className={styles.resetBtn}>
                 다시 작성
               </button>
             </div>
@@ -163,8 +192,9 @@ export default function ContactPage() {
                 />
               </div>
 
-              <button type="submit" className={styles.submitBtn}>
-                상담 신청하기 →
+              {error && <p style={{ color: '#e53e3e', fontSize: '0.85rem', marginTop: -8 }}>{error}</p>}
+              <button type="submit" className={styles.submitBtn} disabled={saving}>
+                {saving ? '전송 중…' : '상담 신청하기 →'}
               </button>
             </form>
           )}

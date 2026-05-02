@@ -58,7 +58,9 @@ function itemToFormValues(item) {
     opt_security: item.opt_security ? item.opt_security.split(', ').filter(Boolean) : [],
     opt_extra:    item.opt_extra    ? item.opt_extra.split(', ').filter(Boolean) : [],
     opt_parking:  item.opt_parking  ? item.opt_parking.split(', ').filter(Boolean) : [],
+    admin_memo:   item.admin_memo && item.admin_memo !== '-' ? item.admin_memo : '',
     imageUrl: item.imageUrl || '',
+    imageUrls: Array.isArray(item.imageUrls) && item.imageUrls.length ? item.imageUrls : (item.imageUrl ? [item.imageUrl] : []),
   };
 }
 
@@ -71,9 +73,30 @@ export default function EditPage() {
 
   useEffect(() => {
     try {
+      const freshFormKey = params.id + '_fresh_form';
+      const freshForm = sessionStorage.getItem(freshFormKey);
+      if (freshForm) {
+        try { setInitialValues(JSON.parse(freshForm)); } catch {}
+        sessionStorage.removeItem(freshFormKey);
+        setReady(true);
+        return;
+      }
+    } catch {}
+    try {
       const stored = sessionStorage.getItem('apt_edit_item');
       if (stored) {
         const item = JSON.parse(stored);
+        // Merge fresh image data from previous save if available
+        try {
+          const freshKey = 'fresh_images_' + params.id;
+          const fresh = sessionStorage.getItem(freshKey);
+          if (fresh) {
+            const { imageUrl, imageUrls } = JSON.parse(fresh);
+            item.imageUrl = imageUrl;
+            item.imageUrls = imageUrls;
+            sessionStorage.removeItem(freshKey);
+          }
+        } catch {}
         setInitialValues(itemToFormValues(item));
       } else {
         setError('데이터를 찾을 수 없습니다. 목록으로 돌아가세요.');

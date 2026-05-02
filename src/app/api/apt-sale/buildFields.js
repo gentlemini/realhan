@@ -10,6 +10,7 @@ export function buildFields(d) {
 
   addT('매물고유번호', d.property_id);
   addC('추천매물', d.recommended);
+  addS('계약상태', d.contract_status || '계약가능');
   addR('매물제목_특징', d.title);
   addS('매물분류', '아파트');
   addS('거래종류', '매매');
@@ -28,7 +29,7 @@ export function buildFields(d) {
   if (d.ho) {
     addR('호수', d.ho.text);
     addS('호수_공개여부', d.ho.privacy || '공개');
-    addR('호수_관리자메모', d.ho.adminMemo);
+    if (d.ho.adminMemo) addR('호수_관리자메모', d.ho.adminMemo);
   }
 
   addN('공급면적_㎡', d.supply_area);
@@ -43,7 +44,7 @@ export function buildFields(d) {
   if (d.curr_floor) {
     addR('해당층', d.curr_floor.text);
     addS('해당층_공개여부', d.curr_floor.privacy || '공개');
-    addR('해당층_관리자메모', d.curr_floor.adminMemo);
+    if (d.curr_floor.adminMemo) addR('해당층_관리자메모', d.curr_floor.adminMemo);
   }
 
   addN('총층수', d.total_floors);
@@ -80,6 +81,7 @@ export function buildFields(d) {
   addM('보안옵션', d.opt_security);
   addM('기타옵션', d.opt_extra);
   addM('주차옵션', d.opt_parking);
+  if (d.admin_memo) addR('관리자메모', d.admin_memo);
 
   return f;
 }

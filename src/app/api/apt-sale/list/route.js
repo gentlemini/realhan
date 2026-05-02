@@ -1,4 +1,4 @@
-const NOTION_API = 'https://api.notion.com/v1';
+﻿const NOTION_API = 'https://api.notion.com/v1';
 const DB_ID = '8e7d1a23e5be419f820889a2dd20623b';
 
 export async function GET() {
@@ -14,7 +14,7 @@ export async function GET() {
         sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         page_size: 100,
       }),
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) throw new Error(`Notion ${res.status}`);
@@ -29,6 +29,7 @@ export async function GET() {
       const gU  = f => f?.url || '';
       const gC  = f => f?.checkbox ?? false;
       const gM  = f => f?.multi_select?.map(o => o.name).join(', ') || '';
+      const gFiles = f => f?.files?.map(fi => fi?.external?.url || fi?.file?.url).filter(Boolean) ?? [];
 
       return {
         id:                    page.id,
@@ -77,11 +78,15 @@ export async function GET() {
         map_hidden:            gC(p['지도_숨김']),
         recommended:           gC(p['추천매물']),
         imageUrl:              gU(p['대표사진URL']),
+        imageUrls:             gFiles(p['사진첨부']),
+        admin_memo:            gR(p['관리자메모']),
+        contract_status:       gS(p['계약상태']),
         created_time:          page.created_time,
       };
     });
 
-    return Response.json(items);
+    const visible = items.filter(i => !i.contract_status || i.contract_status === '계약가능');
+    return Response.json(visible);
   } catch (err) {
     console.error('[apt-sale/list]', err);
     return Response.json([], { status: 200 });

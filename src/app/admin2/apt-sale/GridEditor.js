@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import {
@@ -13,6 +13,7 @@ import { CSS } from '@dnd-kit/utilities';
 import styles from './FormBuilder.module.css';
 import { DEFAULT_FIELDS, FIELD_TYPES } from './fields';
 import AdminMapField from './AdminMapField';
+import { useRouter } from 'next/navigation';
 
 const STORAGE_KEY = 'hk_apt_sale_layout_v7';
 const COUNTER_KEY = 'hk_property_counter';
@@ -94,7 +95,7 @@ function ControlledFieldInput({ field, value, onChange }) {
     return (
       <textarea
         className={styles.textarea}
-        placeholder={field.hint || ''}
+        placeholder=""
         value={value || ''}
         onChange={e => onChange?.(e.target.value)}
       />
@@ -276,7 +277,7 @@ function FormRow({ field, formValues, onFormChange }) {
           value={formValues?.[field.id]}
           onChange={v => onFormChange?.(field.id, v)}
         />
-        {field.hint && !['auto', 'fixed', 'multicheck', 'radio'].includes(field.type) && (
+        {field.hint && !['auto', 'fixed', 'multicheck', 'radio', 'textarea'].includes(field.type) && (
           <span className={styles.hint}>{field.hint}</span>
         )}
       </div>
@@ -309,8 +310,9 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
     return <span>{String(v)}</span>;
   }
 
+  const [pvPhotoIdx, setPvPhotoIdx] = useState(repIdx || 0);
   const visibleFields = fields.filter(f => !['spacer', 'twoCol', 'mapConfig', 'photos'].includes(f.type) && f.id !== 'title');
-  const repPhoto = filePreviews?.[repIdx]?.preview || filePreviews?.[0]?.preview || null;
+  const pvCurrent = filePreviews?.[pvPhotoIdx]?.preview || null;
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -328,9 +330,23 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
 
         <div className={styles.previewLayout}>
           {/* 좌: 사진 */}
-          <div className={styles.previewPhotoCol}>
-            {repPhoto ? (
-              <img src={repPhoto} alt="대표사진" className={styles.previewPhotoImg} />
+          <div className={styles.previewPhotoCol} style={{ position: 'relative' }}>
+            {pvCurrent ? (
+              <>
+                <img src={pvCurrent} alt={`사진 ${pvPhotoIdx + 1}`} className={styles.previewPhotoImg} />
+                {(filePreviews?.length || 0) > 1 && (
+                  <>
+                    <button onClick={() => setPvPhotoIdx(i => (i - 1 + filePreviews.length) % filePreviews.length)} style={{ position:'absolute', top:'50%', left:10, transform:'translateY(-50%)', background:'rgba(0,0,0,0.35)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, fontSize:26, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>&#8249;</button>
+                    <button onClick={() => setPvPhotoIdx(i => (i + 1) % filePreviews.length)} style={{ position:'absolute', top:'50%', right:10, transform:'translateY(-50%)', background:'rgba(0,0,0,0.35)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, fontSize:26, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>&#8250;</button>
+                    <div style={{ position:'absolute', bottom:12, left:'50%', transform:'translateX(-50%)', display:'flex', gap:6, zIndex:10 }}>
+                      {filePreviews.map((_, i) => (
+                        <span key={i} onClick={() => setPvPhotoIdx(i)} style={{ width:8, height:8, borderRadius:'50%', cursor:'pointer', border:'1px solid rgba(255,255,255,0.5)', background: i === pvPhotoIdx ? '#5a3e28' : 'rgba(255,255,255,0.6)' }} />
+                      ))}
+                    </div>
+                    <div style={{ position:'absolute', bottom:10, right:14, background:'rgba(0,0,0,0.45)', color:'#fff', fontSize:12, padding:'2px 8px', borderRadius:10, zIndex:10, pointerEvents:'none' }}>{pvPhotoIdx + 1} / {filePreviews.length}</div>
+                  </>
+                )}
+              </>
             ) : (
               <div className={styles.previewPhotoArea}>
                 <span className={styles.previewPhotoGhost}>사진위치</span>
@@ -446,7 +462,7 @@ function SortableRow({ field, onDelete, formValues, onFormChange }) {
           value={formValues?.[field.id]}
           onChange={v => onFormChange?.(field.id, v)}
         />
-        {field.hint && !['auto', 'fixed', 'multicheck', 'radio'].includes(field.type) && (
+        {field.hint && !['auto', 'fixed', 'multicheck', 'radio', 'textarea'].includes(field.type) && (
           <span className={styles.hint}>{field.hint}</span>
         )}
       </div>
@@ -470,6 +486,7 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
   const [formValues, setFormValues] = useState({ location: '', property_id: '', direction: { base: '', dir: '동향' } });
   const [filePreviews, setFilePreviews] = useState([]);
   const [repIdx, setRepIdx]         = useState(0);
+  const router = useRouter();
   const [saving, setSaving]         = useState(false);
   const [msg, setMsg]               = useState('');
   const saveTimer = useRef(null);
@@ -518,7 +535,10 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
   useEffect(() => {
     if (isEdit && initialValues) {
       setFormValues(initialValues);
-      if (initialValues.imageUrl) {
+      if (initialValues.imageUrls?.length) {
+        setFilePreviews(initialValues.imageUrls.map(url => ({ preview: url, url })));
+        setRepIdx(0);
+      } else if (initialValues.imageUrl) {
         setFilePreviews([{ preview: initialValues.imageUrl, url: initialValues.imageUrl }]);
         setRepIdx(0);
       }
@@ -589,25 +609,25 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
 
     let uploadedUrls = [];
     if (filePreviews.length > 0) {
-      const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-      const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-      const canUpload = cloud && preset && cloud !== 'your_cloud_name';
-      if (canUpload) setMsg('📤 사진 업로드 중...');
+      let uploadFailed = 0;
+      let lastError = '';
+      if (filePreviews.some(p => p.file)) setMsg('📤 사진 업로드 중...');
       for (const item of filePreviews) {
         if (item.url) {
           uploadedUrls.push(item.url);
-        } else if (item.file && canUpload) {
+        } else if (item.file) {
           const fd = new FormData();
           fd.append('file', item.file);
-          fd.append('upload_preset', preset);
           try {
-            const r = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: 'POST', body: fd });
-            if (r.ok) { const d = await r.json(); uploadedUrls.push(d.secure_url); }
-          } catch {}
+            const r = await fetch('/api/upload', { method: 'POST', body: fd });
+            if (r.ok) { const d = await r.json(); if (d.secure_url) uploadedUrls.push(d.secure_url); else { uploadFailed++; lastError = d.error || ''; } }
+            else { const d = await r.json().catch(() => ({})); uploadFailed++; lastError = d.error || `HTTP ${r.status}`; }
+          } catch (e) { uploadFailed++; lastError = e.message; }
         }
       }
-      if (!canUpload && filePreviews.some(p => p.file)) {
-        setMsg('⚠️ Cloudinary 미설정 — 사진 없이 저장됩니다.');
+      if (uploadFailed > 0) {
+        setMsg(`⚠️ 사진 ${uploadFailed}개 업로드 실패${lastError ? ': ' + lastError : ''} — 나머지로 저장합니다.`);
+        await new Promise(r => setTimeout(r, 3000));
       }
     }
 
@@ -626,13 +646,14 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
         body: JSON.stringify(payload),
       });
       if (res.ok) {
-        setMsg(isEdit ? `✅ 수정 완료! (${formValues.property_id})` : `✅ 등록 완료! (${formValues.property_id})`);
+        setMsg(isEdit ? `✅ 수정 완료! (${formValues.property_id}) — 사진 ${uploadedUrls.length}장 저장` : `✅ 등록 완료! (${formValues.property_id}) — 사진 ${uploadedUrls.length}장`);
         if (isEdit) {
+          try {
+            sessionStorage.setItem(pageId + '_fresh_form', JSON.stringify({ ...formValues, imageUrl: payload.imageUrl, imageUrls: uploadedUrls }));
+          } catch {}
           setTimeout(() => onBack(), 800);
         } else {
-          setFilePreviews([]);
-          setRepIdx(0);
-          setFormValues({ location: '', property_id: generatePropertyId(), direction: { base: '', dir: '동향' } });
+          router.push('/admin2/properties');
         }
       } else {
         const err = await res.json().catch(() => ({}));
@@ -668,6 +689,7 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
             <>
               <button className={styles.editLayoutBtn} onClick={() => setEditMode(true)}>레이아웃 편집</button>
               <button className={styles.previewBtn} onClick={() => setShowPreview(true)}>미리보기</button>
+              <button className={styles.submitBtn} style={{ padding: '6px 18px', fontSize: 13 }} onClick={handleSubmit} disabled={saving}>{saving ? '저장 중…' : '매물등록하기'}</button>
             </>
           )}
         </div>
@@ -737,6 +759,22 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
                 />
               );
             })
+          )}
+          {!editMode && (
+            <div className={styles.row} style={{ background: '#f5f0eb', borderTop: '2px solid #c9a87c' }}>
+              <div className={styles.labelCell} style={{ color: '#7a4f2d', fontWeight: 700 }}>
+                🔒 관리자메모
+                <span style={{ display: 'block', fontSize: 11, color: '#aaa', fontWeight: 400 }}>미노출</span>
+              </div>
+              <div className={styles.inputCell}>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="관리자 전용 — 홈페이지에 표시되지 않습니다"
+                  value={formValues.admin_memo || ''}
+                  onChange={e => handleFormChange('admin_memo', e.target.value)}
+                />
+              </div>
+            </div>
           )}
         </div>
 

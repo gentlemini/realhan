@@ -119,7 +119,9 @@ function PropertyCard({ property, onClick }) {
 
       <div className={styles.cardBody}>
         <p className={styles.cardAddress}>{property.address || '주소 정보 없음'}</p>
-        <h3 className={styles.cardName}>{property.name}</h3>
+        <h3 className={styles.cardName}>
+          {property.name || `${property.type || ''} ${(property.transactionType || []).join('·')}`.trim()}
+        </h3>
         <p className={styles.cardPrice}>{renderPrice(property)}</p>
         {property.area > 0 && (
           <p className={styles.cardMeta}>
@@ -127,6 +129,9 @@ function PropertyCard({ property, onClick }) {
             {property.currentFloor ? ` · ${property.currentFloor}층` : ''}
             {property.direction ? ` · ${property.direction}` : ''}
           </p>
+        )}
+        {property.features && (
+          <p className={styles.cardFeatures}>{property.features}</p>
         )}
       </div>
     </div>

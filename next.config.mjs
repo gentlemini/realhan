@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: '.next-build',
-  serverExternalPackages: ['@notionhq/client'],
+serverExternalPackages: ['@notionhq/client'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'res.cloudinary.com' },

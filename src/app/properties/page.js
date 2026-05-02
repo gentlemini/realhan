@@ -72,7 +72,10 @@ function PreviewMap({ lat, lng, radius }) {
 
   useEffect(() => {
     function initMap() {
-      if (!mapRef.current || typeof window.kakao?.maps?.LatLng !== 'function') return;
+      if (!mapRef.current) return;
+      if (typeof window.kakao?.maps?.LatLng !== 'function') return;
+      // display:none 등 0×0 컨테이너는 건너뜀
+      if (!mapRef.current.offsetWidth && !mapRef.current.offsetHeight) return;
       const { kakao } = window;
       const center = new kakao.maps.LatLng(lat, lng);
       const map = new kakao.maps.Map(mapRef.current, { center, level: 5 });
@@ -89,6 +92,11 @@ function PreviewMap({ lat, lng, radius }) {
       }
     }
 
+    // 이미 완전히 초기화된 경우: load() 우회
+    if (typeof window.kakao?.maps?.LatLng === 'function') {
+      initMap();
+      return;
+    }
     if (window.kakao?.maps) { window.kakao.maps.load(initMap); return; }
     const existing = document.getElementById('kakao-map-sdk');
     if (existing) { existing.addEventListener('load', () => window.kakao.maps.load(initMap)); return; }
@@ -202,6 +210,7 @@ function PreviewModal({ item, onClose }) {
           </div>
 
           <div className={modalStyles.pvDataCol}>
+            {/* 데스크탑 지도 */}
             <div className={modalStyles.pvMapBox}>
               {hasMap ? (
                 <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
@@ -220,6 +229,16 @@ function PreviewModal({ item, onClose }) {
                   {modalTitle || <span className={modalStyles.pvTitleEmpty}>매물제목 미입력</span>}
                 </div>
               </div>
+
+              {/* 모바일 전용 지도 (헤더 아래, 스크롤 영역 내) */}
+              {!detLoading && (
+                <div className={modalStyles.pvMobileMap}>
+                  {hasMap
+                    ? <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
+                    : <span className={modalStyles.pvMapPlaceholder}>지도 위치 미등록</span>
+                  }
+                </div>
+              )}
 
               {detLoading ? (
                 <div className={modalStyles.pvDetailLoading}>

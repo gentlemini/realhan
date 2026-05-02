@@ -50,7 +50,10 @@ function PreviewMap({ lat, lng, radius }) {
 
   useEffect(() => {
     function initMap() {
-      if (!mapRef.current || typeof window.kakao?.maps?.LatLng !== 'function') return;
+      if (!mapRef.current) return;
+      if (typeof window.kakao?.maps?.LatLng !== 'function') return;
+      // display:none 등 0×0 컨테이너는 건너뜀 — 이후 콜백 큐를 막지 않기 위해
+      if (!mapRef.current.offsetWidth && !mapRef.current.offsetHeight) return;
       const { kakao } = window;
       const center = new kakao.maps.LatLng(lat, lng);
       const map = new kakao.maps.Map(mapRef.current, { center, level: 5 });
@@ -67,6 +70,12 @@ function PreviewMap({ lat, lng, radius }) {
       }
     }
 
+    // 이미 완전히 초기화된 경우: load() 우회해서 직접 호출
+    if (typeof window.kakao?.maps?.LatLng === 'function') {
+      initMap();
+      return;
+    }
+    // SDK 로드됐지만 maps 미초기화
     if (window.kakao?.maps) {
       window.kakao.maps.load(initMap);
       return;
@@ -193,7 +202,7 @@ function PreviewModal({ item, onClose }) {
 
           {/* 우: 지도 + 데이터 */}
           <div className={styles.pvDataCol}>
-            {/* 지도 영역 — pvDataScroll 밖에 위치해 데스크탑은 고정, 모바일은 pvDataCol 스크롤 */}
+            {/* 데스크탑 지도 (pvDataScroll 위, 고정) */}
             <div className={styles.pvMapBox}>
               {hasMap ? (
                 <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
@@ -214,6 +223,16 @@ function PreviewModal({ item, onClose }) {
                   {modalTitle || <span className={styles.pvTitleEmpty}>매물제목 미입력</span>}
                 </div>
               </div>
+
+              {/* 모바일 전용 지도 (헤더 아래, 스크롤 영역 내) */}
+              {!detLoading && (
+                <div className={styles.pvMobileMap}>
+                  {hasMap
+                    ? <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
+                    : <span className={styles.pvMapPlaceholder}>지도 위치 미등록</span>
+                  }
+                </div>
+              )}
 
               {/* 필드 행 */}
               {detLoading ? (

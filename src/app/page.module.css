@@ -616,6 +616,22 @@
   }
 }
 
+/* 모바일 전용 지도 (pvDataScroll 내, pvDataHeader 아래) */
+.pvMobileMap {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .pvMobileMap {
+    display: block;
+    height: 200px;
+    width: 100%;
+    flex-shrink: 0;
+    border-bottom: 1px solid #e8e0d6;
+    background: #f5f2ee;
+  }
+}
+
 /* 모바일 대응 */
 @media (max-width: 900px) {
   .pvBox { width: 100vw; height: 100dvh; border-radius: 0; }
@@ -623,7 +639,7 @@
   .pvPhotoCol { width: 100%; height: 220px; flex-shrink: 0; border-right: none; border-bottom: 1px solid #e8e0d6; }
   .pvDataCol { flex: 1; overflow-y: auto; }
   .pvDataScroll { overflow: visible; }
-  .pvMapBox { height: 200px; background: #f5f2ee; }
+  .pvMapBox { display: none; }
   .pvKakaoBtn { padding: 4px 7px 4px 5px; font-size: 10px; gap: 4px; bottom: 26px; right: 10px; }
   .pvKakaoIcon { width: 16px; height: 16px; }
 }

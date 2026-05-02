@@ -67,31 +67,45 @@ function formatPrice(item) {
   return '';
 }
 
-function ensureKakaoSdk() {
-  if (typeof window.kakao?.maps?.LatLng === 'function') return;
-  if (window.kakao?.maps) return; // KakaoMap.js 가 이미 load() 중이면 간섭 금지
-  if (document.getElementById('kakao-map-sdk')) return;
-  const script = document.createElement('script');
-  script.id  = 'kakao-map-sdk';
-  script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
-  script.onload = () => window.kakao.maps.load(() => {});
-  document.head.appendChild(script);
+let _kakaoPromise = null;
+
+function loadKakaoSdk() {
+  if (_kakaoPromise) return _kakaoPromise;
+  _kakaoPromise = new Promise((resolve, reject) => {
+    if (typeof window.kakao?.maps?.LatLng === 'function') { resolve(); return; }
+    function poll() {
+      let n = 0;
+      const t = setInterval(() => {
+        if (typeof window.kakao?.maps?.LatLng === 'function') { clearInterval(t); resolve(); }
+        else if (++n > 100) { clearInterval(t); reject(new Error('timeout')); }
+      }, 100);
+    }
+    if (window.kakao?.maps) { poll(); return; }
+    const existing = document.getElementById('kakao-map-sdk');
+    if (existing) {
+      if (window.kakao) { poll(); return; }
+      existing.addEventListener('load', poll, { once: true });
+      return;
+    }
+    if (!KAKAO_APP_KEY) { reject(new Error('no key')); return; }
+    const s = document.createElement('script');
+    s.id = 'kakao-map-sdk';
+    s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
+    s.onload = () => window.kakao.maps.load(resolve);
+    s.onerror = () => reject(new Error('load error'));
+    document.head.appendChild(s);
+  });
+  _kakaoPromise.catch(() => { _kakaoPromise = null; });
+  return _kakaoPromise;
 }
 
 function PreviewMap({ lat, lng, radius }) {
   const mapRef = useRef(null);
-
   useEffect(() => {
-    ensureKakaoSdk();
-    let timer;
-
-    function tryInit() {
-      if (!mapRef.current) return;
+    let cancelled = false;
+    loadKakaoSdk().then(() => {
+      if (cancelled || !mapRef.current) return;
       if (!mapRef.current.offsetWidth && !mapRef.current.offsetHeight) return;
-      if (typeof window.kakao?.maps?.LatLng !== 'function') {
-        timer = setTimeout(tryInit, 100);
-        return;
-      }
       const { kakao } = window;
       const center = new kakao.maps.LatLng(lat, lng);
       const map = new kakao.maps.Map(mapRef.current, { center, level: 5 });
@@ -99,19 +113,11 @@ function PreviewMap({ lat, lng, radius }) {
       if (!radius || radius === 0) {
         new kakao.maps.Marker({ position: center, map });
       } else {
-        new kakao.maps.Circle({
-          center, radius,
-          strokeWeight: 2, strokeColor: '#a87b51', strokeOpacity: 0.8,
-          fillColor: '#c19a6b', fillOpacity: 0.15,
-          map,
-        });
+        new kakao.maps.Circle({ center, radius, strokeWeight: 2, strokeColor: '#a87b51', strokeOpacity: 0.8, fillColor: '#c19a6b', fillOpacity: 0.15, map });
       }
-    }
-
-    timer = setTimeout(tryInit, 50);
-    return () => clearTimeout(timer);
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, [lat, lng, radius]);
-
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
 }
 

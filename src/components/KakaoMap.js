@@ -82,9 +82,9 @@ function groupByCity(geocoded) {
 }
 
 function getMode(level) {
-  if (level >= 10) return 'city';   // 4km+  → 부산광역시
-  if (level >= 7)  return 'gu';     // 1km~2km → 남구
-  return 'cluster';                  // 500m 이하 → 숫자
+  if (level >= 10) return 'city';
+  if (level >= 7)  return 'gu';
+  return 'cluster';
 }
 
 const MODE_STYLE = {
@@ -119,6 +119,31 @@ function makeLabelDiv(label, count, style, onClick) {
   return div;
 }
 
+function makeHiddenLabelDiv(label, count, onClick) {
+  const div = document.createElement('div');
+  div.style.cssText = [
+    'background:rgba(71,85,105,0.82)',
+    'border:2px dashed rgba(255,255,255,0.65)',
+    'border-radius:20px',
+    'box-shadow:0 2px 8px rgba(0,0,0,0.25)',
+    'display:flex',
+    'flex-direction:column',
+    'align-items:center',
+    'justify-content:center',
+    'color:#fff',
+    'font-weight:700',
+    'cursor:pointer',
+    'pointer-events:auto',
+    'padding:4px 12px',
+    'white-space:nowrap',
+    'min-width:56px',
+    'text-align:center',
+  ].join(';');
+  div.innerHTML = `<span style="font-size:10px;line-height:1.5;opacity:0.88;">🔒 ${label}</span><span style="font-size:16px;line-height:1.3;">${count}</span>`;
+  div.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+  return div;
+}
+
 function groupBy(geocoded, keyFn) {
   const groups = {};
   geocoded.forEach(item => {
@@ -132,23 +157,31 @@ function groupBy(geocoded, keyFn) {
   return groups;
 }
 
-export default function KakaoMap({ address, radius = 20, level = 5, properties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds }) {
+// 500m 축척(level 4) 이상에서만 숨김 매물 버블 표시
+const HIDDEN_SHOW_MIN_LEVEL = 4;
+
+export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapReadyRef = useRef(false);
-  const boundsLockedRef = useRef(false); // 최초 setBounds 이후 잠금
+  const boundsLockedRef = useRef(false);
   const propertiesRef = useRef(properties);
+  const hiddenPropertiesRef = useRef(hiddenProperties);
   const markersRef = useRef([]);
   const overlaysRef = useRef([]);
+  const hiddenOverlaysRef = useRef([]);
   const circlesRef = useRef([]);
   const geocodedRef = useRef([]);
+  const hiddenGeocodedRef = useRef([]);
   const geocodingDoneRef = useRef(false);
   const prevModeRef = useRef(null);
+  const prevLevelRef = useRef(null);
   const onBoundsChangeRef = useRef(onBoundsChange);
   onBoundsChangeRef.current = onBoundsChange;
   const onGeocodedIdsRef = useRef(onGeocodedIds);
   onGeocodedIdsRef.current = onGeocodedIds;
   propertiesRef.current = properties;
+  hiddenPropertiesRef.current = hiddenProperties;
 
   const [error, setError] = useState(false);
   const isMulti = !!properties;
@@ -188,6 +221,11 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     updateMarkers(properties);
   }, [properties]);
 
+  useEffect(() => {
+    if (!mapReadyRef.current || !isMulti) return;
+    updateHiddenMarkers(hiddenProperties || []);
+  }, [hiddenProperties]);
+
   function initMultiMap() {
     if (!mapRef.current || mapRef.current.offsetHeight === 0) {
       setTimeout(initMultiMap, 100);
@@ -203,11 +241,24 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     new ResizeObserver(() => map.relayout()).observe(mapRef.current);
 
     window.kakao.maps.event.addListener(map, 'idle', () => {
-      const mode = getMode(map.getLevel());
+      const currentLevel = map.getLevel();
+      const mode = getMode(currentLevel);
+
+      // 일반 매물: 모드 변경 시 재렌더
       if (mode !== prevModeRef.current && geocodedRef.current.length > 0) {
         prevModeRef.current = mode;
         renderOverlays(geocodedRef.current);
       }
+
+      // 숨김 매물: 레벨 변경(특히 4 경계) 시 재렌더
+      const levelChanged = currentLevel !== prevLevelRef.current;
+      const crossedThreshold = prevLevelRef.current !== null &&
+        ((prevLevelRef.current < HIDDEN_SHOW_MIN_LEVEL) !== (currentLevel < HIDDEN_SHOW_MIN_LEVEL));
+      if (levelChanged && (crossedThreshold || mode !== prevModeRef.current)) {
+        renderHiddenOverlays(hiddenGeocodedRef.current);
+      }
+      prevLevelRef.current = currentLevel;
+
       if (!onBoundsChangeRef.current || !geocodingDoneRef.current) return;
       const bounds = map.getBounds();
       const visible = geocodedRef.current
@@ -219,28 +270,36 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     });
 
     updateMarkers(propertiesRef.current);
+    updateHiddenMarkers(hiddenPropertiesRef.current || []);
   }
 
-  function clearOverlays() {
+  function clearVisibleOverlays() {
     overlaysRef.current.forEach(o => o.setMap(null));
     circlesRef.current.forEach(c => c.setMap(null));
     overlaysRef.current = [];
     circlesRef.current = [];
   }
 
+  function clearHiddenOverlays() {
+    hiddenOverlaysRef.current.forEach(o => o.setMap(null));
+    hiddenOverlaysRef.current = [];
+  }
+
   function clearMapObjects() {
     markersRef.current.forEach(m => m.setMap(null));
-    clearOverlays();
+    clearVisibleOverlays();
+    clearHiddenOverlays();
     markersRef.current = [];
     geocodedRef.current = [];
+    hiddenGeocodedRef.current = [];
     geocodingDoneRef.current = false;
-    boundsLockedRef.current = false; // 마커 초기화 시 bounds 잠금 해제
+    boundsLockedRef.current = false;
   }
 
   function renderOverlays(geocoded) {
     const map = mapInstanceRef.current;
     if (!map || geocoded.length === 0) return;
-    clearOverlays();
+    clearVisibleOverlays();
 
     const mode = getMode(map.getLevel());
 
@@ -286,12 +345,43 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     });
   }
 
+  function renderHiddenOverlays(hiddenGeocoded) {
+    const map = mapInstanceRef.current;
+    clearHiddenOverlays();
+    if (!map || !hiddenGeocoded || hiddenGeocoded.length === 0) return;
+
+    // level 4(500m) 미만이면 지도에 표시하지 않음 — 배너로 처리
+    if (map.getLevel() < HIDDEN_SHOW_MIN_LEVEL) return;
+
+    const mode = getMode(map.getLevel());
+    let groups;
+    if (mode === 'city') {
+      groups = groupByCity(hiddenGeocoded);
+    } else if (mode === 'gu') {
+      groups = groupBy(hiddenGeocoded, extractGu);
+    } else {
+      groups = groupBy(hiddenGeocoded, extractDong);
+    }
+
+    Object.entries(groups).forEach(([label, { items, lats, lngs }]) => {
+      const lat = lats.reduce((s, v) => s + v, 0) / lats.length;
+      const lng = lngs.reduce((s, v) => s + v, 0) / lngs.length;
+      const pos = new window.kakao.maps.LatLng(lat, lng);
+      const div = makeHiddenLabelDiv(label, items.length, () => {
+        if (onClusterClick) onClusterClick(items.map(it => it.prop));
+      });
+      const overlay = new window.kakao.maps.CustomOverlay({
+        position: pos, content: div, map, zIndex: 9, xAnchor: 0.5, yAnchor: 0.5,
+      });
+      hiddenOverlaysRef.current.push(overlay);
+    });
+  }
+
   function updateMarkers(props) {
     const map = mapInstanceRef.current;
     if (!map || !props) return;
     clearMapObjects();
 
-    /* 직접 좌표가 있는 매물과 지오코딩이 필요한 매물을 분리 */
     const directCoords = props.filter(p => p.map_lat && p.map_lng);
     const needsGeocode = props.filter(p => (!p.map_lat || !p.map_lng) && (p.address || p.location));
 
@@ -308,7 +398,6 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
 
     const geocoded = [];
 
-    /* 직접 좌표 즉시 추가 */
     directCoords.forEach(p => {
       geocoded.push({ lat: p.map_lat, lng: p.map_lng, prop: p });
     });
@@ -330,7 +419,9 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
 
       const doRender = () => {
         prevModeRef.current = getMode(map.getLevel());
+        prevLevelRef.current = map.getLevel();
         renderOverlays(geocoded);
+        renderHiddenOverlays(hiddenGeocodedRef.current);
         if (!boundsLockedRef.current) {
           const b = new window.kakao.maps.LatLngBounds();
           geocoded.forEach(it => b.extend(new window.kakao.maps.LatLng(it.lat, it.lng)));
@@ -339,7 +430,6 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
         }
       };
 
-      // 주소에서 시/도를 못 추출한 매물 → 역지오코딩으로 보완
       const unknowns = geocoded.filter(it => !extractFullCity(it.prop.address || it.prop.location || ''));
       if (unknowns.length === 0) { doRender(); return; }
 
@@ -368,7 +458,58 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
       });
     };
 
-    /* 지오코딩 불필요한 경우 바로 렌더링 */
+    if (needsGeocode.length === 0) {
+      finalize();
+      return;
+    }
+
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    let resolved = 0;
+
+    needsGeocode.forEach((prop, i) => {
+      const addr = prop.address || prop.location || '';
+      const cached = tryGetCache(addr);
+      if (cached) {
+        geocoded.push({ lat: cached.lat, lng: cached.lng, prop });
+        resolved++;
+        if (resolved === needsGeocode.length) finalize();
+        return;
+      }
+      setTimeout(() => {
+        geocoder.addressSearch(addr, (result, status) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const c = { lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) };
+            trySetCache(addr, c);
+            geocoded.push({ lat: c.lat, lng: c.lng, prop });
+          }
+          resolved++;
+          if (resolved === needsGeocode.length) finalize();
+        });
+      }, i * 250);
+    });
+  }
+
+  function updateHiddenMarkers(hiddenProps) {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    clearHiddenOverlays();
+    hiddenGeocodedRef.current = [];
+
+    if (!hiddenProps || hiddenProps.length === 0) return;
+
+    const geocoded = [];
+    const directCoords = hiddenProps.filter(p => p.map_lat && p.map_lng);
+    const needsGeocode = hiddenProps.filter(p => (!p.map_lat || !p.map_lng) && (p.address || p.location));
+
+    directCoords.forEach(p => {
+      geocoded.push({ lat: p.map_lat, lng: p.map_lng, prop: p });
+    });
+
+    const finalize = () => {
+      hiddenGeocodedRef.current = geocoded;
+      renderHiddenOverlays(geocoded);
+    };
+
     if (needsGeocode.length === 0) {
       finalize();
       return;

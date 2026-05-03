@@ -475,6 +475,15 @@ function PropertiesPageInner() {
   const mapProps = useMemo(() => filtered.filter(p => !p.map_hidden), [filtered]);
   const hiddenMapProps = useMemo(() => filtered.filter(p => p.map_hidden), [filtered]);
 
+  const hiddenInBoundsCount = useMemo(() => {
+    const hidden = filtered.filter(p => p.map_hidden && p.map_lat != null && p.map_lng != null);
+    if (!mapBounds) return hidden.length;
+    return hidden.filter(p =>
+      p.map_lat >= mapBounds.swLat && p.map_lat <= mapBounds.neLat &&
+      p.map_lng >= mapBounds.swLng && p.map_lng <= mapBounds.neLng
+    ).length;
+  }, [filtered, mapBounds]);
+
   const listItems = useMemo(() => {
     if (clusterProps) return clusterProps;
 
@@ -536,6 +545,11 @@ function PropertiesPageInner() {
             onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
             onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); setMapSheetItems(null); }}
           />
+          {hiddenInBoundsCount > 0 && (
+            <div className={styles.hiddenBanner}>
+              🔒 이 범위 내 비공개 매물 {hiddenInBoundsCount}개가 있습니다
+            </div>
+          )}
         </div>
 
         <div className={`${styles.listPane} ${viewMode === 'map' ? styles.listPaneHidden : ''}`}>

@@ -473,6 +473,7 @@ function PropertiesPageInner() {
   }, [properties, selectedType, selectedTx, keyword]);
 
   const mapProps = useMemo(() => filtered.filter(p => !p.map_hidden), [filtered]);
+  const hiddenMapProps = useMemo(() => filtered.filter(p => p.map_hidden), [filtered]);
 
   const listItems = useMemo(() => {
     if (clusterProps) return clusterProps;
@@ -530,8 +531,10 @@ function PropertiesPageInner() {
         <div className={styles.mapPane}>
           <KakaoMap
             properties={mapProps}
+            hiddenProperties={hiddenMapProps}
             onGeocodedIds={ids => setGeocodedIds(ids)}
             onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
+            onHiddenClusterClick={props => { setMapSheetItems(props); }}
             onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); setMapSheetItems(null); }}
           />
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 const BUTTONS = [
   {
@@ -28,7 +29,10 @@ const BUTTONS = [
 ];
 
 export default function FloatingNav() {
+  const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
+
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <div

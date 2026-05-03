@@ -119,31 +119,6 @@ function makeLabelDiv(label, count, style, onClick) {
   return div;
 }
 
-function makeHiddenLabelDiv(label, count, onClick) {
-  const div = document.createElement('div');
-  div.style.cssText = [
-    'background:rgba(71,85,105,0.82)',
-    'border:2px dashed rgba(255,255,255,0.65)',
-    'border-radius:20px',
-    'box-shadow:0 2px 8px rgba(0,0,0,0.25)',
-    'display:flex',
-    'flex-direction:column',
-    'align-items:center',
-    'justify-content:center',
-    'color:#fff',
-    'font-weight:700',
-    'cursor:pointer',
-    'pointer-events:auto',
-    'padding:4px 12px',
-    'white-space:nowrap',
-    'min-width:56px',
-    'text-align:center',
-  ].join(';');
-  div.innerHTML = `<span style="font-size:10px;line-height:1.5;opacity:0.88;">🔒 ${label}</span><span style="font-size:16px;line-height:1.3;">${count}</span>`;
-  div.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
-  return div;
-}
-
 function groupBy(geocoded, keyFn) {
   const groups = {};
   geocoded.forEach(item => {
@@ -157,9 +132,6 @@ function groupBy(geocoded, keyFn) {
   return groups;
 }
 
-// 500m 축척(level 4) 이상에서만 숨김 매물 버블 표시
-const HIDDEN_SHOW_MIN_LEVEL = 4;
-
 export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -169,13 +141,11 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
   const hiddenPropertiesRef = useRef(hiddenProperties);
   const markersRef = useRef([]);
   const overlaysRef = useRef([]);
-  const hiddenOverlaysRef = useRef([]);
   const circlesRef = useRef([]);
   const geocodedRef = useRef([]);
   const hiddenGeocodedRef = useRef([]);
   const geocodingDoneRef = useRef(false);
   const prevModeRef = useRef(null);
-  const prevLevelRef = useRef(null);
   const onBoundsChangeRef = useRef(onBoundsChange);
   onBoundsChangeRef.current = onBoundsChange;
   const onGeocodedIdsRef = useRef(onGeocodedIds);
@@ -223,7 +193,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
 
   useEffect(() => {
     if (!mapReadyRef.current || !isMulti) return;
-    updateHiddenMarkers(hiddenProperties || []);
+    updateHiddenGeocoded(hiddenProperties || []);
   }, [hiddenProperties]);
 
   function initMultiMap() {
@@ -241,24 +211,11 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     new ResizeObserver(() => map.relayout()).observe(mapRef.current);
 
     window.kakao.maps.event.addListener(map, 'idle', () => {
-      const currentLevel = map.getLevel();
-      const mode = getMode(currentLevel);
-
-      // 일반 매물: 모드 변경 시 재렌더
+      const mode = getMode(map.getLevel());
       if (mode !== prevModeRef.current && geocodedRef.current.length > 0) {
         prevModeRef.current = mode;
         renderOverlays(geocodedRef.current);
       }
-
-      // 숨김 매물: 레벨 변경(특히 4 경계) 시 재렌더
-      const levelChanged = currentLevel !== prevLevelRef.current;
-      const crossedThreshold = prevLevelRef.current !== null &&
-        ((prevLevelRef.current < HIDDEN_SHOW_MIN_LEVEL) !== (currentLevel < HIDDEN_SHOW_MIN_LEVEL));
-      if (levelChanged && (crossedThreshold || mode !== prevModeRef.current)) {
-        renderHiddenOverlays(hiddenGeocodedRef.current);
-      }
-      prevLevelRef.current = currentLevel;
-
       if (!onBoundsChangeRef.current || !geocodingDoneRef.current) return;
       const bounds = map.getBounds();
       const visible = geocodedRef.current
@@ -270,25 +227,19 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     });
 
     updateMarkers(propertiesRef.current);
-    updateHiddenMarkers(hiddenPropertiesRef.current || []);
+    updateHiddenGeocoded(hiddenPropertiesRef.current || []);
   }
 
-  function clearVisibleOverlays() {
+  function clearOverlays() {
     overlaysRef.current.forEach(o => o.setMap(null));
     circlesRef.current.forEach(c => c.setMap(null));
     overlaysRef.current = [];
     circlesRef.current = [];
   }
 
-  function clearHiddenOverlays() {
-    hiddenOverlaysRef.current.forEach(o => o.setMap(null));
-    hiddenOverlaysRef.current = [];
-  }
-
   function clearMapObjects() {
     markersRef.current.forEach(m => m.setMap(null));
-    clearVisibleOverlays();
-    clearHiddenOverlays();
+    clearOverlays();
     markersRef.current = [];
     geocodedRef.current = [];
     hiddenGeocodedRef.current = [];
@@ -296,24 +247,30 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     boundsLockedRef.current = false;
   }
 
+  // 숨김 매물의 카운트를 기존 버블에 합산
   function renderOverlays(geocoded) {
     const map = mapInstanceRef.current;
     if (!map || geocoded.length === 0) return;
-    clearVisibleOverlays();
+    clearOverlays();
 
     const mode = getMode(map.getLevel());
+    const hidden = hiddenGeocodedRef.current;
 
     if (mode === 'cluster') {
       const clusters = buildClusters(geocoded, 100);
       clusters.forEach(cluster => {
+        // 같은 100m 반경 내 숨김 매물 수 합산
+        const hiddenCount = hidden.filter(h =>
+          haversineM(cluster.lat, cluster.lng, h.lat, h.lng) <= 100
+        ).length;
+        const displayCount = cluster.items.length + hiddenCount;
         const pos = new window.kakao.maps.LatLng(cluster.lat, cluster.lng);
-        const count = cluster.items.length;
-        const isMultiCluster = count > 1;
-        const size = count >= 10 ? 48 : count >= 5 ? 44 : 38;
+        const isMultiCluster = displayCount > 1;
+        const size = displayCount >= 10 ? 48 : displayCount >= 5 ? 44 : 38;
         const bg = isMultiCluster ? MODE_STYLE.cluster.multi : MODE_STYLE.cluster.single;
         const div = document.createElement('div');
-        div.style.cssText = `width:${size}px;height:${size}px;background:${bg};border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:${count >= 10 ? 15 : 14}px;font-weight:700;cursor:pointer;pointer-events:auto;`;
-        div.textContent = count;
+        div.style.cssText = `width:${size}px;height:${size}px;background:${bg};border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:${displayCount >= 10 ? 15 : 14}px;font-weight:700;cursor:pointer;pointer-events:auto;`;
+        div.textContent = displayCount;
         div.addEventListener('click', (e) => {
           e.stopPropagation();
           if (onClusterClick) onClusterClick(cluster.items.map(it => it.prop));
@@ -327,15 +284,17 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     }
 
     const style = MODE_STYLE[mode] || MODE_STYLE.city;
-    const groups = mode === 'city'
-      ? groupByCity(geocoded)
-      : groupBy(geocoded, mode === 'dong' ? extractDong : extractGu);
+    const keyFn = mode === 'city' ? null : (mode === 'dong' ? extractDong : extractGu);
+    const groups = mode === 'city' ? groupByCity(geocoded) : groupBy(geocoded, keyFn);
+    const hiddenGroups = mode === 'city' ? groupByCity(hidden) : groupBy(hidden, keyFn);
 
     Object.entries(groups).forEach(([label, { items, lats, lngs }]) => {
+      const hiddenCount = hiddenGroups[label]?.items.length || 0;
+      const displayCount = items.length + hiddenCount;
       const lat = lats.reduce((s, v) => s + v, 0) / lats.length;
       const lng = lngs.reduce((s, v) => s + v, 0) / lngs.length;
       const pos = new window.kakao.maps.LatLng(lat, lng);
-      const div = makeLabelDiv(label, items.length, style, () => {
+      const div = makeLabelDiv(label, displayCount, style, () => {
         if (onClusterClick) onClusterClick(items.map(it => it.prop));
       });
       const overlay = new window.kakao.maps.CustomOverlay({
@@ -345,35 +304,51 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     });
   }
 
-  function renderHiddenOverlays(hiddenGeocoded) {
-    const map = mapInstanceRef.current;
-    clearHiddenOverlays();
-    if (!map || !hiddenGeocoded || hiddenGeocoded.length === 0) return;
+  // 숨김 매물 좌표만 수집 (오버레이 없음, 합산용)
+  function updateHiddenGeocoded(hiddenProps) {
+    hiddenGeocodedRef.current = [];
+    if (!hiddenProps || hiddenProps.length === 0) return;
 
-    // level 4(500m) 미만이면 지도에 표시하지 않음 — 배너로 처리
-    if (map.getLevel() < HIDDEN_SHOW_MIN_LEVEL) return;
+    const geocoded = [];
+    const directCoords = hiddenProps.filter(p => p.map_lat && p.map_lng);
+    const needsGeocode = hiddenProps.filter(p => (!p.map_lat || !p.map_lng) && (p.address || p.location));
 
-    const mode = getMode(map.getLevel());
-    let groups;
-    if (mode === 'city') {
-      groups = groupByCity(hiddenGeocoded);
-    } else if (mode === 'gu') {
-      groups = groupBy(hiddenGeocoded, extractGu);
-    } else {
-      groups = groupBy(hiddenGeocoded, extractDong);
-    }
+    directCoords.forEach(p => {
+      geocoded.push({ lat: p.map_lat, lng: p.map_lng, prop: p });
+    });
 
-    Object.entries(groups).forEach(([label, { items, lats, lngs }]) => {
-      const lat = lats.reduce((s, v) => s + v, 0) / lats.length;
-      const lng = lngs.reduce((s, v) => s + v, 0) / lngs.length;
-      const pos = new window.kakao.maps.LatLng(lat, lng);
-      const div = makeHiddenLabelDiv(label, items.length, () => {
-        if (onClusterClick) onClusterClick(items.map(it => it.prop));
-      });
-      const overlay = new window.kakao.maps.CustomOverlay({
-        position: pos, content: div, map, zIndex: 9, xAnchor: 0.5, yAnchor: 0.5,
-      });
-      hiddenOverlaysRef.current.push(overlay);
+    const finalize = () => {
+      hiddenGeocodedRef.current = geocoded;
+      // 좌표 수집 완료 후 현재 오버레이 재렌더 (카운트 반영)
+      if (geocodedRef.current.length > 0) {
+        renderOverlays(geocodedRef.current);
+      }
+    };
+
+    if (needsGeocode.length === 0) { finalize(); return; }
+
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    let resolved = 0;
+    needsGeocode.forEach((prop, i) => {
+      const addr = prop.address || prop.location || '';
+      const cached = tryGetCache(addr);
+      if (cached) {
+        geocoded.push({ lat: cached.lat, lng: cached.lng, prop });
+        resolved++;
+        if (resolved === needsGeocode.length) finalize();
+        return;
+      }
+      setTimeout(() => {
+        geocoder.addressSearch(addr, (result, status) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const c = { lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) };
+            trySetCache(addr, c);
+            geocoded.push({ lat: c.lat, lng: c.lng, prop });
+          }
+          resolved++;
+          if (resolved === needsGeocode.length) finalize();
+        });
+      }, i * 250);
     });
   }
 
@@ -397,7 +372,6 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     }
 
     const geocoded = [];
-
     directCoords.forEach(p => {
       geocoded.push({ lat: p.map_lat, lng: p.map_lng, prop: p });
     });
@@ -419,9 +393,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
 
       const doRender = () => {
         prevModeRef.current = getMode(map.getLevel());
-        prevLevelRef.current = map.getLevel();
         renderOverlays(geocoded);
-        renderHiddenOverlays(hiddenGeocodedRef.current);
         if (!boundsLockedRef.current) {
           const b = new window.kakao.maps.LatLngBounds();
           geocoded.forEach(it => b.extend(new window.kakao.maps.LatLng(it.lat, it.lng)));
@@ -458,66 +430,10 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
       });
     };
 
-    if (needsGeocode.length === 0) {
-      finalize();
-      return;
-    }
+    if (needsGeocode.length === 0) { finalize(); return; }
 
     const geocoder = new window.kakao.maps.services.Geocoder();
     let resolved = 0;
-
-    needsGeocode.forEach((prop, i) => {
-      const addr = prop.address || prop.location || '';
-      const cached = tryGetCache(addr);
-      if (cached) {
-        geocoded.push({ lat: cached.lat, lng: cached.lng, prop });
-        resolved++;
-        if (resolved === needsGeocode.length) finalize();
-        return;
-      }
-      setTimeout(() => {
-        geocoder.addressSearch(addr, (result, status) => {
-          if (status === window.kakao.maps.services.Status.OK) {
-            const c = { lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) };
-            trySetCache(addr, c);
-            geocoded.push({ lat: c.lat, lng: c.lng, prop });
-          }
-          resolved++;
-          if (resolved === needsGeocode.length) finalize();
-        });
-      }, i * 250);
-    });
-  }
-
-  function updateHiddenMarkers(hiddenProps) {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-    clearHiddenOverlays();
-    hiddenGeocodedRef.current = [];
-
-    if (!hiddenProps || hiddenProps.length === 0) return;
-
-    const geocoded = [];
-    const directCoords = hiddenProps.filter(p => p.map_lat && p.map_lng);
-    const needsGeocode = hiddenProps.filter(p => (!p.map_lat || !p.map_lng) && (p.address || p.location));
-
-    directCoords.forEach(p => {
-      geocoded.push({ lat: p.map_lat, lng: p.map_lng, prop: p });
-    });
-
-    const finalize = () => {
-      hiddenGeocodedRef.current = geocoded;
-      renderHiddenOverlays(geocoded);
-    };
-
-    if (needsGeocode.length === 0) {
-      finalize();
-      return;
-    }
-
-    const geocoder = new window.kakao.maps.services.Geocoder();
-    let resolved = 0;
-
     needsGeocode.forEach((prop, i) => {
       const addr = prop.address || prop.location || '';
       const cached = tryGetCache(addr);

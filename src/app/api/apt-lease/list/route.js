@@ -84,8 +84,7 @@ export async function GET() {
       };
     });
 
-    const visible = items.filter(i => !i.contract_status || i.contract_status === '계약가능' || i.contract_status === '계약진행중');
-    return Response.json(visible);
+    return Response.json(items);
   } catch (err) {
     console.error('[apt-lease/list]', err);
     return Response.json([], { status: 200 });

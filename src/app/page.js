@@ -452,7 +452,7 @@ export default function HomePage() {
   useEffect(() => {
     fetch('/api/listings')
       .then(r => r.json())
-      .then(data => setAllItems(Array.isArray(data) ? data : []))
+      .then(data => setAllItems(Array.isArray(data) ? data.filter(p => !p.contract_status || p.contract_status === '계약가능' || p.contract_status === '계약진행중') : []))
       .catch(() => setAllItems([]))
       .finally(() => setLoading(false));
   }, []);

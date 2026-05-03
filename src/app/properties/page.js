@@ -476,13 +476,16 @@ function PropertiesPageInner() {
 
   const filtered = useMemo(() => {
     return properties.filter(p => {
-      const matchType = matchCategory(p.category, selectedType);
-      const matchTx   = selectedTx   === '전체' || p.transaction === selectedTx;
-      const matchKw   = !keyword ||
+      const matchType     = matchCategory(p.category, selectedType);
+      const matchTx       = selectedTx === '전체' || p.transaction === selectedTx;
+      const matchKw       = !keyword ||
         p.building_name?.includes(keyword) ||
         p.location?.includes(keyword) ||
         p.title?.includes(keyword);
-      return matchType && matchTx && matchKw;
+      const matchContract = !p.contract_status ||
+        p.contract_status === '계약가능' ||
+        p.contract_status === '계약진행중';
+      return matchType && matchTx && matchKw && matchContract;
     });
   }, [properties, selectedType, selectedTx, keyword]);
 

@@ -530,3 +530,38 @@
   border-color: #2a1e11;
   color: #c19a6b;
 }
+
+/* ═══════════════════════════════════════
+   모바일 반응형  (≤ 768px)
+   ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* 상단 바 */
+  .topbar { padding: 0 10px; gap: 8px; height: 48px; }
+  .topTitle { font-size: 13px; }
+  .backBtn { padding: 4px 8px; font-size: 11px; }
+
+  /* 탭 바 가로 스크롤 */
+  .tabBar {
+    padding: 0 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBtn { padding: 9px 14px; font-size: 12px; }
+
+  /* 전역 검색 */
+  .globalSearchBar { padding: 8px 12px; }
+  .globalSearchWrap { max-width: 100%; }
+
+  /* 본문 패딩 */
+  .body { padding: 12px; }
+
+  /* 테이블 가로 스크롤 */
+  .tableWrap { overflow-x: auto; }
+  .table { font-size: 12px; min-width: 560px; }
+  .th, .td { padding: 6px 8px; }
+
+  /* 검색창 */
+  .searchBar { max-width: 100%; }
+}

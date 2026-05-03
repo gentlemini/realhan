@@ -70,6 +70,7 @@ export default function Admin2Layout({ children }) {
 
   return (
     <div className={styles.layout}>
+      {/* 데스크탑 사이드바 */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
           <p className={styles.logoLabel}>관리자2</p>
@@ -94,9 +95,29 @@ export default function Admin2Layout({ children }) {
         </div>
       </aside>
 
+      {/* 모바일 상단 바 */}
+      <div className={styles.mobileTopBar}>
+        <span className={styles.mobileTopTitle}>관리자</span>
+        <button onClick={handleLogout} className={styles.mobileLogoutBtn}>↩ 로그아웃</button>
+      </div>
+
       <main className={styles.mainScroll}>
         {children}
       </main>
+
+      {/* 모바일 하단 탭바 */}
+      <nav className={styles.mobileNav}>
+        {NAV.map((n) => (
+          <button
+            key={n.href}
+            className={`${styles.mobileNavItem} ${isActive(n.href) ? styles.mobileNavItemActive : ''}`}
+            onClick={() => router.push(n.href)}
+          >
+            <span className={styles.mobileNavIcon}>{n.icon}</span>
+            <span className={styles.mobileNavLabel}>{n.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

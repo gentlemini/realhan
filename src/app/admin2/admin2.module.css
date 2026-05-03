@@ -68,6 +68,10 @@
 
 .loginHint { margin-top: 20px; font-size: 0.78rem; color: #b0a898; }
 
+/* ── 모바일 상단바 / 하단 탭바 — 데스크탑에서 숨김 ── */
+.mobileTopBar  { display: none; }
+.mobileNav     { display: none; }
+
 /* ── 전체 레이아웃 ── */
 .layout {
   display: flex;
@@ -471,4 +475,132 @@
   z-index: 1;
   line-height: 1.4;
   text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* ════════════════════════════════════════
+   모바일 반응형  (≤ 768px)
+   ════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* 레이아웃: 세로 스택 */
+  .layout {
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+
+  /* 데스크탑 사이드바 숨김 */
+  .sidebar { display: none; }
+
+  /* ── 모바일 상단 바 ── */
+  .mobileTopBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1c1917;
+    padding: 0 16px;
+    height: 48px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .mobileTopTitle {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #c4955f;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .mobileLogoutBtn {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6b6460;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: color 0.15s;
+  }
+  .mobileLogoutBtn:hover { color: #ef4444; }
+
+  /* ── 메인 스크롤 영역 ── */
+  .mainScroll {
+    height: auto;
+    flex: 1;
+    padding: 16px 14px 80px;
+    overflow-y: auto;
+  }
+
+  /* ── 매물 등록 유형 선택 ── */
+  .registerWrap { max-width: 100%; }
+
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .btn {
+    min-height: 66px;
+    padding: 12px 8px;
+    border-radius: 10px;
+  }
+
+  .btnLabel { font-size: 11.5px; }
+  .btnSub   { font-size: 9px; }
+
+  .activeBadge {
+    font-size: 8px;
+    padding: 1px 6px;
+  }
+
+  /* ── 모바일 하단 탭바 ── */
+  .mobileNav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background: #1c1917;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    z-index: 100;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.25);
+  }
+
+  .mobileNavItem {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #5a5450;
+    transition: color 0.15s;
+  }
+  .mobileNavItem:hover { color: #a08060; }
+
+  .mobileNavItemActive { color: #c4955f; }
+
+  .mobileNavIcon {
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+
+  .mobileNavLabel {
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── 설정 카드 ── */
+  .settingsCard { padding: 20px 16px 18px; }
+  .settingsInput { max-width: 100%; }
 }

@@ -170,3 +170,78 @@
 .photoDelete { position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; padding: 0; }
 .photoDelete:hover { background: rgba(180,40,40,0.85); }
 .submitMsg { margin-top: 10px; font-size: 13px; color: #5a3e28; text-align: center; min-height: 20px; }
+
+
+/* ═══════════════════════════════════════
+   모바일 반응형  (≤ 768px)
+   ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* 상단 바 */
+  .topbar { padding: 0 12px; gap: 6px; height: 50px; }
+  .topTitle { font-size: 13px; }
+  .tidyBtn, .spacerBtn, .editLayoutBtn, .previewBtn { display: none; }
+  .addBtn { padding: 5px 11px; font-size: 12px; }
+  .backBtn { padding: 4px 9px; font-size: 12px; }
+
+  /* 캔버스 */
+  .canvas {
+    margin: 14px auto 80px;
+    padding: 0 10px;
+  }
+
+  /* 폼 행: 라벨 위 + 입력 아래 세로 배치 */
+  .row {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .dragHandle { display: none; }
+
+  .labelCell {
+    width: 100%;
+    min-width: unset;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 9px 12px 4px;
+    border-right: none;
+    border-bottom: 1px solid #f0ebe4;
+    background: #faf7f4;
+    font-size: 12px;
+  }
+
+  .inputCell {
+    padding: 7px 12px 10px;
+  }
+
+  .rowControls {
+    opacity: 1;
+    padding: 0 8px 8px;
+    justify-content: flex-end;
+  }
+
+  /* 필드 추가 패널: 하단 시트 */
+  .addPanel {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 62vh;
+    border-left: none;
+    border-top: 1px solid #e8e0d6;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.15);
+  }
+
+  /* 등록 버튼 */
+  .submitArea { padding: 20px 0 40px; }
+  .submitBtn {
+    width: 100%;
+    max-width: 300px;
+    padding: 13px 28px;
+    font-size: 15px;
+  }
+
+  /* 스페이서 행 */
+  .spacerRow { min-height: 28px; }
+}

@@ -450,9 +450,7 @@ function PropertiesPageInner() {
 
   const handleCardClick = useCallback((item) => {
     const newCount = (item.view_count || 0) + 1;
-    const updated  = { ...item, view_count: newCount };
-    setProperties(prev => prev.map(i => i.id === item.id ? updated : i));
-    setSelectedItem(updated);
+    setSelectedItem({ ...item, view_count: newCount });
     fetch('/api/view-count', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

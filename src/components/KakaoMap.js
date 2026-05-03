@@ -136,6 +136,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapReadyRef = useRef(false);
+  const boundsLockedRef = useRef(false); // 최초 setBounds 이후 잠금
   const propertiesRef = useRef(properties);
   const markersRef = useRef([]);
   const overlaysRef = useRef([]);
@@ -233,6 +234,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     markersRef.current = [];
     geocodedRef.current = [];
     geocodingDoneRef.current = false;
+    boundsLockedRef.current = false; // 마커 초기화 시 bounds 잠금 해제
   }
 
   function renderOverlays(geocoded) {
@@ -329,9 +331,12 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
       const doRender = () => {
         prevModeRef.current = getMode(map.getLevel());
         renderOverlays(geocoded);
-        const b = new window.kakao.maps.LatLngBounds();
-        geocoded.forEach(it => b.extend(new window.kakao.maps.LatLng(it.lat, it.lng)));
-        try { map.setBounds(b, 80); } catch {}
+        if (!boundsLockedRef.current) {
+          const b = new window.kakao.maps.LatLngBounds();
+          geocoded.forEach(it => b.extend(new window.kakao.maps.LatLng(it.lat, it.lng)));
+          try { map.setBounds(b, 80); } catch {}
+          boundsLockedRef.current = true;
+        }
       };
 
       // 주소에서 시/도를 못 추출한 매물 → 역지오코딩으로 보완

@@ -1878,6 +1878,25 @@ export default function PropertiesPage() {
     router.push(tab.editRoute(item.id));
   }
 
+  async function handleUpdateContractStatus(item, status) {
+    const prev = item.contract_status;
+    setAllItems(p => p.map(e =>
+      e.item.id === item.id ? { ...e, item: { ...e.item, contract_status: status } } : e
+    ));
+    try {
+      const res = await fetch('/api/update-contract-status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pageId: item.id, status }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setAllItems(p => p.map(e =>
+        e.item.id === item.id ? { ...e, item: { ...e.item, contract_status: prev } } : e
+      ));
+    }
+  }
+
   async function handleToggleRec(item) {
     const next = !item.recommended;
     // 낙관적 업데이트: 즉시 UI 반영
@@ -1983,6 +2002,7 @@ export default function PropertiesPage() {
                   <th className={styles.th}>추천</th>
                   <th className={styles.th}>소재지</th>
                   <th className={styles.th}>등록일</th>
+                  <th className={styles.th}>계약상태</th>
                   <th className={styles.th}>수정</th>
                 </tr>
               </thead>
@@ -2024,6 +2044,27 @@ export default function PropertiesPage() {
                     </td>
                     <td className={styles.td}>
                       {item.created_time ? item.created_time.slice(0, 10) : '—'}
+                    </td>
+                    <td className={styles.td}>
+                      <select
+                        value={item.contract_status || ''}
+                        onChange={e => handleUpdateContractStatus(item, e.target.value || null)}
+                        style={{
+                          fontSize: '0.75rem', padding: '4px 6px', borderRadius: 6,
+                          border: '1.5px solid',
+                          borderColor: item.contract_status === '계약완료' ? '#d1d5db'
+                            : item.contract_status === '계약진행중' ? '#fbbf24' : '#86efac',
+                          background: item.contract_status === '계약완료' ? '#f9fafb'
+                            : item.contract_status === '계약진행중' ? '#fffbeb' : '#f0fdf4',
+                          color: item.contract_status === '계약완료' ? '#6b7280'
+                            : item.contract_status === '계약진행중' ? '#92400e' : '#166534',
+                          fontWeight: 700, cursor: 'pointer', outline: 'none',
+                        }}
+                      >
+                        <option value="">계약가능</option>
+                        <option value="계약진행중">계약진행중</option>
+                        <option value="계약완료">계약완료</option>
+                      </select>
                     </td>
                     <td className={styles.td}>
                       <button

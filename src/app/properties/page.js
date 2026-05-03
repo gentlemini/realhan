@@ -52,17 +52,31 @@ function matchCategory(category, selectedType) {
   return group ? group.includes(category) : false;
 }
 
+function fmtMan(v) {
+  if (!v && v !== 0) return '';
+  if (v < 10000) return `${v.toLocaleString()}만`;
+  const eok = Math.floor(v / 10000);
+  const rem = v % 10000;
+  if (rem === 0) return `${eok}억`;
+  const cheon = Math.floor(rem / 1000);
+  const man = rem % 1000;
+  let s = `${eok}억`;
+  if (cheon > 0) s += `${cheon}천`;
+  if (man > 0) s += `${man}`;
+  return s;
+}
+
 function formatPrice(item) {
   const { transaction, sale_price, jeonse_price, deposit, monthly_rent, maintenance } = item;
   if (transaction === '매매' && sale_price)
-    return `매매 ${sale_price.toLocaleString()}만원`;
+    return `매매 ${fmtMan(sale_price)}`;
   if (transaction === '전세' && jeonse_price)
-    return `전세 ${jeonse_price.toLocaleString()}만원`;
+    return `전세 ${fmtMan(jeonse_price)}`;
   if (transaction === '월세') {
     const d = deposit      || 0;
     const m = monthly_rent || 0;
     const c = maintenance  || 0;
-    return `월세 ${d.toLocaleString()} / ${m.toLocaleString()} / ${c.toLocaleString()}만원`;
+    return `월세 ${fmtMan(d)} / ${fmtMan(m)} / ${fmtMan(c)}`;
   }
   return '';
 }

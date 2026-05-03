@@ -364,32 +364,35 @@ function PropertyCard({ item, onCardClick }) {
   );
 }
 
+const CATEGORY_META = {
+  '아파트':      { emoji: '🏢', accent: '#2563eb' },
+  '오피스텔':    { emoji: '🏙️', accent: '#7c3aed' },
+  '단독주택':    { emoji: '🏠', accent: '#059669' },
+  '다가구':      { emoji: '🏘️', accent: '#d97706' },
+  '다세대':      { emoji: '🏗️', accent: '#dc2626' },
+  '원룸':        { emoji: '🛏️', accent: '#0891b2' },
+  '투룸':        { emoji: '🛋️', accent: '#9333ea' },
+  '쓰리룸':      { emoji: '🏡', accent: '#0d9488' },
+  '상가':        { emoji: '🏪', accent: '#ea580c' },
+  '오피스':      { emoji: '💼', accent: '#475569' },
+  '공장/창고':   { emoji: '🏭', accent: '#57534e' },
+  '빌딩':        { emoji: '🏬', accent: '#0369a1' },
+  '토지':        { emoji: '🌾', accent: '#16a34a' },
+  '재개발':      { emoji: '🔨', accent: '#b91c1c' },
+  '분양':        { emoji: '🔑', accent: '#b45309' },
+};
+
 /* ── 카테고리 버튼 ── */
 function CategoryBtn({ label }) {
-  const [hovered, setHovered] = useState(false);
+  const meta = CATEGORY_META[label] || { emoji: '🏠', accent: '#a87b51' };
   return (
     <Link
       href={`/properties?category=${encodeURIComponent(label)}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        aspectRatio: '1',
-        borderRadius: 6,
-        background: hovered ? '#ede8e2' : '#fff',
-        color: '#3a2a1a',
-        fontSize: '0.68rem',
-        fontWeight: 600,
-        textDecoration: 'none',
-        border: '1.5px solid #d6cfc7',
-        transition: 'background 0.15s',
-        textAlign: 'center',
-        wordBreak: 'keep-all',
-      }}
+      className={styles.catBtn}
+      style={{ '--cat-accent': meta.accent }}
     >
-      {label}
+      <span className={styles.catEmoji}>{meta.emoji}</span>
+      <span className={styles.catLabel}>{label}</span>
     </Link>
   );
 }
@@ -481,7 +484,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      <section style={{ background: '#faf7f4', padding: '16px 24px', borderBottom: '1px solid #ede8e2' }}>
+      <section className={styles.catSection}>
+        <p className={styles.catSectionTitle}>매물 종류</p>
         <div className={styles.categoryGrid}>
           {['아파트','오피스텔','단독주택','다가구','다세대','원룸','투룸','쓰리룸','상가','오피스','공장/창고','빌딩','토지','재개발','분양'].map(label => (
             <CategoryBtn key={label} label={label} />

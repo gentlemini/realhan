@@ -287,9 +287,11 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     const keyFn = mode === 'city' ? null : (mode === 'dong' ? extractDong : extractGu);
     const groups = mode === 'city' ? groupByCity(geocoded) : groupBy(geocoded, keyFn);
     const hiddenGroups = mode === 'city' ? groupByCity(hidden) : groupBy(hidden, keyFn);
+    const mergedKeys = new Set();
 
     Object.entries(groups).forEach(([label, { items, lats, lngs }]) => {
       const hiddenCount = hiddenGroups[label]?.items.length || 0;
+      if (hiddenCount > 0) mergedKeys.add(label);
       const displayCount = items.length + hiddenCount;
       const lat = lats.reduce((s, v) => s + v, 0) / lats.length;
       const lng = lngs.reduce((s, v) => s + v, 0) / lngs.length;
@@ -297,6 +299,19 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
       const div = makeLabelDiv(label, displayCount, style, () => {
         if (onClusterClick) onClusterClick(items.map(it => it.prop));
       });
+      const overlay = new window.kakao.maps.CustomOverlay({
+        position: pos, content: div, map, zIndex: 10, xAnchor: 0.5, yAnchor: 0.5,
+      });
+      overlaysRef.current.push(overlay);
+    });
+
+    // 공개 매물이 없는 지역의 숨김 매물 → 독립 버블 (gu/city 단위라 위치 노출 없음)
+    Object.entries(hiddenGroups).forEach(([label, { items, lats, lngs }]) => {
+      if (mergedKeys.has(label)) return;
+      const lat = lats.reduce((s, v) => s + v, 0) / lats.length;
+      const lng = lngs.reduce((s, v) => s + v, 0) / lngs.length;
+      const pos = new window.kakao.maps.LatLng(lat, lng);
+      const div = makeLabelDiv(label, items.length, style, () => {});
       const overlay = new window.kakao.maps.CustomOverlay({
         position: pos, content: div, map, zIndex: 10, xAnchor: 0.5, yAnchor: 0.5,
       });

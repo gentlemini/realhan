@@ -2014,7 +2014,14 @@ export default function PropertiesPage() {
                         {item.recommended ? '★' : '☆'}
                       </button>
                     </td>
-                    <td className={styles.td}>{item.location || '—'}</td>
+                    <td className={styles.td}>
+                      <span>{item.location || '—'}</span>
+                      {item.address_detail && (
+                        <span style={{ display: 'block', fontSize: '0.75rem', color: '#78716c', marginTop: 2 }}>
+                          {item.address_detail}
+                        </span>
+                      )}
+                    </td>
                     <td className={styles.td}>
                       {item.created_time ? item.created_time.slice(0, 10) : '—'}
                     </td>

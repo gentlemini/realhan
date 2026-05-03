@@ -42,6 +42,7 @@ export async function GET() {
         pyeong:                gR(p['평형']),
         building_use_category: gS(p['건축물용도_분류']),
         location:              gR(p['소재지']),
+        address_detail:        gR(p['상세주소']),
         location_privacy:      gS(p['소재지_공개여부']),
         location_memo:         gR(p['소재지_메모']),
         address_detail:           gR(p['상세주소']),

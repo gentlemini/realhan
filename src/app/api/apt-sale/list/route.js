@@ -39,6 +39,7 @@ export async function GET() {
         title:                 gR(p['매물제목_특징']),
         apt_name:              gR(p['아파트명']),
         location:              gR(p['소재지']),
+        address_detail:        gR(p['상세주소']),
         sale_price:            gN(p['매매가격_만원']),
         loan_info:             gN(p['융자금_만원']),
         curr_deposit:          gN(p['현보증금_만원']),

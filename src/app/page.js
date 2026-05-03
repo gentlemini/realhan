@@ -155,7 +155,7 @@ function PreviewModal({ item, onClose }) {
 
         {/* 카카오 상담 버튼 */}
         <a
-          href="http://pf.kakao.com/_QaxliG/chat"
+          href="https://pf.kakao.com/_QaxliG"
           target="_blank"
           rel="noopener noreferrer"
           className={styles.pvKakaoBtn}

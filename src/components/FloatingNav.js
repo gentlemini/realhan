@@ -20,7 +20,7 @@ const BUTTONS = [
   {
     id: 'kakao',
     label: '카카오톡\n상담',
-    href: 'http://pf.kakao.com/_QaxliG/chat',
+    href: 'https://pf.kakao.com/_QaxliG',
     bg: '#fee500',
     color: '#000',
     icon: '💬',

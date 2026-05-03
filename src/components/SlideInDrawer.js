@@ -324,7 +324,7 @@ export default function SlideInDrawer({ isOpen, onClose, property }) {
 
               <div className={styles.footer}>
                 <a
-                  href="http://pf.kakao.com/_QaxliG/chat"
+                  href="https://pf.kakao.com/_QaxliG"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.callBtn}

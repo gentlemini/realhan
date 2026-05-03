@@ -172,7 +172,7 @@ function PreviewModal({ item, onClose }) {
         <button className={modalStyles.pvClose} onClick={onClose}>✕</button>
 
         <a
-          href="http://pf.kakao.com/_QaxliG/chat"
+          href="https://pf.kakao.com/_QaxliG"
           target="_blank"
           rel="noopener noreferrer"
           className={modalStyles.pvKakaoBtn}

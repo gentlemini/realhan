@@ -285,7 +285,7 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalBoxWide} onClick={e => e.stopPropagation()}>
         <button className={styles.modalCloseAbs} onClick={onClose}>✕</button>
-        <a href="http://pf.kakao.com/_QaxliG/chat" target="_blank" rel="noopener noreferrer" className={styles.kakaoFloatBtn}>
+        <a href="https://pf.kakao.com/_QaxliG" target="_blank" rel="noopener noreferrer" className={styles.kakaoFloatBtn}>
           <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png" alt="카카오톡 상담" className={styles.kakaoFloatIcon} />
           <span>카카오톡 상담</span>
         </a>

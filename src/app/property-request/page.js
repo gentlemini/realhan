@@ -59,7 +59,7 @@ export default function PropertyRequestPage() {
               <span>✅</span>
               <p>매물 접수가 완료되었습니다.<br />확인 후 빠르게 연락드리겠습니다.</p>
               <a
-                href="http://pf.kakao.com/_QaxliG/chat"
+                href="https://pf.kakao.com/_QaxliG"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ padding: '12px 28px', background: '#FAE100', color: '#3A1D1D', borderRadius: 8, fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none' }}

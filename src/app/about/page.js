@@ -136,7 +136,7 @@ export default function AboutPage() {
                 <p className={styles.channelDesc}>매물 정보 및 부동산 소식</p>
               </div>
             </a>
-            <a href="http://pf.kakao.com/_QaxliG/chat" target="_blank" rel="noopener noreferrer" className={styles.channel}>
+            <a href="https://pf.kakao.com/_QaxliG" target="_blank" rel="noopener noreferrer" className={styles.channel}>
               <span className={styles.channelIcon} style={{ background: '#fee500', color: '#000' }}>💬</span>
               <div>
                 <p className={styles.channelName}>카카오톡 1:1 상담</p>

@@ -312,7 +312,7 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
       <div className={styles.modalBoxWide} onClick={e => e.stopPropagation()}>
         <button className={styles.modalCloseAbs} onClick={onClose}>✕</button>
         <a
-          href="http://pf.kakao.com/_QaxliG/chat"
+          href="https://pf.kakao.com/_QaxliG"
           target="_blank"
           rel="noopener noreferrer"
           className={styles.kakaoFloatBtn}

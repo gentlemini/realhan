@@ -64,7 +64,7 @@ export default function ContactPage() {
             </div>
           </a>
           <a
-            href="http://pf.kakao.com/_QaxliG/chat"
+            href="https://pf.kakao.com/_QaxliG"
             target="_blank"
             rel="noopener noreferrer"
             className={styles.quickBtn}
@@ -99,7 +99,7 @@ export default function ContactPage() {
               <span>✅</span>
               <p>문의가 접수되었습니다.<br />1-2 영업일 내 연락드리겠습니다.</p>
               <a
-                href="http://pf.kakao.com/_QaxliG/chat"
+                href="https://pf.kakao.com/_QaxliG"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ padding: '12px 28px', background: '#FAE100', color: '#3A1D1D', borderRadius: 8, fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none' }}

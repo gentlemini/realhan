@@ -261,7 +261,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
       clusters.forEach(cluster => {
         // 같은 100m 반경 내 숨김 매물 수 합산
         const hiddenCount = hidden.filter(h =>
-          haversineM(cluster.lat, cluster.lng, h.lat, h.lng) <= 100
+          haversineM(cluster.lat, cluster.lng, h.lat, h.lng) <= 400
         ).length;
         const displayCount = cluster.items.length + hiddenCount;
         const pos = new window.kakao.maps.LatLng(cluster.lat, cluster.lng);

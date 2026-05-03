@@ -547,7 +547,7 @@ function PropertiesPageInner() {
           />
           {hiddenInBoundsCount > 0 && (
             <div className={styles.hiddenBanner}>
-              🔒 이 범위 내 비공개 매물 {hiddenInBoundsCount}개가 있습니다
+              🔒 이 범위 내 위치 비공개 매물 {hiddenInBoundsCount}개가 있습니다
             </div>
           )}
         </div>

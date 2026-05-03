@@ -71,7 +71,7 @@ function formatPrice(item) {
   if (transaction === '매매' && sale_price)
     return `매매 ${fmtMan(sale_price)}`;
   if (transaction === '전세' && jeonse_price)
-    return `전세 ${fmtMan(jeonse_price)}`;
+    return `전세 ${fmtMan(jeonse_price)} / ${maintenance ? fmtMan(maintenance) : '-'}`;
   if (transaction === '월세') {
     const d = deposit      || 0;
     const m = monthly_rent || 0;

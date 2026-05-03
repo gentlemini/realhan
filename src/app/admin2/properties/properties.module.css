@@ -561,78 +561,75 @@
   /* 검색창 */
   .searchBar { max-width: 100%; margin-bottom: 12px; }
 
-  /* ── 테이블 → 카드 레이아웃 ── */
+  /* ── 테이블 → 한 줄 컴팩트 리스트 ── */
   .tableWrap { overflow: visible; border-radius: 0; box-shadow: none; background: transparent; }
 
-  .table      { display: block; min-width: unset; background: transparent; }
+  .table       { display: block; min-width: unset; background: transparent; }
   .table thead { display: none; }
-  .table tbody { display: flex; flex-direction: column; gap: 10px; }
+  .table tbody { display: flex; flex-direction: column; gap: 5px; }
 
+  /* 한 줄 행 */
   .row {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
+    gap: 8px;
     background: #fff;
-    border-radius: 14px;
-    border: 1px solid #e8e2d8;
-    padding: 12px 14px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    border-radius: 10px;
+    border: 1px solid #ede8e1;
+    padding: 6px 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     transition: background 0.1s;
     cursor: pointer;
+    min-height: 0;
   }
   .row:hover { background: #faf7f4; border-color: #c8b89a; }
 
-  /* 유형 배지 — 풀 너비 첫 줄 */
+  /* 유형 배지 */
   .td:nth-child(1) {
-    order: 1; width: 100%;
-    padding: 0 0 8px 0;
-    display: block;
-  }
-
-  /* 썸네일 — 왼쪽 고정 */
-  .td:nth-child(2) {
-    order: 2; width: 54px; height: 54px;
-    padding: 0; margin-right: 12px;
-    flex-shrink: 0; display: flex; align-items: center;
-  }
-  .thumb      { width: 54px; height: 54px; border-radius: 9px; }
-  .thumbEmpty { width: 54px; height: 54px; border-radius: 9px; }
-
-  /* 매물번호 — 남은 너비 */
-  .td:nth-child(3) {
-    order: 3; flex: 1; min-width: 0;
+    order: 1; flex-shrink: 0;
     padding: 0; display: flex; align-items: center;
   }
-  .idBtn { font-size: 13px; }
+  .typeLabel { font-size: 10px; padding: 2px 6px; }
+
+  /* 썸네일 */
+  .td:nth-child(2) {
+    order: 2; flex-shrink: 0;
+    padding: 0; display: flex; align-items: center;
+  }
+  .thumb      { width: 36px; height: 36px; border-radius: 6px; }
+  .thumbEmpty { width: 36px; height: 36px; border-radius: 6px; }
+
+  /* 매물번호 */
+  .td:nth-child(3) {
+    order: 3; flex-shrink: 0;
+    padding: 0; display: flex; align-items: center;
+  }
+  .idBtn { font-size: 12px; }
 
   /* 추천 ★ */
   .td:nth-child(4) {
-    order: 4; padding: 0; margin-left: 6px; flex-shrink: 0;
-    display: flex; align-items: center;
+    order: 4; flex-shrink: 0;
+    padding: 0; display: flex; align-items: center;
+    font-size: 14px;
   }
+  .recBtnOn, .recBtnOff { font-size: 14px; }
 
-  /* 소재지 — 썸네일 들여쓰기 */
+  /* 소재지 — 남은 공간 차지, 넘치면 말줄임 */
   .td:nth-child(5) {
-    order: 5; width: 100%;
-    padding: 5px 0 0 66px;
-    font-size: 12px; color: #78716c;
+    order: 5; flex: 1; min-width: 0;
+    padding: 0;
+    font-size: 11px; color: #78716c;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     display: block;
   }
 
-  /* 등록일 */
-  .td:nth-child(6) {
-    order: 6; flex: 1;
-    padding: 3px 0 0 66px;
-    font-size: 11px; color: #a0978e;
-    white-space: nowrap; display: block;
-  }
+  /* 등록일 — 숨김 */
+  .td:nth-child(6) { display: none; }
 
   /* 수정 버튼 */
   .td:nth-child(7) {
-    order: 7; padding: 3px 0 0 0;
-    flex-shrink: 0; margin-left: auto;
-    display: flex; align-items: center;
+    order: 7; flex-shrink: 0;
+    padding: 0; display: flex; align-items: center;
   }
-  .editBtn { font-size: 11px; padding: 3px 10px; }
+  .editBtn { font-size: 10.5px; padding: 2px 8px; }
 }

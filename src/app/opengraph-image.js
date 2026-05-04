@@ -50,7 +50,7 @@ export default function Image() {
 
         {/* 설명 */}
         <div style={{ fontSize: '26px', color: '#a89070', fontWeight: 400, display: 'flex' }}>
-          부산 남구 대연동 프리미엄 부동산 중개
+          친절하고 믿을 수 있는 프리미엄 부동산 중개
         </div>
 
         {/* 하단 URL */}

@@ -7,13 +7,12 @@ import FloatingNav from '@/components/FloatingNav';
 const GA_ID = 'G-8RYVD50VW7';
 
 export const metadata = {
-  title: '한결부동산 — 부산 남구 대연동 공인중개사사무소',
-  description:
-    '부산광역시 남구 대연동 한결부동산공인중개사사무소. 아파트, 원룸, 오피스텔, 상가, 토지 매물 상담. 친절한 한민희 부장 010-4706-8253',
+  title: '한결부동산 — 공인중개사 친절한 한민희 부장',
+  description: '친절한 프리미엄 중개 서비스',
   keywords: '부산부동산, 남구부동산, 대연동부동산, 한결부동산, 공인중개사, 아파트매매',
   openGraph: {
-    title: '한결부동산 — 부산 남구 대연동 공인중개사',
-    description: '부산 남구 대연동 프리미엄 부동산 중개 서비스',
+    title: '한결부동산 — 공인중개사 친절한 한민희 부장',
+    description: '친절한 프리미엄 중개 서비스',
     locale: 'ko_KR',
     type: 'website',
   },

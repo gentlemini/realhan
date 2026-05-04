@@ -53,6 +53,7 @@
 .loginError { font-size: 0.83rem; color: #e53e3e; margin: -4px 0; }
 
 .loginBtn {
+  width: 100%;
   padding: 13px;
   background: #a87b51;
   color: #fff;

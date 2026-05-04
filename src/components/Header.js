@@ -147,22 +147,13 @@ export default function Header() {
 
         <div className={styles.rightArea}>
           <Link
-            href="/admin"
-            className={`${styles.adminBtn} ${pathname === '/admin' ? styles.adminBtnActive : ''}`}
+            href="/admin2"
+            className={`${styles.adminBtn} ${styles.admin2Btn} ${pathname.startsWith('/admin2') ? styles.adminBtnActive : ''}`}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
             관리자
-          </Link>
-          <Link
-            href="/admin2"
-            className={`${styles.adminBtn} ${styles.admin2Btn} ${pathname === '/admin2' ? styles.adminBtnActive : ''}`}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-            관리자2
           </Link>
 
           <button

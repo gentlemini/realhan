@@ -1,7 +1,10 @@
 import './globals.css';
+import Script from 'next/script';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FloatingNav from '@/components/FloatingNav';
+
+const GA_ID = 'G-8RYVD50VW7';
 
 export const metadata = {
   title: '한결부동산 — 부산 남구 대연동 공인중개사사무소',
@@ -19,6 +22,15 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ko">
+      <head>
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+        <Script id="ga-init" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_ID}');
+        `}</Script>
+      </head>
       <body>
         <Header />
         <main style={{ paddingTop: 'var(--header-height)' }}>{children}</main>

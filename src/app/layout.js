@@ -22,7 +22,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ko">
-      <head>
+      <body>
         <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
         <Script id="ga-init" strategy="afterInteractive">{`
           window.dataLayer = window.dataLayer || [];
@@ -30,8 +30,6 @@ export default function RootLayout({ children }) {
           gtag('js', new Date());
           gtag('config', '${GA_ID}');
         `}</Script>
-      </head>
-      <body>
         <Header />
         <main style={{ paddingTop: 'var(--header-height)' }}>{children}</main>
         <Footer />

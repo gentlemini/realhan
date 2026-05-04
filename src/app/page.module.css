@@ -634,6 +634,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: 12px;
+  text-align: center;
 }
 
 /* 카테고리 버튼 그리드 */

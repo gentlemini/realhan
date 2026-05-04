@@ -132,7 +132,7 @@ function groupBy(geocoded, keyFn) {
   return groups;
 }
 
-export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds }) {
+export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds, adminMode = false }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapReadyRef = useRef(false);
@@ -477,7 +477,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     geocoder.addressSearch(address || '부산광역시 남구 대연동', (result, status) => {
       if (status !== window.kakao.maps.services.Status.OK) { setError(true); return; }
       const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
-      const isDongLevel = /[가-힣]+(?:동|가|읍|면|리)\s*$/.test((address || '').trim());
+      const isDongLevel = !adminMode && /[가-힣]+(?:동|가|읍|면|리)\s*$/.test((address || '').trim());
 
       if (isDongLevel) {
         const map = new window.kakao.maps.Map(mapRef.current, { center: coords, level: 5 });

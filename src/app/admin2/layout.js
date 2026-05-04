@@ -19,13 +19,17 @@ function AdminInner({ children }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
+  if (pathname === '/admin2/login') {
+    return <>{children}</>;
+  }
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.replace('/admin2/login');
     }
   }, [status, router]);
 
-  if (status === 'loading' || status === 'unauthenticated') {
+  if (status === 'loading') {
     return (
       <div className={styles.loginWrap}>
         <div className={styles.loginBox}>

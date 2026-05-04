@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import styles from './admin2.module.css';
@@ -18,7 +19,13 @@ function AdminInner({ children }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
-  if (status === 'loading') {
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/admin2/login');
+    }
+  }, [status, router]);
+
+  if (status === 'loading' || status === 'unauthenticated') {
     return (
       <div className={styles.loginWrap}>
         <div className={styles.loginBox}>
@@ -28,10 +35,7 @@ function AdminInner({ children }) {
     );
   }
 
-  if (!session) {
-    if (typeof window !== 'undefined') router.replace('/admin2/login');
-    return null;
-  }
+  if (!session) return null;
 
   const isActive = (href) => {
     const [hPath] = href.split('?');

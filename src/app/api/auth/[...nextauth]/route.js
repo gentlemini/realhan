@@ -3,6 +3,8 @@ import GoogleProvider from 'next-auth/providers/google';
 
 const ALLOWED_EMAILS = ['air.minisoul@gmail.com'];
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const authOptions = {
   providers: [
     GoogleProvider({
@@ -16,12 +18,12 @@ const authOptions = {
   },
   cookies: {
     sessionToken: {
-      name: 'next-auth.session-token',
+      name: isProd ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: isProd,
         // maxAge 없음 = 브라우저 종료 시 쿠키 삭제
       },
     },

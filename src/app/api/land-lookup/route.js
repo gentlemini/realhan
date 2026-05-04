@@ -15,7 +15,8 @@ export async function GET(request) {
 
   async function tryPnu(platGbCd) {
     const pnu = sigunguCd + bjdongCd + platGbCd + bun + ji;
-    const domain = encodeURIComponent(process.env.NEXTAUTH_URL || 'http://localhost:3100');
+    const siteUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3100').replace(/\/$/, '');
+    const domain = encodeURIComponent(siteUrl);
     const url = `${VWORLD_BASE}?pnu=${pnu}&key=${key}&format=json&numOfRows=1&pageNo=1&domain=${domain}`;
     try {
       const res  = await fetch(url, { cache: 'no-store' });

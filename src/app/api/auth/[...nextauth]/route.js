@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
-const ALLOWED_EMAILS = ['air.minisoul@gmail.com'];
+const ALLOWED_EMAILS = ['air.minisoul@gmail.com', 'air.minisoul2@gmail.com'];
 
 const isProd = process.env.NODE_ENV === 'production';
 

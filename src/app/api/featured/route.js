@@ -48,7 +48,10 @@ async function queryDB({ id, nameField }) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        filter: { property: '추천매물', checkbox: { equals: true } },
+        filter: { and: [
+          { property: '추천매물', checkbox: { equals: true } },
+          { property: '계약상태', select: { does_not_equal: '작성중' } },
+        ]},
         page_size: 20,
       }),
       cache: 'no-store',

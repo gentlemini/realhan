@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import styles from './AdminMapField.module.css';
@@ -115,10 +115,18 @@ export default function AdminMapField({ addressValue, onConfigChange, initialCoo
     setStatus('검색 중…'); setResults([]);
     const places = new window.kakao.maps.services.Places();
     places.keywordSearch(keyword, (data, status_) => {
-      if (status_ === window.kakao.maps.services.Status.OK) {
+      if (status_ === window.kakao.maps.services.Status.OK && data.length > 0) {
         if (data.length === 1) { placePin(parseFloat(data[0].y), parseFloat(data[0].x)); setStatus('✓ 위치 검색 완료'); }
         else { setResults(data); setStatus(''); }
-      } else { setStatus('검색 결과가 없어요'); }
+      } else {
+        const geocoder = new window.kakao.maps.services.Geocoder();
+        geocoder.addressSearch(keyword, (addrData, addrStatus) => {
+          if (addrStatus === window.kakao.maps.services.Status.OK && addrData.length > 0) {
+            if (addrData.length === 1) { placePin(parseFloat(addrData[0].y), parseFloat(addrData[0].x)); setStatus('✓ 위치 검색 완료'); }
+            else { setResults(addrData.map(a => ({ place_name: a.address_name, road_address_name: a.road_address?.address_name || '', address_name: a.address?.address_name || a.address_name, x: a.x, y: a.y }))); setStatus(''); }
+          } else { setStatus('검색 결과가 없어요'); }
+        });
+      }
     });
   }
 

@@ -1,0 +1,378 @@
+.collapsed {
+  margin: 0 0 8px 0;
+}
+
+.toggleBtn {
+  background: #5b3d8c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.toggleBtn:hover { background: #4a3070; }
+
+.panel {
+  background: #faf7f4;
+  border: 1.5px solid #d4b896;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  overflow: visible;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, #5b3d8c 0%, #7c5ab8 100%);
+  color: #fff;
+  border-radius: 8px 8px 0 0;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.closeBtn {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.closeBtn:hover { background: rgba(255,255,255,0.3); }
+
+.body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Address Search ── */
+.searchRow {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid #c9a87c;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+  min-width: 0;
+}
+.searchInput:focus { border-color: #5b3d8c; }
+
+.searchBtn {
+  padding: 8px 14px;
+  background: #7c5ab8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.searchBtn:hover { background: #5b3d8c; }
+.searchBtn:disabled { background: #c0b0d8; cursor: default; }
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1.5px solid #c9a87c;
+  border-radius: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 200;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.dropdownItem {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0ebe4;
+  transition: background 0.1s;
+}
+.dropdownItem:last-child { border-bottom: none; }
+.dropdownItem:hover { background: #faf3ec; }
+
+.roadAddr {
+  font-size: 13px;
+  color: #3a2a1a;
+  font-weight: 500;
+}
+.jibunAddr {
+  font-size: 11px;
+  color: #9a8070;
+  margin-top: 2px;
+}
+
+/* ── Loading ── */
+.loading {
+  font-size: 12px;
+  color: #9a8070;
+  padding: 4px 0;
+}
+
+/* ── Building Info ── */
+.infoBox {
+  background: #fff;
+  border: 1px solid #e0d4c4;
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 16px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.infoLabel {
+  font-size: 11px;
+  color: #9a8070;
+  font-weight: 500;
+}
+.infoValue {
+  font-size: 13px;
+  color: #3a2a1a;
+  font-weight: 600;
+}
+
+.parkingRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0ebe4;
+}
+
+.parkingValue {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: #3a2a1a;
+  font-weight: 600;
+}
+
+/* ── Unit Selection ── */
+.unitSection {
+  background: #f5f0eb;
+  border: 1px solid #e0d4c4;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.unitSectionTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5a3e28;
+}
+
+.unitRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.unitInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 100px;
+}
+
+.unitLabel {
+  font-size: 11px;
+  color: #9a8070;
+  font-weight: 500;
+}
+
+.unitInput {
+  padding: 6px 10px;
+  border: 1.5px solid #c9a87c;
+  border-radius: 5px;
+  font-size: 13px;
+  width: 120px;
+  background: #fff;
+  outline: none;
+}
+.unitInput:focus { border-color: #5b3d8c; }
+
+.unitSelect {
+  padding: 6px 10px;
+  border: 1.5px solid #c9a87c;
+  border-radius: 5px;
+  font-size: 13px;
+  min-width: 140px;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+}
+.unitSelect:focus { border-color: #5b3d8c; }
+
+.unitFetchBtn {
+  padding: 6px 12px;
+  background: #7c5ab8;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-end;
+  white-space: nowrap;
+}
+.unitFetchBtn:hover { background: #5b3d8c; }
+.unitFetchBtn:disabled { background: #b0a0c0; cursor: default; }
+
+.hoLoading {
+  font-size: 11px;
+  color: #9a8070;
+  align-self: flex-end;
+  padding-bottom: 6px;
+}
+
+.areaBox {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: #fff8f0;
+  border: 1px solid #f0d4a0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #5a3e28;
+}
+.areaBox span { font-weight: 600; }
+
+/* ── Real Price ── */
+.priceSection {
+  background: #fff;
+  border: 1px solid #e0d4c4;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.priceSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f5f0eb;
+  cursor: pointer;
+  user-select: none;
+}
+
+.priceSectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5a3e28;
+}
+
+.priceSectionToggle {
+  font-size: 11px;
+  color: #9a8070;
+}
+
+.noPrice {
+  font-size: 12px;
+  color: #9a8070;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.priceTable {
+  font-size: 12px;
+  overflow-x: auto;
+}
+
+.priceHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 0.6fr 1.4fr 1fr;
+  padding: 6px 12px;
+  background: #f0ebe4;
+  color: #7a5030;
+  font-weight: 700;
+  border-bottom: 1px solid #e0d4c4;
+  gap: 4px;
+}
+
+.priceRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 0.6fr 1.4fr 1fr;
+  padding: 6px 12px;
+  border-bottom: 1px solid #f5f0eb;
+  color: #3a2a1a;
+  gap: 4px;
+  transition: background 0.1s;
+}
+.priceRow:last-child { border-bottom: none; }
+.priceRow:hover { background: #faf7f4; }
+
+.priceAmount {
+  color: #8b2020;
+  font-weight: 700;
+}
+
+/* ── Apply Button ── */
+.applyRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid #e8e0d8;
+}
+
+.applyBtn {
+  padding: 8px 20px;
+  background: #2d7a4f;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.applyBtn:hover { background: #246040; }
+
+.applyHint {
+  font-size: 11px;
+  color: #9a8070;
+}

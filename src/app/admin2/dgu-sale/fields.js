@@ -1,7 +1,7 @@
-export const DEFAULT_FIELDS = [
+﻿export const DEFAULT_FIELDS = [
   { id: 'property_id',       label: '매물고유번호',             type: 'auto',           colSpan: 1, hint: '자동 생성' },
   { id: 'recommended',       label: '추천매물',                 type: 'checkbox',       colSpan: 1, hint: '메인페이지 추천 노출' },
-  { id: 'contract_status', label: '계약상태', type: 'select', colSpan: 1, options: ['계약가능','계약진행중','계약완료'], hint: '계약가능만 공개 노출' },
+  { id: 'contract_status', label: '계약상태', type: 'select', colSpan: 1, options: ['계약가능','계약진행중','계약완료'], hint: '계약가능·진행중 공개 노출' },
   { id: 'title',             label: '매물제목/특징',            type: 'text',           colSpan: 2 },
   { id: 'category',          label: '매물분류',                 type: 'fixed',          value: '다가구' },
   { id: 'transaction',       label: '거래종류',                 type: 'fixed',          value: '매매' },

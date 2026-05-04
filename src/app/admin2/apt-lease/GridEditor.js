@@ -13,6 +13,7 @@ import { CSS } from '@dnd-kit/utilities';
 import styles from './FormBuilder.module.css';
 import { DEFAULT_FIELDS, FIELD_TYPES } from './fields';
 import AdminMapField from './AdminMapField';
+import BuildingLookup from '../_components/BuildingLookup';
 import { useRouter } from 'next/navigation';
 
 const STORAGE_KEY = 'hk_apt_lease_layout_v1';
@@ -59,7 +60,7 @@ function PrivacyTextInput({ value = {}, onChange }) {
 
 function SelectWithCustom({ field, value = '', onChange }) {
   const opts = field.options || [];
-  const isPreset = opts.includes(value);
+  const isPreset = !value || opts.includes(value);
   return (
     <div className={styles.selectCustomRow}>
       <select
@@ -84,6 +85,8 @@ function SelectWithCustom({ field, value = '', onChange }) {
 }
 
 function ControlledFieldInput({ field, value, onChange }) {
+  if (typeof value === 'object' && value !== null && !Array.isArray(value) && 'text' in value && field.type !== 'locationPrivacy')
+    return <PrivacyTextInput value={value} onChange={onChange} />;
   if (field.type === 'auto')
     return <span className={styles.autoValue}>{value || '생성 중…'}</span>;
   if (field.type === 'fixed')
@@ -532,6 +535,10 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
     setFormValues(prev => ({ ...prev, [key]: value }));
   }
 
+  function applyBuildingData(fields) {
+    setFormValues(prev => ({ ...prev, ...fields }));
+  }
+
   useEffect(() => {
     if (isEdit && initialValues) {
       setFormValues(initialValues);
@@ -552,7 +559,24 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length) { setFields(parsed); return; }
+        if (Array.isArray(parsed) && parsed.length) {
+              const typeMap = Object.fromEntries(DEFAULT_FIELDS.map(f => [f.id, f.type]));
+              const fixed = parsed.map(f => typeMap[f.id] ? { ...f, type: typeMap[f.id] } : f);
+              const existingIds = new Set(fixed.map(f => f.id));
+              const defaultOrder = DEFAULT_FIELDS.map(f => f.id);
+              const result = [...fixed];
+              DEFAULT_FIELDS.filter(f => !existingIds.has(f.id)).forEach(mf => {
+                const di = defaultOrder.indexOf(mf.id);
+                let ins = result.length;
+                for (let i = di - 1; i >= 0; i--) {
+                  const pi = result.findIndex(f => f.id === defaultOrder[i]);
+                  if (pi !== -1) { ins = pi + 1; break; }
+                }
+                result.splice(ins, 0, mf);
+              });
+              setFields(result);
+              return;
+            }
       }
     } catch {}
     setFields(DEFAULT_FIELDS);
@@ -695,6 +719,9 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
       </div>
 
       <div className={`${styles.canvas} ${showAddPanel ? styles.canvasShift : ''}`}>
+        {!editMode && (
+          <BuildingLookup 종류="아파트" 거래유형="전세" onApply={applyBuildingData} />
+        )}
         <div className={styles.formCard}>
           {editMode ? (
             <DndContext

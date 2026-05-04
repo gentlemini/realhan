@@ -48,6 +48,7 @@ async function queryDB({ id, nameField }) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        filter: { property: '계약상태', select: { does_not_equal: '작성중' } },
         sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         page_size: 100,
       }),

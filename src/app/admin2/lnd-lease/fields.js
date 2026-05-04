@@ -1,7 +1,7 @@
-export const DEFAULT_FIELDS = [
+﻿export const DEFAULT_FIELDS = [
   { id: 'property_id',       label: '매물고유번호',             type: 'auto',       colSpan: 1, hint: '자동 생성' },
   { id: 'recommended',       label: '추천매물',                 type: 'checkbox',   colSpan: 1, hint: '메인페이지 추천 노출' },
-  { id: 'contract_status', label: '계약상태', type: 'select', colSpan: 1, options: ['계약가능','계약진행중','계약완료'], hint: '계약가능만 공개 노출' },
+  { id: 'contract_status', label: '계약상태', type: 'select', colSpan: 1, options: ['계약가능','계약진행중','계약완료'], hint: '계약가능·진행중 공개 노출' },
   { id: 'title',             label: '매물제목/특징',            type: 'text',       colSpan: 2 },
   { id: 'category',          label: '매물분류',                 type: 'fixed',      value: '토지' },
   { id: 'sub_category',      label: '세부지목',                 type: 'radio',      colSpan: 3, options: ['대', '전', '답', '임야', '공장용지', '과수원', '잡종지', '목장용지', '창고용지', '주차장', '주유소용지', '종교용지', '묘지', '도로', '구거', '유지', '염전', '하천', '유원지', '학교용지', '체육용지', '양어장', '광천지', '철도용지', '공원', '수도용지', '제방', '사적지', '기타'] },

@@ -1,7 +1,7 @@
-export const DEFAULT_FIELDS = [
+﻿export const DEFAULT_FIELDS = [
   { id: 'property_id',     label: '매물고유번호',            type: 'auto',       colSpan: 1, hint: '자동 생성' },
   { id: 'recommended',    label: '추천매물',                type: 'checkbox',   colSpan: 1, hint: '메인페이지 추천 노출' },
-  { id: 'contract_status', label: '계약상태', type: 'select', colSpan: 1, options: ['계약가능','계약진행중','계약완료'], hint: '계약가능만 공개 노출' },
+  { id: 'contract_status', label: '계약상태', type: 'select', colSpan: 1, options: ['계약가능','계약진행중','계약완료'], hint: '계약가능·진행중 공개 노출' },
   { id: 'title',           label: '매물제목/특징',           type: 'text',       colSpan: 2, hint: '메인카드·리스트에서 제목으로 표시' },
   { id: 'category',    label: '매물분류', type: 'fixed', value: '아파트' },
   { id: 'transaction', label: '거래종류', type: 'fixed', value: '전세' },
@@ -27,6 +27,7 @@ export const DEFAULT_FIELDS = [
   { id: 'total_parking',   label: '총 주차대수',             type: 'number',     colSpan: 1 },
   { id: 'unit_parking',    label: '세대당 주차대수',         type: 'number',     colSpan: 1 },
   { id: 'building_use',    label: '건축물용도',              type: 'select',     colSpan: 1, options: ['공동주택','숙박시설','업무시설'] },
+  { id: 'building_use_text', label: '건축물용도(상세)',      type: 'text',       colSpan: 1 },
   { id: 'approval_date',   label: '사용검사일/사용승인일/준공일', type: 'text',  colSpan: 2 },
   { id: 'description',     label: '매물 상세정보',           type: 'textarea',   colSpan: 3 },
   { id: 'photos',          label: '사진정보',                type: 'photos',     colSpan: 3, hint: '기존 Cloudinary 연결방식 유지' },

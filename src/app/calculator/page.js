@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import styles from './calculator.module.css';
 
-// ── 중개보수 요율표 ──────────────────────────────────
+// ── 중개보수 요율표
 const SALE_RATES = [
   { max: 5000,     rate: 0.006, limit: 25  },
   { max: 20000,    rate: 0.005, limit: 80  },
@@ -31,20 +31,102 @@ function getCommission(isSale, amount) {
   }
 }
 
-// ── 숫자 포맷 ────────────────────────────────────────
+// ── 취득세 계산
+function getAcquisitionTax(priceMan, houses, isAdj, overArea) {
+  let rate;
+  if (houses <= 1) {
+    if (priceMan <= 60000)      rate = 0.01;
+    else if (priceMan <= 90000) rate = (priceMan * 2 / 30000 - 3) / 100;
+    else                         rate = 0.03;
+  } else if (houses === 2) {
+    if (isAdj) rate = 0.08;
+    else {
+      if (priceMan <= 60000)      rate = 0.01;
+      else if (priceMan <= 90000) rate = (priceMan * 2 / 30000 - 3) / 100;
+      else                         rate = 0.03;
+    }
+  } else {
+    rate = isAdj ? 0.12 : 0.08;
+  }
+  const acqTax  = Math.round(priceMan * rate);
+  const eduTax  = Math.round(acqTax * 0.1);
+  const specTax = (overArea || houses >= 2) ? Math.round(acqTax * 0.1) : 0;
+  const pct     = rate * 100;
+  return {
+    rateText: pct % 1 === 0 ? `${pct.toFixed(0)}%` : `${pct.toFixed(2)}%`,
+    acqTax, eduTax, specTax, total: acqTax + eduTax + specTax,
+  };
+}
+
+// ── 양도세 계산
+const TRF_BRACKETS = [
+  { limit: 1400,    rate: 0.06, ded: 0    },
+  { limit: 5000,    rate: 0.15, ded: 126  },
+  { limit: 8800,    rate: 0.24, ded: 576  },
+  { limit: 15000,   rate: 0.35, ded: 1544 },
+  { limit: 30000,   rate: 0.38, ded: 1994 },
+  { limit: 50000,   rate: 0.40, ded: 2594 },
+  { limit: 100000,  rate: 0.42, ded: 3594 },
+  { limit: Infinity, rate: 0.45, ded: 6594 },
+];
+
+function progressiveTax(base) {
+  for (const { limit, rate, ded } of TRF_BRACKETS) {
+    if (base <= limit) return Math.max(0, Math.round(base * rate - ded));
+  }
+  return 0;
+}
+
+function getTransferTax({ sell, buy, exp, hold, live, isOne, isAdj, houses }) {
+  const gain = sell - buy - exp;
+  if (gain <= 0) return { gain, zero: true };
+
+  if (isOne && hold >= 2 && (!isAdj || live >= 2) && sell <= 120000)
+    return { gain, isTaxFree: true };
+
+  let taxGain = gain;
+  if (isOne && sell > 120000)
+    taxGain = Math.round(gain * (sell - 120000) / sell);
+
+  let ltcRate = 0;
+  if (hold >= 3) {
+    if (isOne && sell > 120000) {
+      ltcRate = Math.min(Math.floor(hold) * 4, 40) + Math.min(Math.floor(live) * 4, 40);
+      ltcRate = Math.min(ltcRate, 80);
+    } else if (!isOne) {
+      ltcRate = Math.min(Math.floor(hold) * 2, 30);
+    }
+  }
+  const ltcAmt   = Math.round(taxGain * ltcRate / 100);
+  const afterLtc = taxGain - ltcAmt;
+  const base     = Math.max(0, afterLtc - 250);
+
+  if (hold < 1) {
+    const tax = Math.round(base * 0.70);
+    return { gain, taxGain, ltcRate, ltcAmt, afterLtc, base, tax, local: Math.round(tax * 0.1), total: Math.round(tax * 1.1), shortTerm: 70 };
+  }
+  if (hold < 2) {
+    const tax = Math.round(base * 0.60);
+    return { gain, taxGain, ltcRate, ltcAmt, afterLtc, base, tax, local: Math.round(tax * 0.1), total: Math.round(tax * 1.1), shortTerm: 60 };
+  }
+
+  let surcharge = 0;
+  if (!isOne && isAdj) surcharge = houses >= 3 ? 30 : 20;
+
+  const tax   = Math.round(progressiveTax(base) + base * surcharge / 100);
+  const local = Math.round(tax * 0.1);
+  return { gain, taxGain, ltcRate, ltcAmt, afterLtc, base, tax, local, total: tax + local, surcharge };
+}
+
+// ── 유틸
 function fmtMan(v) {
   if (!v && v !== 0) return '—';
-  const eok = Math.floor(v / 10000);
-  const rem = v % 10000;
+  const eok = Math.floor(v / 10000), rem = v % 10000;
   if (eok === 0) return `${v.toLocaleString()}만원`;
-  if (rem === 0)  return `${eok}억원`;
+  if (rem === 0) return `${eok}억원`;
   return `${eok}억 ${rem.toLocaleString()}만원`;
 }
-
-function parseNum(str) {
-  return Number(String(str).replace(/,/g, '')) || 0;
-}
-
+function parseNum(str) { return Number(String(str).replace(/,/g, '')) || 0; }
 function handleNumInput(setter) {
   return (e) => {
     const raw = e.target.value.replace(/[^0-9]/g, '');
@@ -52,102 +134,127 @@ function handleNumInput(setter) {
   };
 }
 
+const TABS = [
+  { id: 'commission',  label: '💰 중개보수' },
+  { id: 'conversion',  label: '🔢 전월세 전환' },
+  { id: 'acquisition', label: '🏠 취득세' },
+  { id: 'transfer',    label: '📊 양도세' },
+];
+
 export default function CalculatorPage() {
   const [tab, setTab] = useState('commission');
 
-  // ── 중개보수 state
+  // 중개보수
   const [txType,  setTxType]  = useState('매매');
   const [amount,  setAmount]  = useState('');
   const [deposit, setDeposit] = useState('');
   const [monthly, setMonthly] = useState('');
 
-  // ── 전월세 전환 state
-  const [dir,          setDir]          = useState('to-wolse');
-  const [convJeonse,   setConvJeonse]   = useState('');
-  const [convDeposit,  setConvDeposit]  = useState('');
-  const [convMonthly,  setConvMonthly]  = useState('');
-  const [convRate,     setConvRate]     = useState('5.5');
+  // 전월세 전환
+  const [dir,        setDir]        = useState('to-wolse');
+  const [convJeonse, setConvJeonse] = useState('');
+  const [convDep,    setConvDep]    = useState('');
+  const [convMon,    setConvMon]    = useState('');
+  const [convRate,   setConvRate]   = useState('5.5');
 
-  // ── 중개보수 계산
+  // 취득세
+  const [acqPrice,  setAcqPrice]  = useState('');
+  const [acqHouses, setAcqHouses] = useState(1);
+  const [acqAdj,    setAcqAdj]    = useState(false);
+  const [acqOver,   setAcqOver]   = useState(false);
+
+  // 양도세
+  const [trfSell,   setTrfSell]   = useState('');
+  const [trfBuy,    setTrfBuy]    = useState('');
+  const [trfExp,    setTrfExp]    = useState('');
+  const [trfHold,   setTrfHold]   = useState('');
+  const [trfLive,   setTrfLive]   = useState('');
+  const [trfIsOne,  setTrfIsOne]  = useState(true);
+  const [trfIsAdj,  setTrfIsAdj]  = useState(false);
+  const [trfHouses, setTrfHouses] = useState(1);
+
+  // ── 계산
   const commResult = useMemo(() => {
-    let calcAmount = 0;
+    let calcAmt = 0;
     if (txType === '월세') {
-      const d = parseNum(deposit);
-      const m = parseNum(monthly);
+      const d = parseNum(deposit), m = parseNum(monthly);
       if (!m && !d) return null;
-      const converted = d + m * 100;
-      calcAmount = converted < 5000 ? d + m * 70 : converted;
+      const c = d + m * 100;
+      calcAmt = c < 5000 ? d + m * 70 : c;
     } else {
-      calcAmount = parseNum(amount);
-      if (!calcAmount) return null;
+      calcAmt = parseNum(amount);
+      if (!calcAmt) return null;
     }
-    const r = getCommission(txType === '매매', calcAmount);
+    const r = getCommission(txType === '매매', calcAmt);
     if (!r) return null;
     const vat = Math.floor(r.commission * 0.1);
-    return { ...r, amount: calcAmount, vat, total: r.commission + vat };
+    return { ...r, amount: calcAmt, vat, total: r.commission + vat };
   }, [txType, amount, deposit, monthly]);
 
-  // ── 전월세 전환 계산
   const convResult = useMemo(() => {
     const rate = parseFloat(convRate);
     if (!rate || rate <= 0) return null;
     if (dir === 'to-wolse') {
-      const jeonse = parseNum(convJeonse);
-      const dep    = parseNum(convDeposit);
-      if (!jeonse) return null;
-      const diff = jeonse - dep;
+      const j = parseNum(convJeonse), d = parseNum(convDep);
+      if (!j) return null;
+      const diff = j - d;
       if (diff <= 0) return { error: '전세금이 보증금보다 커야 합니다.' };
-      return { type: 'to-wolse', jeonse, deposit: dep, monthly: Math.round(diff * (rate / 100) / 12) };
+      return { type: 'to-wolse', jeonse: j, deposit: d, monthly: Math.round(diff * (rate / 100) / 12) };
     } else {
-      const dep = parseNum(convDeposit);
-      const mon = parseNum(convMonthly);
-      if (!mon) return null;
-      return { type: 'to-jeonse', deposit: dep, monthly: mon, jeonse: Math.round(dep + mon * 12 / (rate / 100)) };
+      const d = parseNum(convDep), m = parseNum(convMon);
+      if (!m) return null;
+      return { type: 'to-jeonse', deposit: d, monthly: m, jeonse: Math.round(d + m * 12 / (rate / 100)) };
     }
-  }, [dir, convJeonse, convDeposit, convMonthly, convRate]);
+  }, [dir, convJeonse, convDep, convMon, convRate]);
+
+  const acqResult = useMemo(() => {
+    const p = parseNum(acqPrice);
+    if (!p) return null;
+    return getAcquisitionTax(p, acqHouses, acqAdj, acqOver);
+  }, [acqPrice, acqHouses, acqAdj, acqOver]);
+
+  const trfResult = useMemo(() => {
+    const sell = parseNum(trfSell), buy = parseNum(trfBuy);
+    if (!sell || !buy) return null;
+    return getTransferTax({
+      sell, buy, exp: parseNum(trfExp),
+      hold: parseFloat(trfHold) || 0,
+      live: parseFloat(trfLive) || 0,
+      isOne: trfIsOne, isAdj: trfIsAdj, houses: trfHouses,
+    });
+  }, [trfSell, trfBuy, trfExp, trfHold, trfLive, trfIsOne, trfIsAdj, trfHouses]);
 
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
         <p className={styles.heroEyebrow}>한결부동산 공인중개사사무소</p>
         <h1 className={styles.heroTitle}>부동산 계산기</h1>
-        <p className={styles.heroSub}>중개보수와 전월세 전환을 간편하게 계산하세요</p>
+        <p className={styles.heroSub}>중개보수 · 전월세 전환 · 취득세 · 양도세를 간편하게 계산하세요</p>
       </div>
 
       <div className={styles.container}>
         <div className={styles.tabBar}>
-          <button
-            className={`${styles.tabBtn} ${tab === 'commission' ? styles.tabActive : ''}`}
-            onClick={() => setTab('commission')}
-          >
-            💰 중개보수 계산기
-          </button>
-          <button
-            className={`${styles.tabBtn} ${tab === 'conversion' ? styles.tabActive : ''}`}
-            onClick={() => setTab('conversion')}
-          >
-            🔢 전월세 전환 계산기
-          </button>
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              className={`${styles.tabBtn} ${tab === t.id ? styles.tabActive : ''}`}
+              onClick={() => setTab(t.id)}
+            >{t.label}</button>
+          ))}
         </div>
 
-        {/* ── 중개보수 탭 ── */}
+        {/* ── 중개보수 ── */}
         {tab === 'commission' && (
           <div className={styles.card}>
             <div className={styles.cardHeader}>
               <h2 className={styles.cardTitle}>중개보수 계산기</h2>
               <span className={styles.cardBadge}>2021년 개정 상한 요율 기준</span>
             </div>
-
             <div className={styles.typeGroup}>
               {['매매', '전세', '월세'].map(t => (
-                <button
-                  key={t}
-                  className={`${styles.typeBtn} ${txType === t ? styles.typeBtnActive : ''}`}
-                  onClick={() => setTxType(t)}
-                >{t}</button>
+                <button key={t} className={`${styles.typeBtn} ${txType === t ? styles.typeBtnActive : ''}`} onClick={() => setTxType(t)}>{t}</button>
               ))}
             </div>
-
             <div className={styles.inputBlock}>
               {txType === '월세' ? (
                 <>
@@ -167,9 +274,7 @@ export default function CalculatorPage() {
                   </div>
                   {(parseNum(deposit) > 0 || parseNum(monthly) > 0) && (
                     <p className={styles.convertedNote}>
-                      환산 보증금: {fmtMan(
-                        (() => { const d = parseNum(deposit), m = parseNum(monthly), c = d + m * 100; return c < 5000 ? d + m * 70 : c; })()
-                      )}
+                      환산 보증금: {fmtMan((() => { const d = parseNum(deposit), m = parseNum(monthly), c = d + m * 100; return c < 5000 ? d + m * 70 : c; })())}
                     </p>
                   )}
                 </>
@@ -183,38 +288,19 @@ export default function CalculatorPage() {
                 </div>
               )}
             </div>
-
             {commResult && (
               <div className={styles.resultBox}>
-                <div className={styles.resultRow}>
-                  <span className={styles.rLabel}>거래금액</span>
-                  <span className={styles.rValue}>{fmtMan(commResult.amount)}</span>
-                </div>
-                <div className={styles.resultRow}>
-                  <span className={styles.rLabel}>적용 요율</span>
-                  <span className={styles.rValue}>{commResult.rateText}%</span>
-                </div>
-                <div className={styles.resultRow}>
-                  <span className={styles.rLabel}>중개보수 (상한)</span>
-                  <span className={styles.rValue}>{fmtMan(commResult.commission)}</span>
-                </div>
-                <div className={styles.resultRow}>
-                  <span className={styles.rLabel}>부가세 (10%)</span>
-                  <span className={styles.rValue}>{fmtMan(commResult.vat)}</span>
-                </div>
-                <div className={`${styles.resultRow} ${styles.resultTotalRow}`}>
-                  <span className={styles.rLabel}>최종 합계</span>
-                  <span className={styles.rValueTotal}>{fmtMan(commResult.total)}</span>
-                </div>
+                <div className={styles.resultRow}><span className={styles.rLabel}>거래금액</span><span className={styles.rValue}>{fmtMan(commResult.amount)}</span></div>
+                <div className={styles.resultRow}><span className={styles.rLabel}>적용 요율</span><span className={styles.rValue}>{commResult.rateText}%</span></div>
+                <div className={styles.resultRow}><span className={styles.rLabel}>중개보수 (상한)</span><span className={styles.rValue}>{fmtMan(commResult.commission)}</span></div>
+                <div className={styles.resultRow}><span className={styles.rLabel}>부가세 (10%)</span><span className={styles.rValue}>{fmtMan(commResult.vat)}</span></div>
+                <div className={`${styles.resultRow} ${styles.resultTotalRow}`}><span className={styles.rLabel}>최종 합계</span><span className={styles.rValueTotal}>{fmtMan(commResult.total)}</span></div>
               </div>
             )}
-
             <details className={styles.tableWrap}>
               <summary className={styles.tableSummary}>📋 법정 상한 요율표 보기</summary>
               <table className={styles.rateTable}>
-                <thead>
-                  <tr><th>구분</th><th>거래금액</th><th>상한 요율</th><th>한도액</th></tr>
-                </thead>
+                <thead><tr><th>구분</th><th>거래금액</th><th>상한 요율</th><th>한도액</th></tr></thead>
                 <tbody>
                   <tr><td rowSpan={6} className={styles.txCell}>매매</td><td>5천만원 미만</td><td>0.6%</td><td>25만원</td></tr>
                   <tr><td>5천만~2억 미만</td><td>0.5%</td><td>80만원</td></tr>
@@ -234,62 +320,41 @@ export default function CalculatorPage() {
           </div>
         )}
 
-        {/* ── 전월세 전환 탭 ── */}
+        {/* ── 전월세 전환 ── */}
         {tab === 'conversion' && (
           <div className={styles.card}>
             <div className={styles.cardHeader}>
               <h2 className={styles.cardTitle}>전월세 전환 계산기</h2>
               <span className={styles.cardBadge}>전환율 직접 입력 가능</span>
             </div>
-
             <div className={styles.typeGroup}>
-              <button
-                className={`${styles.typeBtn} ${dir === 'to-wolse' ? styles.typeBtnActive : ''}`}
-                onClick={() => setDir('to-wolse')}
-              >전세 → 월세</button>
-              <button
-                className={`${styles.typeBtn} ${dir === 'to-jeonse' ? styles.typeBtnActive : ''}`}
-                onClick={() => setDir('to-jeonse')}
-              >월세 → 전세</button>
+              <button className={`${styles.typeBtn} ${dir === 'to-wolse' ? styles.typeBtnActive : ''}`} onClick={() => setDir('to-wolse')}>전세 → 월세</button>
+              <button className={`${styles.typeBtn} ${dir === 'to-jeonse' ? styles.typeBtnActive : ''}`} onClick={() => setDir('to-jeonse')}>월세 → 전세</button>
             </div>
-
             <div className={styles.inputBlock}>
               {dir === 'to-wolse' ? (
                 <>
                   <div className={styles.inputRow}>
                     <label className={styles.label}>현재 전세금</label>
-                    <div className={styles.inputWrap}>
-                      <input className={styles.input} value={convJeonse} onChange={handleNumInput(setConvJeonse)} placeholder="0" />
-                      <span className={styles.inputUnit}>만원</span>
-                    </div>
+                    <div className={styles.inputWrap}><input className={styles.input} value={convJeonse} onChange={handleNumInput(setConvJeonse)} placeholder="0" /><span className={styles.inputUnit}>만원</span></div>
                   </div>
                   <div className={styles.inputRow}>
                     <label className={styles.label}>새 보증금</label>
-                    <div className={styles.inputWrap}>
-                      <input className={styles.input} value={convDeposit} onChange={handleNumInput(setConvDeposit)} placeholder="0" />
-                      <span className={styles.inputUnit}>만원</span>
-                    </div>
+                    <div className={styles.inputWrap}><input className={styles.input} value={convDep} onChange={handleNumInput(setConvDep)} placeholder="0" /><span className={styles.inputUnit}>만원</span></div>
                   </div>
                 </>
               ) : (
                 <>
                   <div className={styles.inputRow}>
                     <label className={styles.label}>보증금</label>
-                    <div className={styles.inputWrap}>
-                      <input className={styles.input} value={convDeposit} onChange={handleNumInput(setConvDeposit)} placeholder="0" />
-                      <span className={styles.inputUnit}>만원</span>
-                    </div>
+                    <div className={styles.inputWrap}><input className={styles.input} value={convDep} onChange={handleNumInput(setConvDep)} placeholder="0" /><span className={styles.inputUnit}>만원</span></div>
                   </div>
                   <div className={styles.inputRow}>
                     <label className={styles.label}>월세</label>
-                    <div className={styles.inputWrap}>
-                      <input className={styles.input} value={convMonthly} onChange={handleNumInput(setConvMonthly)} placeholder="0" />
-                      <span className={styles.inputUnit}>만원</span>
-                    </div>
+                    <div className={styles.inputWrap}><input className={styles.input} value={convMon} onChange={handleNumInput(setConvMon)} placeholder="0" /><span className={styles.inputUnit}>만원</span></div>
                   </div>
                 </>
               )}
-
               <div className={styles.inputRow}>
                 <label className={styles.label}>전환율</label>
                 <div className={styles.rateRow}>
@@ -299,62 +364,199 @@ export default function CalculatorPage() {
                   </div>
                   <div className={styles.presets}>
                     {['4.0', '5.0', '5.5', '6.0'].map(r => (
-                      <button
-                        key={r}
-                        className={`${styles.presetBtn} ${convRate === r ? styles.presetActive : ''}`}
-                        onClick={() => setConvRate(r)}
-                      >{r}%</button>
+                      <button key={r} className={`${styles.presetBtn} ${convRate === r ? styles.presetActive : ''}`} onClick={() => setConvRate(r)}>{r}%</button>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
-
             {convResult && !convResult.error && (
               <div className={styles.resultBox}>
                 {dir === 'to-wolse' ? (
                   <>
-                    <div className={styles.resultRow}>
-                      <span className={styles.rLabel}>현재 전세금</span>
-                      <span className={styles.rValue}>{fmtMan(convResult.jeonse)}</span>
-                    </div>
-                    <div className={styles.resultRow}>
-                      <span className={styles.rLabel}>새 보증금</span>
-                      <span className={styles.rValue}>{fmtMan(convResult.deposit)}</span>
-                    </div>
-                    <div className={`${styles.resultRow} ${styles.resultTotalRow}`}>
-                      <span className={styles.rLabel}>월세</span>
-                      <span className={styles.rValueTotal}>{fmtMan(convResult.monthly)} / 월</span>
-                    </div>
+                    <div className={styles.resultRow}><span className={styles.rLabel}>현재 전세금</span><span className={styles.rValue}>{fmtMan(convResult.jeonse)}</span></div>
+                    <div className={styles.resultRow}><span className={styles.rLabel}>새 보증금</span><span className={styles.rValue}>{fmtMan(convResult.deposit)}</span></div>
+                    <div className={`${styles.resultRow} ${styles.resultTotalRow}`}><span className={styles.rLabel}>월세</span><span className={styles.rValueTotal}>{fmtMan(convResult.monthly)} / 월</span></div>
                   </>
                 ) : (
                   <>
-                    <div className={styles.resultRow}>
-                      <span className={styles.rLabel}>보증금</span>
-                      <span className={styles.rValue}>{fmtMan(convResult.deposit)}</span>
-                    </div>
-                    <div className={styles.resultRow}>
-                      <span className={styles.rLabel}>월세</span>
-                      <span className={styles.rValue}>{fmtMan(convResult.monthly)} / 월</span>
-                    </div>
-                    <div className={`${styles.resultRow} ${styles.resultTotalRow}`}>
-                      <span className={styles.rLabel}>전세 환산금액</span>
-                      <span className={styles.rValueTotal}>{fmtMan(convResult.jeonse)}</span>
-                    </div>
+                    <div className={styles.resultRow}><span className={styles.rLabel}>보증금</span><span className={styles.rValue}>{fmtMan(convResult.deposit)}</span></div>
+                    <div className={styles.resultRow}><span className={styles.rLabel}>월세</span><span className={styles.rValue}>{fmtMan(convResult.monthly)} / 월</span></div>
+                    <div className={`${styles.resultRow} ${styles.resultTotalRow}`}><span className={styles.rLabel}>전세 환산금액</span><span className={styles.rValueTotal}>{fmtMan(convResult.jeonse)}</span></div>
                   </>
                 )}
               </div>
             )}
             {convResult?.error && <p className={styles.errorMsg}>{convResult.error}</p>}
-
             <div className={styles.infoBox}>
               <p className={styles.infoTitle}>💡 전월세 전환율이란?</p>
               <p className={styles.infoText}>전세를 월세로 전환할 때 적용하는 연간 이자율입니다. 법정 상한은 <strong>연 10%</strong>이며, 통상 <strong>5~6%</strong> 수준으로 협의됩니다.</p>
-              <p className={styles.infoFormula}>
-                {dir === 'to-wolse'
-                  ? '월세 = (전세금 − 보증금) × 전환율 ÷ 12'
-                  : '전세금 = 보증금 + 월세 × 12 ÷ 전환율'}
-              </p>
+              <p className={styles.infoFormula}>{dir === 'to-wolse' ? '월세 = (전세금 − 보증금) × 전환율 ÷ 12' : '전세금 = 보증금 + 월세 × 12 ÷ 전환율'}</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── 취득세 ── */}
+        {tab === 'acquisition' && (
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>취득세 계산기</h2>
+              <span className={styles.cardBadge}>주택 기준</span>
+            </div>
+            <div className={styles.inputBlock} style={{ paddingTop: 16 }}>
+              <div className={styles.inputRow}>
+                <label className={styles.label}>취득가액</label>
+                <div className={styles.inputWrap}>
+                  <input className={styles.input} value={acqPrice} onChange={handleNumInput(setAcqPrice)} placeholder="0" />
+                  <span className={styles.inputUnit}>만원</span>
+                </div>
+              </div>
+              <div className={styles.inputRow}>
+                <label className={styles.label}>보유 주택 수</label>
+                <div className={styles.btnGroup}>
+                  {[1, 2, 3].map(n => (
+                    <button key={n} className={`${styles.typeBtn} ${acqHouses === n ? styles.typeBtnActive : ''}`} onClick={() => setAcqHouses(n)}>
+                      {n === 3 ? '3주택+' : `${n}주택`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {acqHouses >= 2 && (
+                <div className={styles.inputRow}>
+                  <label className={styles.label}>조정대상지역</label>
+                  <div className={styles.btnGroup}>
+                    <button className={`${styles.typeBtn} ${acqAdj ? styles.typeBtnActive : ''}`} onClick={() => setAcqAdj(true)}>해당</button>
+                    <button className={`${styles.typeBtn} ${!acqAdj ? styles.typeBtnActive : ''}`} onClick={() => setAcqAdj(false)}>비해당</button>
+                  </div>
+                </div>
+              )}
+              <div className={styles.inputRow}>
+                <label className={styles.label}>전용면적</label>
+                <div className={styles.btnGroup}>
+                  <button className={`${styles.typeBtn} ${!acqOver ? styles.typeBtnActive : ''}`} onClick={() => setAcqOver(false)}>85㎡ 이하</button>
+                  <button className={`${styles.typeBtn} ${acqOver ? styles.typeBtnActive : ''}`} onClick={() => setAcqOver(true)}>85㎡ 초과</button>
+                </div>
+              </div>
+            </div>
+            {acqResult && (
+              <div className={styles.resultBox}>
+                <div className={styles.resultRow}><span className={styles.rLabel}>취득가액</span><span className={styles.rValue}>{fmtMan(parseNum(acqPrice))}</span></div>
+                <div className={styles.resultRow}><span className={styles.rLabel}>취득세율</span><span className={styles.rValue}>{acqResult.rateText}</span></div>
+                <div className={styles.resultRow}><span className={styles.rLabel}>취득세</span><span className={styles.rValue}>{fmtMan(acqResult.acqTax)}</span></div>
+                <div className={styles.resultRow}><span className={styles.rLabel}>지방교육세</span><span className={styles.rValue}>{fmtMan(acqResult.eduTax)}</span></div>
+                <div className={styles.resultRow}><span className={styles.rLabel}>농어촌특별세</span><span className={styles.rValue}>{acqResult.specTax ? fmtMan(acqResult.specTax) : '비과세 (85㎡ 이하 1주택)'}</span></div>
+                <div className={`${styles.resultRow} ${styles.resultTotalRow}`}><span className={styles.rLabel}>합계</span><span className={styles.rValueTotal}>{fmtMan(acqResult.total)}</span></div>
+              </div>
+            )}
+            <div className={styles.infoBox}>
+              <p className={styles.infoTitle}>⚠️ 주의사항</p>
+              <p className={styles.infoText}>다주택 중과세율(8%, 12%)은 2022년 12월부터 한시 완화 조치가 있어 실제 적용 세율이 다를 수 있습니다. 지방교육세·농어촌특별세는 세율 구간과 면적에 따라 달라집니다.</p>
+              <p className={styles.infoFormula}>참고용 모의계산 — 정확한 세액은 세무사 상담을 권장합니다</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── 양도세 ── */}
+        {tab === 'transfer' && (
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>양도소득세 계산기</h2>
+              <span className={styles.cardBadge}>주택 기준 모의계산</span>
+            </div>
+            <div className={styles.inputBlock} style={{ paddingTop: 16 }}>
+              <div className={styles.inputRow}>
+                <label className={styles.label}>양도가액</label>
+                <div className={styles.inputWrap}><input className={styles.input} value={trfSell} onChange={handleNumInput(setTrfSell)} placeholder="0" /><span className={styles.inputUnit}>만원</span></div>
+              </div>
+              <div className={styles.inputRow}>
+                <label className={styles.label}>취득가액</label>
+                <div className={styles.inputWrap}><input className={styles.input} value={trfBuy} onChange={handleNumInput(setTrfBuy)} placeholder="0" /><span className={styles.inputUnit}>만원</span></div>
+              </div>
+              <div className={styles.inputRow}>
+                <label className={styles.label}>필요경비</label>
+                <div className={styles.inputWrap}><input className={styles.input} value={trfExp} onChange={handleNumInput(setTrfExp)} placeholder="0 (선택)" /><span className={styles.inputUnit}>만원</span></div>
+              </div>
+              <div className={styles.inputRow}>
+                <label className={styles.label}>보유기간</label>
+                <div className={styles.inputWrap}><input className={styles.input} value={trfHold} onChange={e => setTrfHold(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="예: 3.5" /><span className={styles.inputUnit}>년</span></div>
+              </div>
+              <div className={styles.inputRow}>
+                <label className={styles.label}>1세대 1주택</label>
+                <div className={styles.btnGroup}>
+                  <button className={`${styles.typeBtn} ${trfIsOne ? styles.typeBtnActive : ''}`} onClick={() => setTrfIsOne(true)}>해당</button>
+                  <button className={`${styles.typeBtn} ${!trfIsOne ? styles.typeBtnActive : ''}`} onClick={() => setTrfIsOne(false)}>비해당</button>
+                </div>
+              </div>
+              {trfIsOne && (
+                <div className={styles.inputRow}>
+                  <label className={styles.label}>거주기간</label>
+                  <div className={styles.inputWrap}><input className={styles.input} value={trfLive} onChange={e => setTrfLive(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="예: 2" /><span className={styles.inputUnit}>년</span></div>
+                </div>
+              )}
+              <div className={styles.inputRow}>
+                <label className={styles.label}>조정대상지역</label>
+                <div className={styles.btnGroup}>
+                  <button className={`${styles.typeBtn} ${trfIsAdj ? styles.typeBtnActive : ''}`} onClick={() => setTrfIsAdj(true)}>해당</button>
+                  <button className={`${styles.typeBtn} ${!trfIsAdj ? styles.typeBtnActive : ''}`} onClick={() => setTrfIsAdj(false)}>비해당</button>
+                </div>
+              </div>
+              {!trfIsOne && (
+                <div className={styles.inputRow}>
+                  <label className={styles.label}>주택 수</label>
+                  <div className={styles.btnGroup}>
+                    {[1, 2, 3].map(n => (
+                      <button key={n} className={`${styles.typeBtn} ${trfHouses === n ? styles.typeBtnActive : ''}`} onClick={() => setTrfHouses(n)}>
+                        {n === 3 ? '3주택+' : `${n}주택`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {trfResult && (
+              trfResult.zero ? (
+                <div className={styles.resultBox}>
+                  <div className={`${styles.resultRow} ${styles.resultTotalRow}`}>
+                    <span className={styles.rLabel}>양도차익</span>
+                    <span className={styles.rValueTotal} style={{ color: '#888' }}>없음 (손실 또는 동일)</span>
+                  </div>
+                </div>
+              ) : trfResult.isTaxFree ? (
+                <div className={styles.resultBox}>
+                  <div className={styles.resultRow}><span className={styles.rLabel}>양도차익</span><span className={styles.rValue}>{fmtMan(trfResult.gain)}</span></div>
+                  <div className={`${styles.resultRow} ${styles.resultTotalRow}`}>
+                    <span className={styles.rLabel}>납부 세액</span>
+                    <span className={styles.rValueTotal} style={{ color: '#2a9a5a' }}>비과세 (1세대 1주택)</span>
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.resultBox}>
+                  <div className={styles.resultRow}><span className={styles.rLabel}>양도차익</span><span className={styles.rValue}>{fmtMan(trfResult.gain)}</span></div>
+                  {trfResult.taxGain !== trfResult.gain && (
+                    <div className={styles.resultRow}><span className={styles.rLabel}>과세 양도차익</span><span className={styles.rValue}>{fmtMan(trfResult.taxGain)}</span></div>
+                  )}
+                  {trfResult.ltcRate > 0 && (
+                    <div className={styles.resultRow}><span className={styles.rLabel}>장기보유특별공제 ({trfResult.ltcRate}%)</span><span className={styles.rValue}>− {fmtMan(trfResult.ltcAmt)}</span></div>
+                  )}
+                  <div className={styles.resultRow}><span className={styles.rLabel}>과세표준</span><span className={styles.rValue}>{fmtMan(trfResult.base)}</span></div>
+                  {trfResult.shortTerm && (
+                    <div className={styles.resultRow}><span className={styles.rLabel}>세율</span><span className={styles.rValue}>{trfResult.shortTerm}% (단기보유)</span></div>
+                  )}
+                  {trfResult.surcharge > 0 && (
+                    <div className={styles.resultRow}><span className={styles.rLabel}>다주택 중과</span><span className={styles.rValue}>+{trfResult.surcharge}%p</span></div>
+                  )}
+                  <div className={styles.resultRow}><span className={styles.rLabel}>양도소득세</span><span className={styles.rValue}>{fmtMan(trfResult.tax)}</span></div>
+                  <div className={styles.resultRow}><span className={styles.rLabel}>지방소득세 (10%)</span><span className={styles.rValue}>{fmtMan(trfResult.local)}</span></div>
+                  <div className={`${styles.resultRow} ${styles.resultTotalRow}`}><span className={styles.rLabel}>합계</span><span className={styles.rValueTotal}>{fmtMan(trfResult.total)}</span></div>
+                </div>
+              )
+            )}
+
+            <div className={`${styles.infoBox} ${styles.infoBoxWarn}`}>
+              <p className={styles.infoTitle}>⚠️ 참고용 모의계산입니다</p>
+              <p className={styles.infoText}>양도세는 보유·거주기간, 주택 수, 조정지역, 장기보유특별공제 등 변수가 매우 많습니다. 다주택 중과 한시 완화, 비과세 요건은 개인 상황에 따라 크게 달라질 수 있습니다. <strong>반드시 세무사 상담을 받으세요.</strong></p>
+              <p className={styles.infoFormula}>기본공제 250만원 적용 · 지방소득세(10%) 포함</p>
             </div>
           </div>
         )}

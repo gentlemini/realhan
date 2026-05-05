@@ -40,7 +40,8 @@
 /* ── Tab Bar ── */
 .tabBar {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-bottom: 20px;
   background: #fff;
   border: 1px solid #e8e0d6;
@@ -48,11 +49,11 @@
   padding: 6px;
 }
 .tabBtn {
-  flex: 1;
+  flex: 1 0 calc(50% - 9px);
   padding: 10px 8px;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   background: transparent;
@@ -326,6 +327,26 @@
   font-family: monospace;
   letter-spacing: 0.01em;
 }
+
+/* ── Inline button group (취득세·양도세 row 내부용) ── */
+.btnGroup {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+}
+.btnGroup .typeBtn {
+  flex: 1;
+  padding: 8px 4px;
+}
+
+/* ── Warning info box ── */
+.infoBoxWarn {
+  background: #fff5f5;
+  border-color: #f5c6c6;
+}
+.infoBoxWarn .infoTitle { color: #c0392b; }
+.infoBoxWarn .infoText  { color: #7a2222; }
+.infoBoxWarn .infoFormula { border-color: #f5c6c6; }
 
 .errorMsg {
   margin: 0 20px 16px;

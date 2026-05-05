@@ -1685,9 +1685,10 @@ const TAB_GROUPS = [
         editRoute: id => `/admin2/lnd-sale/edit/${id}`,
         detailSections: [
           { title: '기본 정보', fields: [
+            { key: 'transaction',  label: '거래종류' },
             { key: 'sub_category', label: '세부지목' },
-            { key: 'title',        label: '매물제목/특징' },
             { key: 'land_area',    label: '면적(㎡)',   type: 'num' },
+            { key: 'title',        label: '매물제목/특징' },
             { key: 'move_in',      label: '입주가능일' },
           ]},
           { title: '가격 정보', fields: [
@@ -1709,9 +1710,10 @@ const TAB_GROUPS = [
         editRoute: id => `/admin2/lnd-lease/edit/${id}`,
         detailSections: [
           { title: '기본 정보', fields: [
+            { key: 'transaction',  label: '거래종류' },
             { key: 'sub_category', label: '세부지목' },
-            { key: 'title',        label: '매물제목/특징' },
             { key: 'land_area',    label: '면적(㎡)',   type: 'num' },
+            { key: 'title',        label: '매물제목/특징' },
             { key: 'move_in',      label: '입주가능일' },
           ]},
           { title: '가격 정보', fields: [
@@ -1731,9 +1733,10 @@ const TAB_GROUPS = [
         editRoute: id => `/admin2/lnd-wolse/edit/${id}`,
         detailSections: [
           { title: '기본 정보', fields: [
+            { key: 'transaction',  label: '거래종류' },
             { key: 'sub_category', label: '세부지목' },
-            { key: 'title',        label: '매물제목/특징' },
             { key: 'land_area',    label: '면적(㎡)',   type: 'num' },
+            { key: 'title',        label: '매물제목/특징' },
             { key: 'move_in',      label: '입주가능일' },
           ]},
           { title: '가격 정보', fields: [

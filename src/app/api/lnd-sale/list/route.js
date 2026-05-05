@@ -45,7 +45,7 @@ export async function GET() {
         address_detail_privacy:   gS(p['상세주소_공개여부']),
         address_detail_memo:      gR(p['상세주소_메모']),
         address_public:           gS(p['지번노출여부']),
-        land_area:                gN(p['대지면적_㎡']),
+        land_area:                gN(p['면적_㎡']),
         move_in:                  gR(p['입주가능일']),
         sale_price:               gN(p['매매가격_만원']),
         curr_deposit:             gN(p['현보증금_만원']),

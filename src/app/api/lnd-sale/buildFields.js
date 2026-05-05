@@ -34,7 +34,7 @@ export function buildFields(d) {
     addC('지도_숨김', d.map_config.mapHidden);
   }
 
-  addN('대지면적_㎡', d.land_area);
+  addN('면적_㎡', d.land_area);
   addR('입주가능일', d.move_in);
   addN('매매가격_만원', d.sale_price);
   addN('현보증금_만원', d.curr_deposit);

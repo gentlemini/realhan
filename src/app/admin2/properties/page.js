@@ -707,9 +707,6 @@ const COMMON_SECTIONS_BLD = [
 ];
 
 const COMMON_SECTIONS_LND = [
-  { title: '면적', fields: [
-    { key: 'land_area', label: '대지면적(㎡)', type: 'num' },
-  ]},
   { title: '구조·토지', fields: [
     { key: 'above_floors',     label: '지상층수',    type: 'num' },
     { key: 'rooms',            label: '방수',        type: 'num' },
@@ -1690,8 +1687,11 @@ const TAB_GROUPS = [
           { title: '기본 정보', fields: [
             { key: 'sub_category', label: '세부지목' },
             { key: 'title',        label: '매물제목/특징' },
+            { key: 'land_area',    label: '면적(㎡)',   type: 'num' },
             { key: 'move_in',      label: '입주가능일' },
-            { key: 'sale_price',   label: '매매가격',  type: 'num' },
+          ]},
+          { title: '가격 정보', fields: [
+            { key: 'sale_price',   label: '매매가격',  type: 'price' },
             { key: 'curr_deposit', label: '현보증금',  type: 'num' },
             { key: 'curr_monthly', label: '현월세',    type: 'num' },
             { key: 'loan_info',    label: '융자금',    type: 'num' },
@@ -1711,8 +1711,11 @@ const TAB_GROUPS = [
           { title: '기본 정보', fields: [
             { key: 'sub_category', label: '세부지목' },
             { key: 'title',        label: '매물제목/특징' },
+            { key: 'land_area',    label: '면적(㎡)',   type: 'num' },
             { key: 'move_in',      label: '입주가능일' },
-            { key: 'jeonse_price', label: '전세가격', type: 'num' },
+          ]},
+          { title: '가격 정보', fields: [
+            { key: 'jeonse_price', label: '전세가격', type: 'price' },
             { key: 'loan_info',    label: '융자금',   type: 'num' },
             { key: 'monthly_fee',  label: '월관리비', type: 'num' },
           ]},
@@ -1730,9 +1733,12 @@ const TAB_GROUPS = [
           { title: '기본 정보', fields: [
             { key: 'sub_category', label: '세부지목' },
             { key: 'title',        label: '매물제목/특징' },
+            { key: 'land_area',    label: '면적(㎡)',   type: 'num' },
             { key: 'move_in',      label: '입주가능일' },
-            { key: 'deposit',      label: '보증금',    type: 'num' },
-            { key: 'monthly_rent', label: '월세',      type: 'num' },
+          ]},
+          { title: '가격 정보', fields: [
+            { key: 'deposit',      label: '보증금',    type: 'price' },
+            { key: 'monthly_rent', label: '월세',      type: 'price' },
             { key: 'loan_info',    label: '융자금',    type: 'num' },
             { key: 'monthly_fee',  label: '월관리비',  type: 'num' },
           ]},

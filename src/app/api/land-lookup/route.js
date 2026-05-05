@@ -39,8 +39,10 @@ export async function GET(request) {
   return Response.json({
     landData: null,
     _debug: {
-      pnu0: r0.pnu, raw0: r0.rawData ?? r0.rawText,
-      pnu1: r1.pnu, raw1: r1.rawData ?? r1.rawText,
+      keyLength: key.length,
+      domain: process.env.NEXTAUTH_URL || '(없음)',
+      pnu0: r0.pnu, raw0: r0.rawData ?? r0.rawText ?? r0._error ?? '(없음)',
+      pnu1: r1.pnu, raw1: r1.rawData ?? r1.rawText ?? r1._error ?? '(없음)',
     },
   });
 }

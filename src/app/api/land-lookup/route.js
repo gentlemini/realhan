@@ -15,9 +15,13 @@ export async function GET(request) {
 
   async function tryPnu(platGbCd) {
     const pnu = sigunguCd + bjdongCd + platGbCd + bun + ji;
-    const url = `${VWORLD_BASE}?pnu=${pnu}&key=${key}&format=json&numOfRows=1&pageNo=1`;
+    const siteUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3100').replace(/\/$/, '');
+    const url = `${VWORLD_BASE}?pnu=${pnu}&key=${key}&format=json&numOfRows=1&pageNo=1&domain=${encodeURIComponent(siteUrl)}`;
     try {
-      const res  = await fetch(url, { cache: 'no-store' });
+      const res  = await fetch(url, {
+        cache: 'no-store',
+        headers: { 'Referer': siteUrl, 'Origin': siteUrl },
+      });
       const text = await res.text();
       let data;
       try { data = JSON.parse(text); } catch { return { item: null, pnu, rawText: text.slice(0, 300) }; }

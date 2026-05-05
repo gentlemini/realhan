@@ -49,17 +49,18 @@
   padding: 6px;
 }
 .tabBtn {
-  flex: 1 0 calc(50% - 9px);
-  padding: 10px 8px;
+  flex: 1 0 calc(33.33% - 10px);
+  padding: 10px 6px;
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   background: transparent;
   color: #8a7060;
   transition: all 0.18s;
   white-space: nowrap;
+  text-align: center;
 }
 .tabBtn:hover { background: #f5f0ea; color: #4a3118; }
 .tabActive {
@@ -327,6 +328,29 @@
   font-family: monospace;
   letter-spacing: 0.01em;
 }
+
+/* ── Select ── */
+.selectWrap {
+  flex: 1;
+}
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 8px;
+  background: #faf8f5;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c1f0e;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a7060' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.select:focus { border-color: #a87b51; }
 
 /* ── Inline button group (취득세·양도세 row 내부용) ── */
 .btnGroup {

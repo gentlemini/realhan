@@ -389,18 +389,19 @@
 }
 
 .modalClose {
-  background: transparent;
+  background: rgba(0,0,0,0.55);
   border: none;
-  font-size: 18px;
-  color: #aaa;
+  font-size: 16px;
+  color: #fff;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
   transition: all 0.15s;
   line-height: 1;
   flex-shrink: 0;
+  font-weight: 700;
 }
-.modalClose:hover { background: #f0ebe4; color: #5a3e28; }
+.modalClose:hover { background: rgba(0,0,0,0.8); }
 
 .modalBody {
   overflow-y: auto;
@@ -641,6 +642,68 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── 모달 모바일 ── */
+@media (max-width: 768px) {
+  .overlay { padding: 0; align-items: flex-start; }
+  .modal {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 헤더 바를 투명 오버레이로 전환 — 닫기 버튼만 사진 위에 떠있음 */
+  .modalTop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: transparent;
+    border-bottom: none;
+    padding: 12px 14px;
+    justify-content: flex-end;
+  }
+  .modalHeader { display: none; }
+
+  /* 본문: 사진이 맨 위, 아래는 스크롤 */
+  .modalBody {
+    padding: 0;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* 사진: 전체폭, 고정 높이, 둥근 모서리 제거 */
+  .modalPhoto {
+    margin: 0;
+    border-radius: 0;
+    height: 250px;
+    flex-shrink: 0;
+  }
+  .modalPhotoImg {
+    width: 100%;
+    height: 250px;
+    max-height: none;
+    object-fit: cover;
+  }
+
+  /* 사진 없을 때 닫기 버튼 배경 — 첫 섹션 바로 위에 버튼만 떠있도록 */
+  .modalTopNoPhoto {
+    background: #faf7f4;
+    border-bottom: 1px solid #e8ddd0;
+    position: relative;
+  }
+
+  /* 섹션 패딩 */
+  .section { padding: 0 16px; }
+  .sectionGrid { padding-bottom: 4px; }
+  .detailRow { padding: 8px 0; }
 }
 
 /* ═══════════════════════════════════════

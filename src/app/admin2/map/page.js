@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback, useRef, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import styles from '../../properties/properties.module.css';
 import localStyles from './map.module.css';
@@ -154,7 +155,7 @@ function PreviewModal({ item, onClose }) {
   const hasMap    = (detail?.map_lat ?? item.map_lat) && (detail?.map_lng ?? item.map_lng);
   const mapLat    = detail?.map_lat    ?? item.map_lat;
   const mapLng    = detail?.map_lng    ?? item.map_lng;
-  const mapRadius = 0; // 관리자: 항상 정확한 핀
+  const mapRadius = 0;
 
   const titleRow   = detail?.rows?.find(r => r.label === '매물 특징');
   const modalTitle = titleRow?.value || item.building_name || '';
@@ -169,7 +170,7 @@ function PreviewModal({ item, onClose }) {
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div className={modalStyles.pvOverlay} onClick={onClose}>
       <div className={modalStyles.pvBox} onClick={e => e.stopPropagation()}>
 
@@ -240,26 +241,42 @@ function PreviewModal({ item, onClose }) {
                 <div className={modalStyles.pvDetailLoading}>
                   <div className={modalStyles.spinner} />
                 </div>
-              ) : detail?.rows?.map(r => {
-                const cs = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
-                const ts = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
-                return (
-                  <div key={r.label} className={`${modalStyles.pvRow} ${r.isPrice ? modalStyles.pvRowHighlight : ''}`}>
-                    <div className={modalStyles.pvLabel}>{r.label}</div>
-                    <div className={`${modalStyles.pvValue} ${r.isPrivate ? modalStyles.pvPrivate : ''}`}>
-                      {r.isCategory    && <span className={modalStyles.pvBadge} style={{ background: cs.bg, color: cs.color }}>{r.value}</span>}
-                      {r.isTransaction && <span className={modalStyles.pvBadge} style={{ background: ts.bg, color: ts.color }}>{r.value}</span>}
-                      {r.isPrice       && <span className={modalStyles.pvPriceBadge}>{r.value}</span>}
-                      {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
-                    </div>
+              ) : (() => {
+                const rows = detail?.rows || [];
+                const sections = [];
+                for (const r of rows) {
+                  const sec = r.section || '기타';
+                  if (!sections.length || sections[sections.length - 1].title !== sec)
+                    sections.push({ title: sec, rows: [] });
+                  sections[sections.length - 1].rows.push(r);
+                }
+                return sections.map(sec => (
+                  <div key={sec.title}>
+                    <div className={modalStyles.pvRowSection}>{sec.title}</div>
+                    {sec.rows.map(r => {
+                      const cs = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
+                      const ts = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
+                      return (
+                        <div key={r.label} className={`${modalStyles.pvRow} ${r.isPrice ? modalStyles.pvRowHighlight : ''}`}>
+                          <div className={modalStyles.pvLabel}>{r.label}</div>
+                          <div className={`${modalStyles.pvValue} ${r.isPrivate ? modalStyles.pvPrivate : ''}`}>
+                            {r.isCategory    && <span className={modalStyles.pvBadge} style={{ background: cs.bg, color: cs.color }}>{r.value}</span>}
+                            {r.isTransaction && <span className={modalStyles.pvBadge} style={{ background: ts.bg, color: ts.color }}>{r.value}</span>}
+                            {r.isPrice       && <span className={modalStyles.pvPriceBadge}>{r.value}</span>}
+                            {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                ));
+              })()}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

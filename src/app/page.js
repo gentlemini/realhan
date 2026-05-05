@@ -154,9 +154,12 @@ function PreviewModal({ item, onClose }) {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
+    const siteHeader = document.querySelector('header');
+    if (siteHeader) siteHeader.style.zIndex = '0';
     return () => {
       window.removeEventListener('keydown', handler);
       document.body.style.overflow = '';
+      if (siteHeader) siteHeader.style.zIndex = '';
     };
   }, [onClose]);
 
@@ -254,31 +257,36 @@ function PreviewModal({ item, onClose }) {
                 <div className={styles.pvDetailLoading}>
                   <div className={styles.spinner} />
                 </div>
-              ) : detail?.rows?.map(r => {
-                const rCatStyle = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
-                const rTxStyle  = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
-                return (
-                  <div key={r.label} className={`${styles.pvRow} ${r.isPrice ? styles.pvRowHighlight : ''}`}>
-                    <div className={styles.pvLabel}>{r.label}</div>
-                    <div className={`${styles.pvValue} ${r.isPrivate ? styles.pvPrivate : ''}`}>
-                      {r.isCategory && (
-                        <span className={styles.pvBadge} style={{ background: rCatStyle.bg, color: rCatStyle.color }}>
-                          {r.value}
-                        </span>
-                      )}
-                      {r.isTransaction && (
-                        <span className={styles.pvBadge} style={{ background: rTxStyle.bg, color: rTxStyle.color }}>
-                          {r.value}
-                        </span>
-                      )}
-                      {r.isPrice && (
-                        <span className={styles.pvPriceBadge}>{r.value}</span>
-                      )}
-                      {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
-                    </div>
+              ) : (() => {
+                const rows = detail?.rows || [];
+                const sections = [];
+                for (const r of rows) {
+                  const sec = r.section || '기타';
+                  if (!sections.length || sections[sections.length - 1].title !== sec)
+                    sections.push({ title: sec, rows: [] });
+                  sections[sections.length - 1].rows.push(r);
+                }
+                return sections.map(sec => (
+                  <div key={sec.title}>
+                    <div className={styles.pvRowSection}>{sec.title}</div>
+                    {sec.rows.map(r => {
+                      const rCatStyle = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
+                      const rTxStyle  = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
+                      return (
+                        <div key={r.label} className={`${styles.pvRow} ${r.isPrice ? styles.pvRowHighlight : ''}`}>
+                          <div className={styles.pvLabel}>{r.label}</div>
+                          <div className={`${styles.pvValue} ${r.isPrivate ? styles.pvPrivate : ''}`}>
+                            {r.isCategory && <span className={styles.pvBadge} style={{ background: rCatStyle.bg, color: rCatStyle.color }}>{r.value}</span>}
+                            {r.isTransaction && <span className={styles.pvBadge} style={{ background: rTxStyle.bg, color: rTxStyle.color }}>{r.value}</span>}
+                            {r.isPrice && <span className={styles.pvPriceBadge}>{r.value}</span>}
+                            {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                ));
+              })()}
 
               {/* 담당자 카드 */}
               <div className={styles.pvAgentCard}>
@@ -287,6 +295,13 @@ function PreviewModal({ item, onClose }) {
                   <div className={styles.pvAgentName}>친절한 공인중개사 한민희 부장</div>
                   <div className={styles.pvAgentRole}>부동산 전담 매니저</div>
                 </div>
+              </div>
+
+              {/* 사무소 등록 정보 */}
+              <div className={styles.pvOfficeFooter}>
+                <strong>한결부동산공인중개사사무소</strong>
+                <span>대표 이동한 · 부산광역시 남구 대연동</span>
+                <span>등록번호 제26290-2019-00094호 · 051-612-5155</span>
               </div>
             </div>
           </div>

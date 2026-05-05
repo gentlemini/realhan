@@ -79,7 +79,7 @@ function AdminInner({ children }) {
       </aside>
 
       {/* 모바일 상단 바 */}
-      <div className={styles.mobileTopBar}>
+      <div id="admin-mobile-topbar" className={styles.mobileTopBar}>
         <span className={styles.mobileTopTitle}>관리자</span>
         <button onClick={handleLogout} className={styles.mobileLogoutBtn}>↩ 로그아웃</button>
       </div>

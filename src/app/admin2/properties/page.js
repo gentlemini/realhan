@@ -1,8 +1,76 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import styles from './properties.module.css';
+import modalStyles from '../../page.module.css';
+
+const CATEGORY_COLORS = {
+  '아파트':      { bg: '#e8f0fe', color: '#1a56db' },
+  '오피스텔':    { bg: '#fef3c7', color: '#92400e' },
+  '단독주택':    { bg: '#d1fae5', color: '#065f46' },
+  '다가구':      { bg: '#ede9fe', color: '#5b21b6' },
+  '다세대':      { bg: '#fce7f3', color: '#9d174d' },
+  '상가':        { bg: '#fee2e2', color: '#991b1b' },
+  '토지':        { bg: '#ecfdf5', color: '#047857' },
+  '빌딩':        { bg: '#f0f9ff', color: '#0369a1' },
+  '오피스':      { bg: '#f5f3ff', color: '#6d28d9' },
+  '공장/창고':   { bg: '#fff7ed', color: '#c2410c' },
+  '원룸/고시원': { bg: '#fdf4ff', color: '#86198f' },
+  '재개발':      { bg: '#f0fdf4', color: '#166534' },
+  '분양':        { bg: '#fffbeb', color: '#b45309' },
+};
+const TX_COLORS = {
+  '매매': { bg: '#fff7ed', color: '#c2410c' },
+  '전세': { bg: '#eff6ff', color: '#1d4ed8' },
+  '월세': { bg: '#f0fdf4', color: '#15803d' },
+};
+
+const KAKAO_APP_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || '';
+let _kakaoPromise = null;
+function loadKakaoSdk() {
+  if (_kakaoPromise) return _kakaoPromise;
+  _kakaoPromise = new Promise((resolve, reject) => {
+    if (typeof window.kakao?.maps?.LatLng === 'function') { resolve(); return; }
+    function poll() {
+      let n = 0;
+      const t = setInterval(() => {
+        if (typeof window.kakao?.maps?.LatLng === 'function') { clearInterval(t); resolve(); }
+        else if (++n > 100) { clearInterval(t); reject(new Error('timeout')); }
+      }, 100);
+    }
+    if (window.kakao?.maps) { poll(); return; }
+    const existing = document.getElementById('kakao-map-sdk');
+    if (existing) { if (window.kakao) { poll(); return; } existing.addEventListener('load', poll, { once: true }); return; }
+    if (!KAKAO_APP_KEY) { reject(new Error('no key')); return; }
+    const s = document.createElement('script');
+    s.id = 'kakao-map-sdk';
+    s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
+    s.onload = () => window.kakao.maps.load(resolve);
+    s.onerror = () => reject(new Error('load error'));
+    document.head.appendChild(s);
+  });
+  _kakaoPromise.catch(() => { _kakaoPromise = null; });
+  return _kakaoPromise;
+}
+function PreviewMap({ lat, lng }) {
+  const mapRef = useRef(null);
+  useEffect(() => {
+    let cancelled = false;
+    loadKakaoSdk().then(() => {
+      if (cancelled || !mapRef.current) return;
+      if (!mapRef.current.offsetWidth && !mapRef.current.offsetHeight) return;
+      const { kakao } = window;
+      const center = new kakao.maps.LatLng(lat, lng);
+      const map = new kakao.maps.Map(mapRef.current, { center, level: 3 });
+      map.setZoomable(false);
+      new kakao.maps.Marker({ position: center, map });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [lat, lng]);
+  return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
+}
 
 // ── 공통 상세 섹션 (아파트 공통) ─────────────────
 const COMMON_SECTIONS_APT = [
@@ -1740,49 +1808,94 @@ function formatPrice(n) {
 
 // ── 상세 모달 ─────────────────────────────────────
 function DetailModal({ item, detailSections, onClose }) {
-  return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <div className={styles.modalTop}>
-          <div className={styles.modalHeader}>
-            <span className={styles.modalId}>{item.property_id}</span>
-            <span className={styles.modalAptName}>{item.apt_name || '—'}</span>
-            {item.title && <span className={styles.modalTitle}>{item.title}</span>}
-          </div>
-          <button className={styles.modalClose} onClick={onClose}>✕</button>
-        </div>
-        <div className={styles.modalBody}>
-          {item.imageUrl && (
-            <div className={styles.modalPhoto}>
-              <img src={item.imageUrl} alt="대표사진" className={styles.modalPhotoImg} />
-            </div>
-          )}
-          {detailSections.map(section => (
-            <div key={section.title} className={styles.section}>
-              <div className={styles.sectionTitle}>{section.title}</div>
-              <div className={styles.sectionGrid}>
-                {section.fields.map(f => {
-                  const v = item[f.key];
-                  let display;
-                  if (f.type === 'price')        display = <span className={styles.dPrice}>{formatPrice(v)}</span>;
-                  else if (f.type === 'num')      display = <span>{v != null ? v : '—'}</span>;
-                  else if (f.type === 'privacy')  display = <span className={v === '비공개' ? styles.dPrivate : styles.dPublic}>{v || '—'}</span>;
-                  else if (f.type === 'memo')     display = v && v !== '-' ? <span className={styles.dMemo}>{v}</span> : <span className={styles.dEmpty}>—</span>;
-                  else if (f.type === 'long')     display = <span className={styles.dLong}>{v && v !== '-' ? v : '—'}</span>;
-                  else display = <span>{(!v || v === '-') ? '—' : v}</span>;
-                  return (
-                    <div key={f.key} className={styles.detailRow}>
-                      <div className={styles.detailLabel}>{f.label}</div>
-                      <div className={styles.detailValue}>{display}</div>
-                    </div>
-                  );
-                })}
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handler);
+    };
+  }, [onClose]);
+
+  const catStyle = CATEGORY_COLORS[item.category] || { bg: '#f3f4f6', color: '#374151' };
+  const txStyle  = TX_COLORS[item.transaction]    || { bg: '#f3f4f6', color: '#374151' };
+  const modalTitle = item.title || item.apt_name || item.building_name || '';
+  const hasMap = item.map_lat && item.map_lng;
+  const mapLat = item.map_lat;
+  const mapLng = item.map_lng;
+
+  return createPortal(
+    <div className={modalStyles.pvOverlay} onClick={onClose}>
+      <div className={modalStyles.pvBox} onClick={e => e.stopPropagation()}>
+
+        <button className={modalStyles.pvClose} onClick={onClose}>✕</button>
+
+        <div className={modalStyles.pvLayout}>
+          {/* 사진 */}
+          <div className={modalStyles.pvPhotoCol} style={{ position: 'relative' }}>
+            {item.imageUrl ? (
+              <img src={item.imageUrl} alt="대표사진" className={modalStyles.pvPhotoImg} />
+            ) : (
+              <div className={modalStyles.pvPhotoArea}>
+                <span className={modalStyles.pvPhotoGhost}>사진없음</span>
               </div>
+            )}
+          </div>
+
+          {/* 데이터 */}
+          <div className={modalStyles.pvDataCol}>
+            <div className={modalStyles.pvMapBox}>
+              {hasMap ? (
+                <PreviewMap lat={mapLat} lng={mapLng} radius={0} />
+              ) : (
+                <span className={modalStyles.pvMapPlaceholder}>지도 위치 미등록</span>
+              )}
             </div>
-          ))}
+            <div className={modalStyles.pvDataScroll}>
+              <div className={modalStyles.pvDataHeader}>
+                <div className={modalStyles.pvHeaderSub}>
+                  <span className={modalStyles.fBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
+                  <span className={modalStyles.fBadge} style={{ background: txStyle.bg,  color: txStyle.color  }}>{item.transaction}</span>
+                </div>
+                <div className={modalStyles.pvTitle}>{modalTitle || <span className={modalStyles.pvTitleEmpty}>매물제목 미입력</span>}</div>
+              </div>
+
+              {hasMap && (
+                <div className={modalStyles.pvMobileMap}>
+                  <PreviewMap lat={mapLat} lng={mapLng} radius={0} />
+                </div>
+              )}
+
+              {detailSections.map(section => (
+                <div key={section.title}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#a87b51', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '10px 14px 4px', background: '#faf7f4', borderBottom: '1px solid #f0ebe4' }}>
+                    {section.title}
+                  </div>
+                  {section.fields.map(f => {
+                    const v = item[f.key];
+                    let display;
+                    if (f.type === 'price')        display = <span className={styles.dPrice}>{formatPrice(v)}</span>;
+                    else if (f.type === 'num')      display = <span>{v != null ? v : '—'}</span>;
+                    else if (f.type === 'privacy')  display = <span className={v === '비공개' ? styles.dPrivate : styles.dPublic}>{v || '—'}</span>;
+                    else if (f.type === 'memo')     display = v && v !== '-' ? <span className={styles.dMemo}>{v}</span> : <span className={styles.dEmpty}>—</span>;
+                    else if (f.type === 'long')     display = <span className={styles.dLong}>{v && v !== '-' ? v : '—'}</span>;
+                    else display = <span>{(!v || v === '-') ? '—' : v}</span>;
+                    return (
+                      <div key={f.key} className={modalStyles.pvRow}>
+                        <div className={modalStyles.pvLabel}>{f.label}</div>
+                        <div className={modalStyles.pvValue}>{display}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

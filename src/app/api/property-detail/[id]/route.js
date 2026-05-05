@@ -236,6 +236,19 @@ const FIELD_ORDER = new Map([
   ['주차옵션',     165],
 ]);
 
+function getSection(order) {
+  if (order <= 14)  return '기본 정보';
+  if (order <= 39)  return '건물/면적';
+  if (order <= 67)  return '가격 정보';
+  if (order <= 106) return '상세 정보';
+  if (order <= 122) return '건축 정보';
+  if (order <= 136) return '토지 정보';
+  if (order <= 144) return '업종/용도';
+  if (order <= 152) return '매물 설명';
+  if (order <= 165) return '옵션';
+  return '기타';
+}
+
 function extractValue(prop) {
   if (!prop) return null;
   switch (prop.type) {
@@ -307,9 +320,9 @@ export async function GET(request, { params }) {
     /* sort by display order */
     rows.sort((a, b) => a.order - b.order);
 
-    /* strip internal order field */
-    const finalRows = rows.map(({ label, value, isPrivate, isPrice, isCategory, isTransaction }) =>
-      ({ label, value, isPrivate, isPrice, isCategory, isTransaction }));
+    /* strip internal order field, add section */
+    const finalRows = rows.map(({ label, value, isPrivate, isPrice, isCategory, isTransaction, order }) =>
+      ({ label, value, isPrivate, isPrice, isCategory, isTransaction, section: getSection(order) }));
 
     /* map / image meta */
     const imageUrl   = p['대표사진URL']?.url   || '';

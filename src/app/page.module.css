@@ -325,18 +325,19 @@
   position: absolute;
   top: 12px;
   right: 14px;
-  z-index: 20;
-  background: rgba(0,0,0,0.07);
+  z-index: 30;
+  background: rgba(0,0,0,0.55);
   border: none;
-  color: #5a3e28;
-  font-size: 14px;
+  color: #fff;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
   transition: background 0.15s;
+  line-height: 1;
 }
-.pvClose:hover { background: rgba(0,0,0,0.15); }
+.pvClose:hover { background: rgba(0,0,0,0.8); }
 
 /* 카카오 버튼 */
 .pvKakaoBtn {
@@ -505,7 +506,7 @@
   border-bottom: 2px solid #e8ddd0;
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 10;
 }
 
 .pvHeaderSub {
@@ -523,6 +524,20 @@
 }
 
 .pvTitleEmpty { font-size: 13px; color: #ccc; font-weight: 400; }
+
+/* 섹션 구분 헤더 */
+.pvRowSection {
+  font-size: 10px;
+  font-weight: 800;
+  color: #a87b51;
+  letter-spacing: 0.08em;
+  padding: 10px 14px 4px;
+  background: #faf7f4;
+  border-bottom: 1px solid #f0ebe4;
+  border-top: 1px solid #f0ebe4;
+  margin-top: 4px;
+}
+.pvRowSection:first-child { border-top: none; margin-top: 0; }
 
 /* 데이터 행 */
 .pvRow {
@@ -743,6 +758,8 @@
     background: #f5f2ee;
     position: relative;
     overflow: hidden;
+    isolation: isolate;
+    z-index: 0;
   }
 }
 

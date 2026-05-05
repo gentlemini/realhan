@@ -173,9 +173,12 @@ function PreviewModal({ item, onClose }) {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
+    const siteHeader = document.querySelector('header');
+    if (siteHeader) siteHeader.style.zIndex = '0';
     return () => {
       window.removeEventListener('keydown', handler);
       document.body.style.overflow = '';
+      if (siteHeader) siteHeader.style.zIndex = '';
     };
   }, [onClose]);
 
@@ -266,31 +269,36 @@ function PreviewModal({ item, onClose }) {
                 <div className={modalStyles.pvDetailLoading}>
                   <div className={modalStyles.spinner} />
                 </div>
-              ) : detail?.rows?.map(r => {
-                const catStyle = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
-                const txStyle  = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
-                return (
-                  <div key={r.label} className={`${modalStyles.pvRow} ${r.isPrice ? modalStyles.pvRowHighlight : ''}`}>
-                    <div className={modalStyles.pvLabel}>{r.label}</div>
-                    <div className={`${modalStyles.pvValue} ${r.isPrivate ? modalStyles.pvPrivate : ''}`}>
-                      {r.isCategory && (
-                        <span className={modalStyles.pvBadge} style={{ background: catStyle.bg, color: catStyle.color }}>
-                          {r.value}
-                        </span>
-                      )}
-                      {r.isTransaction && (
-                        <span className={modalStyles.pvBadge} style={{ background: txStyle.bg, color: txStyle.color }}>
-                          {r.value}
-                        </span>
-                      )}
-                      {r.isPrice && (
-                        <span className={modalStyles.pvPriceBadge}>{r.value}</span>
-                      )}
-                      {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
-                    </div>
+              ) : (() => {
+                const rows = detail?.rows || [];
+                const sections = [];
+                for (const r of rows) {
+                  const sec = r.section || '기타';
+                  if (!sections.length || sections[sections.length - 1].title !== sec)
+                    sections.push({ title: sec, rows: [] });
+                  sections[sections.length - 1].rows.push(r);
+                }
+                return sections.map(sec => (
+                  <div key={sec.title}>
+                    <div className={modalStyles.pvRowSection}>{sec.title}</div>
+                    {sec.rows.map(r => {
+                      const catStyle = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
+                      const txStyle  = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
+                      return (
+                        <div key={r.label} className={`${modalStyles.pvRow} ${r.isPrice ? modalStyles.pvRowHighlight : ''}`}>
+                          <div className={modalStyles.pvLabel}>{r.label}</div>
+                          <div className={`${modalStyles.pvValue} ${r.isPrivate ? modalStyles.pvPrivate : ''}`}>
+                            {r.isCategory && <span className={modalStyles.pvBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{r.value}</span>}
+                            {r.isTransaction && <span className={modalStyles.pvBadge} style={{ background: txStyle.bg, color: txStyle.color }}>{r.value}</span>}
+                            {r.isPrice && <span className={modalStyles.pvPriceBadge}>{r.value}</span>}
+                            {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                ));
+              })()}
 
               <div className={modalStyles.pvAgentCard}>
                 <img src="/profile.png" alt="한민희" className={modalStyles.pvAgentAvatar} />

@@ -178,21 +178,22 @@ export default function BuildingLookup({ 종류 = '아파트', 거래유형 = '�
     const params = new URLSearchParams({ sigunguCd: addr.sigunguCd, bjdongCd: addr.bjdongCd, bun: addr.bun, ji: addr.ji });
 
     if (isLand) {
-      // 순수 토지: 토지대장만 (브라우저에서 직접 Vworld 호출)
-      const landItem = await fetchLandDataClient(addr);
-      setLandData(landItem);
+      // 순수 토지: 토지대장만
+      const res = await fetch(`/api/land-lookup?${params}`);
+      if (res.ok) setLandData((await res.json()).landData || null);
     } else {
       // 건물: 건축물대장 + (필요시) 토지대장 병렬 조회
-      const [bldRes, landItem] = await Promise.all([
+      const fetches = [
         fetch(`/api/building-lookup?${params}`),
-        needsLandData ? fetchLandDataClient(addr) : null,
-      ]);
+        needsLandData ? fetch(`/api/land-lookup?${params}`) : null,
+      ];
+      const [bldRes, landRes] = await Promise.all(fetches);
       if (bldRes?.ok) {
         const d = await bldRes.json();
         setTitleData(d.titleData?.[0] || null);
         setParkingData(d.parkingData || null);
       }
-      if (landItem) setLandData(landItem);
+      if (landRes?.ok) setLandData((await landRes.json()).landData || null);
     }
     setLoadingBld(false);
 

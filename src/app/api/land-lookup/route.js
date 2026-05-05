@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 
-const VWORLD_NED  = 'https://api.vworld.kr/ned/data/ladfrlList';
+const VWORLD_NED  = 'https://api.vworld.kr/ned/data/getLandCharacteristics';
 const VWORLD_DATA = 'https://api.vworld.kr/req/data';
 
 export async function GET(request) {
@@ -63,6 +63,13 @@ export async function GET(request) {
 
 function extractItem(data) {
   const body = data?.response ?? data;
+  // getLandCharacteristics 응답
+  const lc = body?.landCharacteristicVOList ?? body?.landCharacteristics;
+  if (lc) {
+    const raw = lc?.landCharacteristicVOList ?? lc?.landCharacteristics ?? lc?.field ?? lc;
+    if (raw) return (Array.isArray(raw) ? raw[0] : raw) || null;
+  }
+  // ladfrlList 구조 fallback
   const list = body?.ladfrlVOList ?? body?.ladfrlList;
   const raw  = list?.ladfrlVOList ?? list?.ladfrlList ?? list?.ladfrl ?? list?.field;
   if (!raw) return null;

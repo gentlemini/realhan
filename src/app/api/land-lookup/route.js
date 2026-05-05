@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 const VWORLD_BASE = 'https://api.vworld.kr/ned/data/ladfrlList';
 
 export async function GET(request) {

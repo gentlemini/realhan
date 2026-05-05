@@ -12,6 +12,7 @@ const NAV = [
   { icon: '✉', label: '문의 내역', href: '/admin2/inquiries' },
   { icon: '📋', label: '매물 접수', href: '/admin2/requests' },
   { icon: '📊', label: '사이트 통계', href: '/admin2/stats' },
+  { icon: '🧮', label: '계산기',    href: '/calculator' },
   { icon: '⚙', label: '설정',      href: '/admin2/settings' },
 ];
 

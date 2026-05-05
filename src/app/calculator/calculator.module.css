@@ -1,0 +1,354 @@
+.page {
+  min-height: 100vh;
+  background: #faf8f5;
+}
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #2c1f0e 0%, #4a3118 60%, #6b4a28 100%);
+  color: #fff;
+  padding: 56px 24px 48px;
+  text-align: center;
+}
+.heroEyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: #d4a96a;
+  margin: 0 0 12px;
+  text-transform: uppercase;
+}
+.heroTitle {
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 800;
+  margin: 0 0 10px;
+  letter-spacing: -0.02em;
+}
+.heroSub {
+  font-size: 15px;
+  color: rgba(255,255,255,0.7);
+  margin: 0;
+}
+
+/* ── Container ── */
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+/* ── Tab Bar ── */
+.tabBar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #e8e0d6;
+  border-radius: 12px;
+  padding: 6px;
+}
+.tabBtn {
+  flex: 1;
+  padding: 10px 8px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: #8a7060;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.tabBtn:hover { background: #f5f0ea; color: #4a3118; }
+.tabActive {
+  background: #4a3118 !important;
+  color: #fff !important;
+}
+
+/* ── Card ── */
+.card {
+  background: #fff;
+  border: 1px solid #e8e0d6;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(74,49,24,0.06);
+}
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 20px 0;
+  flex-wrap: wrap;
+}
+.cardTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: #2c1f0e;
+  margin: 0;
+}
+.cardBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a87b51;
+  background: #fdf5ec;
+  border: 1px solid #e8d5b8;
+  border-radius: 20px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+/* ── Type Group (매매/전세/월세) ── */
+.typeGroup {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px;
+}
+.typeBtn {
+  flex: 1;
+  padding: 9px 4px;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 8px;
+  background: #faf8f5;
+  color: #7a6555;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.typeBtn:hover { border-color: #a87b51; color: #4a3118; }
+.typeBtnActive {
+  border-color: #a87b51 !important;
+  background: #a87b51 !important;
+  color: #fff !important;
+}
+
+/* ── Input Block ── */
+.inputBlock {
+  padding: 0 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.label {
+  width: 90px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5a4535;
+}
+.inputWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 8px;
+  background: #faf8f5;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.inputWrap:focus-within { border-color: #a87b51; }
+.input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c1f0e;
+  outline: none;
+  text-align: right;
+  min-width: 0;
+}
+.inputUnit {
+  padding: 0 12px 0 4px;
+  font-size: 13px;
+  color: #8a7060;
+  white-space: nowrap;
+}
+.convertedNote {
+  font-size: 12px;
+  color: #a87b51;
+  text-align: right;
+  margin: -4px 0 0;
+  font-weight: 600;
+}
+
+/* ── 전환율 row ── */
+.rateRow {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.presets {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.presetBtn {
+  padding: 6px 10px;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 6px;
+  background: #faf8f5;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7a6555;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.presetBtn:hover { border-color: #a87b51; color: #4a3118; }
+.presetActive {
+  border-color: #a87b51 !important;
+  background: #fdf5ec !important;
+  color: #a87b51 !important;
+}
+
+/* ── Result Box ── */
+.resultBox {
+  margin: 0 20px 20px;
+  background: #faf7f3;
+  border: 1px solid #e8d5b8;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.resultRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 16px;
+  border-bottom: 1px solid #f0e8dc;
+}
+.resultRow:last-child { border-bottom: none; }
+.rLabel {
+  font-size: 13px;
+  color: #7a6555;
+  font-weight: 600;
+}
+.rValue {
+  font-size: 14px;
+  color: #3a2810;
+  font-weight: 700;
+}
+.resultTotalRow {
+  background: #fff8f0;
+}
+.rValueTotal {
+  font-size: 18px;
+  font-weight: 900;
+  color: #a87b51;
+}
+
+/* ── Rate Table ── */
+.tableWrap {
+  border-top: 1px solid #f0e8dc;
+  margin: 0;
+}
+.tableSummary {
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #7a6555;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.tableSummary::-webkit-details-marker { display: none; }
+.tableSummary:hover { color: #4a3118; }
+.rateTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.rateTable th {
+  background: #f5ede3;
+  padding: 8px 10px;
+  font-weight: 700;
+  color: #5a4535;
+  text-align: center;
+  border-bottom: 1px solid #e8d5b8;
+}
+.rateTable td {
+  padding: 7px 10px;
+  text-align: center;
+  border-bottom: 1px solid #f0e8dc;
+  color: #4a3118;
+}
+.rateTable tbody tr:hover { background: #fdf8f4; }
+.txCell {
+  font-weight: 800;
+  color: #a87b51;
+  background: #fdf5ec;
+  vertical-align: middle;
+}
+.tableNote {
+  font-size: 11px;
+  color: #9a8878;
+  padding: 8px 14px 14px;
+  margin: 0;
+}
+
+/* ── Info Box ── */
+.infoBox {
+  margin: 0 20px 20px;
+  background: #f0f7ff;
+  border: 1px solid #c8ddf0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.infoTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #2a5f9a;
+  margin: 0 0 6px;
+}
+.infoText {
+  font-size: 12px;
+  color: #3a5070;
+  margin: 0 0 8px;
+  line-height: 1.6;
+}
+.infoFormula {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2a5f9a;
+  background: #fff;
+  border: 1px solid #c8ddf0;
+  border-radius: 6px;
+  padding: 7px 10px;
+  margin: 0;
+  font-family: monospace;
+  letter-spacing: 0.01em;
+}
+
+.errorMsg {
+  margin: 0 20px 16px;
+  color: #c0392b;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 14px;
+  background: #fff5f5;
+  border: 1px solid #f5c6c6;
+  border-radius: 8px;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .hero { padding: 40px 16px 36px; }
+  .label { width: 72px; font-size: 12px; }
+  .rValueTotal { font-size: 16px; }
+  .cardHeader { padding: 16px 16px 0; }
+  .typeGroup { padding: 12px 16px; }
+  .inputBlock { padding: 0 16px 14px; }
+  .resultBox { margin: 0 16px 16px; }
+  .infoBox { margin: 0 16px 16px; }
+  .tableWrap { margin: 0; }
+  .rateTable { font-size: 11px; }
+  .rateTable th, .rateTable td { padding: 6px 6px; }
+}

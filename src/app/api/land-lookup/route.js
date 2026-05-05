@@ -20,7 +20,11 @@ export async function GET(request) {
     try {
       const res  = await fetch(url, {
         cache: 'no-store',
-        headers: { 'Referer': siteUrl, 'Origin': siteUrl },
+        headers: {
+          'Referer': siteUrl + '/',
+          'Origin': siteUrl,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        },
       });
       const text = await res.text();
       let data;

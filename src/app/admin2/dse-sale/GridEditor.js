@@ -494,19 +494,19 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
         const wmText = '공인중개사 한민희 010-4706-8253';
-        const fz = Math.max(14, Math.round(width * 0.022));
+        const fz = Math.max(12, Math.round(width * 0.016));
         ctx.save();
-        ctx.globalAlpha = 0.28;
+        ctx.globalAlpha = 0.25;
         ctx.fillStyle = '#ffffff';
         ctx.font = `bold ${fz}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.shadowBlur = 5;
+        ctx.shadowBlur = 4;
         ctx.translate(width / 2, height / 2);
         ctx.rotate(-Math.PI / 5);
-        const gapX = fz * 7.5;
-        const gapY = fz * 3.8;
+        const gapX = fz * 14;
+        const gapY = fz * 5.5;
         const diag = Math.sqrt(width * width + height * height);
         const cols = Math.ceil(diag / gapX) + 2;
         const rows = Math.ceil(diag / gapY) + 2;
@@ -567,23 +567,11 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length) {
-              const typeMap = Object.fromEntries(DEFAULT_FIELDS.map(f => [f.id, f.type]));
-              const fixed = parsed.map(f => typeMap[f.id] ? { ...f, type: typeMap[f.id] } : f);
-              const existingIds = new Set(fixed.map(f => f.id));
-              const defaultOrder = DEFAULT_FIELDS.map(f => f.id);
-              const result = [...fixed];
-              DEFAULT_FIELDS.filter(f => !existingIds.has(f.id)).forEach(mf => {
-                const di = defaultOrder.indexOf(mf.id);
-                let ins = result.length;
-                for (let i = di - 1; i >= 0; i--) {
-                  const pi = result.findIndex(f => f.id === defaultOrder[i]);
-                  if (pi !== -1) { ins = pi + 1; break; }
-                }
-                result.splice(ins, 0, mf);
-              });
-              setFields(result);
-              return;
-            }
+          const typeMap = Object.fromEntries(DEFAULT_FIELDS.map(f => [f.id, f.type]));
+          const fixed = parsed.map(f => typeMap[f.id] ? { ...f, type: typeMap[f.id] } : f);
+          setFields(fixed);
+          return;
+        }
       }
     } catch {}
     setFields(DEFAULT_FIELDS);
@@ -702,6 +690,7 @@ let uploadedUrls = [];
               <span className={styles.saveStatus}>{saveStatus}</span>
               <button className={styles.spacerBtn} onClick={handleAddSpacer}>＋ 여백</button>
               <button className={styles.addBtn} onClick={() => setShowAddPanel(v => !v)}>＋ 필드 추가</button>
+              <button className={styles.resetBtn} onClick={() => { if (window.confirm('레이아웃을 기본값으로 초기화할까요?')) { setFields(DEFAULT_FIELDS); localStorage.removeItem(STORAGE_KEY); } }}>초기화</button>
               <button className={styles.editDoneBtn} onClick={() => { setEditMode(false); setShowAddPanel(false); }}>완료</button>
             </>
           ) : (

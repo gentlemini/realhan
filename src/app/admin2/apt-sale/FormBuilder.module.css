@@ -79,6 +79,19 @@
 }
 .addBtn:hover { opacity: 0.88; }
 
+.resetBtn {
+  background: transparent;
+  border: 1px solid rgba(220,80,80,0.5);
+  color: rgba(220,80,80,0.8);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.resetBtn:hover { border-color: #dc5050; color: #dc5050; background: rgba(220,80,80,0.08); }
+
 /* ── 캔버스 ── */
 .canvas {
   flex: 1;

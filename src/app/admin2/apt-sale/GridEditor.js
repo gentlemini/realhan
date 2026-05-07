@@ -166,7 +166,7 @@ function ControlledFieldInput({ field, value, onChange }) {
   return (
     <input
       className={styles.input}
-      type={field.type === 'number' ? 'number' : 'text'}
+      type={field.type === 'number' ? 'number' : 'text'} inputMode={field.type === 'area' ? 'decimal' : undefined}
       placeholder={field.hint || ''}
       value={value || ''}
       onChange={e => onChange?.(e.target.value)}

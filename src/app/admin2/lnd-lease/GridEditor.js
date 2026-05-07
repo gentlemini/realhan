@@ -173,7 +173,7 @@ function ControlledFieldInput({ field, value, onChange }) {
   if (field.type === 'photos')
     return <div className={styles.photosBox}>📷 사진 업로드 (Cloudinary 연결)</div>;
   return (
-    <input className={styles.input} type={field.type === 'number' ? 'number' : 'text'} placeholder={field.hint || ''} value={value || ''} onChange={e => onChange?.(e.target.value)} />
+    <input className={styles.input} type={field.type === 'number' ? 'number' : 'text'} inputMode={field.type === 'area' ? 'decimal' : undefined} placeholder={field.hint || ''} value={value || ''} onChange={e => onChange?.(e.target.value)} />
   );
 }
 

@@ -10,7 +10,7 @@
   { id: 'address_detail',    label: '상세주소',                 type: 'locationPrivacy', placeholder: '상세주소 입력' },
   { id: 'address_public',    label: '지번노출여부',             type: 'radio',      colSpan: 1, options: ['노출', '미노출'] },
   { id: 'map_config',        label: '지도 설정',                type: 'mapConfig' },
-  { id: 'land_area',         label: '면적 (㎡)',                type: 'number',     colSpan: 1 },
+  { id: 'land_area',         label: '면적 (㎡)',                type: 'area',     colSpan: 1 },
   { id: 'deposit',           label: '보증금 (만원)',            type: 'number',     colSpan: 1 },
   { id: 'monthly_rent',      label: '월세 (만원)',              type: 'number',     colSpan: 1 },
   { id: 'monthly_fee',       label: '월관리비 (만원)',          type: 'number',     colSpan: 1 },

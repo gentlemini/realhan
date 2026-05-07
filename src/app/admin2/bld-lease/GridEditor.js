@@ -114,6 +114,23 @@ function SelectWithCustom({ field, value = '', onChange }) {
   );
 }
 
+function LoanInfoInput({ value, onChange }) {
+  const norm = (value && typeof value === 'object') ? value : { display: '표시안함', amount: (value != null ? String(value) : '') };
+  const { display = '표시안함', amount = '' } = norm;
+  return (
+    <div className={styles.selectCustomRow}>
+      <select className={styles.select} value={display} onChange={e => onChange?.({ display: e.target.value, amount })}>
+        <option value="표시안함">표시안함</option>
+        <option value="융자금 없음">융자금 없음</option>
+        <option value="시세대비 30% 미만">시세대비 30% 미만</option>
+        <option value="시세대비 30% 이상">시세대비 30% 이상</option>
+      </select>
+      <input className={styles.input} type="number" inputMode="numeric" placeholder="직접 입력" value={amount} onChange={e => onChange?.({ display, amount: e.target.value })} style={{ width: 130 }} />
+      <span style={{ fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>만원</span>
+    </div>
+  );
+}
+
 function ControlledFieldInput({ field, value, onChange }) {
   if (typeof value === 'object' && value !== null && !Array.isArray(value) && 'text' in value && field.type !== 'locationPrivacy')
     return <PrivacyTextInput value={value} onChange={onChange} />;
@@ -170,6 +187,8 @@ function ControlledFieldInput({ field, value, onChange }) {
   }
   if (field.type === 'privacyText')
     return <PrivacyTextInput value={value} onChange={onChange} />;
+  if (field.type === 'loanInfo')
+    return <LoanInfoInput value={value} onChange={onChange} />;
   if (field.type === 'photos')
     return <div className={styles.photosBox}>📷 사진 업로드 (Cloudinary 연결)</div>;
   return (
@@ -277,6 +296,14 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
     }
     if (field.type === 'direction') return v ? <span>{v.base} {v.dir}</span> : <span className={styles.previewEmpty}>—</span>;
     if (field.type === 'checkbox') return <span>{v ? '✓' : '—'}</span>;
+    if (field.type === 'loanInfo') {
+      if (!v) return <span className={styles.previewEmpty}>—</span>;
+      const ld = (v && typeof v === 'object') ? v.display : '표시안함';
+      const la = (v && typeof v === 'object') ? v.amount : (v || '');
+      if (ld === '표시안함') return <span className={styles.previewEmpty}>표시안함</span>;
+      if (ld === '융자금 없음') return <span>없음</span>;
+      return <span>{ld}{la ? ' (' + Number(la).toLocaleString() + '만원)' : ''}</span>;
+    }
     if (field.type === 'photos') return <span className={styles.previewEmpty}>사진 첨부</span>;
     if (!v) return <span className={styles.previewEmpty}>—</span>;
     return <span>{String(v)}</span>;

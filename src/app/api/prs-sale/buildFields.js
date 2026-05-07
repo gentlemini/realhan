@@ -1,4 +1,4 @@
-export function buildFields(d) {
+﻿export function buildFields(d) {
   const f = {};
   const addT = (k, v) => { if (v) f[k] = { title: [{ text: { content: String(v) } }] }; };
   const addR = (k, v) => { f[k] = { rich_text: [{ text: { content: v ? String(v) : '-' } }] }; };
@@ -46,7 +46,11 @@ export function buildFields(d) {
   addN('매매가격_만원', d.sale_price);
   addN('납입중도금_만원', d.installment_paid);
   addN('이주비_만원', d.relocation_fee);
-  addN('융자금_만원', d.loan_info);
+  if (d.loan_info && typeof d.loan_info === 'object') {
+    if (d.loan_info.amount) addN('융자금_만원', d.loan_info.amount);
+  } else {
+    addN('융자금_만원', d.loan_info);
+  }
   addR('관리비', d.maintenance);
   addR('동', d.dong);
   addR('호수', d.ho);

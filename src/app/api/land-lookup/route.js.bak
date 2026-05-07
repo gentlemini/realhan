@@ -1,0 +1,4 @@
+// 토지대장 API 연동 보류 상태 (2026-05-05)
+// Vworld 개발키 A1CBE90C-E1EA-30D7-B8DE-E7F04D2A2192 → INCORRECT_KEY 오류
+// 해결방법: data.go.kr에서 토지임야정보서비스 별도 키 발급 필요
+// 또는 Vworld NED 데이터 API 전용 키 신청 필요

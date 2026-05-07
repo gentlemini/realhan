@@ -39,7 +39,9 @@ export async function GET(request) {
   const bjdongCd  = searchParams.get('bjdongCd') || '';
   const bun       = String(searchParams.get('bun') || '0').padStart(4, '0');
   const ji        = String(searchParams.get('ji') || '0').padStart(4, '0');
-  const dong      = searchParams.get('dong') || '';
+  const dongRaw   = searchParams.get('dong') || '';
+  // MOLIT dongNm 필드는 "104동" 형식 — 숫자만 입력 시 "동" 접미사 추가
+  const dong      = dongRaw && /^\d+$/.test(dongRaw.trim()) ? dongRaw.trim() + '동' : dongRaw;
   const ho        = searchParams.get('ho') || '';
   const action    = searchParams.get('action') || ''; // 'units' to fetch unit list only
 

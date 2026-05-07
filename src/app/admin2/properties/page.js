@@ -806,6 +806,8 @@ const COMMON_SECTIONS_PRS = [
     { key: 'relocation_fee',    label: '이주비(만원)',    type: 'num' },
     { key: 'loan_info',         label: '융자금(만원)',    type: 'num' },
     { key: 'maintenance',       label: '관리비' },
+    { key: 'maintenance_note',  label: '관리비 상세' },
+    { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
     { key: 'move_in',           label: '입주가능일' },
   ]},
   { title: '구조', fields: [
@@ -883,6 +885,8 @@ const TAB_GROUPS = [
             { key: 'curr_deposit', label: '현보증금',  type: 'num' },
             { key: 'curr_monthly', label: '현월세',    type: 'num' },
             { key: 'maintenance',  label: '관리비',    type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_APT,
         ],
@@ -910,6 +914,8 @@ const TAB_GROUPS = [
             { key: 'monthly_rent', label: '월세',    type: 'price' },
             { key: 'loan_info',    label: '융자금',  type: 'num' },
             { key: 'maintenance',  label: '관리비',  type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_APT,
         ],
@@ -936,6 +942,8 @@ const TAB_GROUPS = [
             { key: 'jeonse_price', label: '전세가격', type: 'price' },
             { key: 'loan_info',    label: '융자금',   type: 'num' },
             { key: 'maintenance',  label: '관리비',   type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_APT,
         ],
@@ -970,6 +978,8 @@ const TAB_GROUPS = [
             { key: 'curr_monthly', label: '현월세',    type: 'num' },
             { key: 'loan_info',    label: '융자금',    type: 'num' },
             { key: 'maintenance',  label: '관리비',    type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_OFC,
         ],
@@ -996,6 +1006,8 @@ const TAB_GROUPS = [
             { key: 'jeonse_price', label: '전세가격', type: 'price' },
             { key: 'loan_info',    label: '융자금',   type: 'num' },
             { key: 'maintenance',  label: '관리비',   type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_OFC,
         ],
@@ -1023,6 +1035,8 @@ const TAB_GROUPS = [
             { key: 'monthly_rent', label: '월세',   type: 'price' },
             { key: 'loan_info',    label: '융자금', type: 'num' },
             { key: 'maintenance',  label: '관리비', type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_OFC,
         ],
@@ -1056,6 +1070,8 @@ const TAB_GROUPS = [
             { key: 'curr_monthly_rent', label: '현전월세',      type: 'num' },
             { key: 'loan_info',         label: '융자금',        type: 'num' },
             { key: 'maintenance',       label: '관리비',        type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_HSE_SALE,
         ],
@@ -1081,6 +1097,8 @@ const TAB_GROUPS = [
             { key: 'jeonse_price', label: '전세가격', type: 'price' },
             { key: 'loan_info',    label: '융자금',   type: 'num' },
             { key: 'maintenance',  label: '관리비',   type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_HSE_RENTAL,
         ],
@@ -1107,6 +1125,8 @@ const TAB_GROUPS = [
             { key: 'monthly_rent', label: '월세',   type: 'price' },
             { key: 'loan_info',    label: '융자금', type: 'num' },
             { key: 'maintenance',  label: '관리비', type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_HSE_RENTAL,
         ],
@@ -1140,6 +1160,8 @@ const TAB_GROUPS = [
             { key: 'curr_monthly_rent', label: '현월세',     type: 'num' },
             { key: 'loan_info',         label: '융자금',     type: 'num' },
             { key: 'maintenance',       label: '관리비',     type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_DGU_SALE,
         ],
@@ -1165,6 +1187,8 @@ const TAB_GROUPS = [
             { key: 'jeonse_price', label: '전세가격', type: 'price' },
             { key: 'loan_info',    label: '융자금',   type: 'num' },
             { key: 'maintenance',  label: '관리비',   type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_DGU_RENTAL,
         ],
@@ -1191,6 +1215,8 @@ const TAB_GROUPS = [
             { key: 'monthly_rent', label: '월세',   type: 'price' },
             { key: 'loan_info',    label: '융자금', type: 'num' },
             { key: 'maintenance',  label: '관리비', type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_DGU_RENTAL,
         ],
@@ -1224,6 +1250,8 @@ const TAB_GROUPS = [
             { key: 'curr_monthly', label: '현월세',    type: 'num' },
             { key: 'loan_info',    label: '융자금',    type: 'num' },
             { key: 'maintenance',  label: '관리비',    type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_DSE,
         ],
@@ -1249,6 +1277,8 @@ const TAB_GROUPS = [
             { key: 'jeonse_price', label: '전세가격', type: 'price' },
             { key: 'loan_info',    label: '융자금',   type: 'num' },
             { key: 'maintenance',  label: '관리비',   type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_DSE,
         ],
@@ -1275,6 +1305,8 @@ const TAB_GROUPS = [
             { key: 'monthly_rent', label: '월세',   type: 'price' },
             { key: 'loan_info',    label: '융자금', type: 'num' },
             { key: 'maintenance',  label: '관리비', type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_DSE,
         ],
@@ -1308,6 +1340,8 @@ const TAB_GROUPS = [
             { key: 'curr_monthly', label: '현월세',    type: 'num' },
             { key: 'loan_info',    label: '융자금',    type: 'num' },
             { key: 'maintenance',  label: '관리비',    type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_ROM,
         ],
@@ -1333,6 +1367,8 @@ const TAB_GROUPS = [
             { key: 'jeonse_price', label: '전세가격', type: 'price' },
             { key: 'loan_info',    label: '융자금',   type: 'num' },
             { key: 'maintenance',  label: '관리비',   type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_ROM,
         ],
@@ -1359,6 +1395,8 @@ const TAB_GROUPS = [
             { key: 'monthly_rent', label: '월세',   type: 'price' },
             { key: 'loan_info',    label: '융자금', type: 'num' },
             { key: 'maintenance',  label: '관리비', type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_ROM,
         ],
@@ -1771,6 +1809,8 @@ const TAB_GROUPS = [
             { key: 'curr_monthly', label: '현월세',    type: 'num' },
             { key: 'loan_info',    label: '융자금',    type: 'num' },
             { key: 'maintenance',  label: '관리비',    type: 'num' },
+            { key: 'maintenance_note',  label: '관리비 상세' },
+            { key: 'maintenance_items', label: '관리비 포함항목', type: 'tags' },
           ]},
           ...COMMON_SECTIONS_RDV,
         ],
@@ -1889,6 +1929,13 @@ function DetailModal({ item, detailSections, onClose }) {
                     else if (f.type === 'privacy')  display = <span className={v === '비공개' ? styles.dPrivate : styles.dPublic}>{v || '—'}</span>;
                     else if (f.type === 'memo')     display = v && v !== '-' ? <span className={styles.dMemo}>{v}</span> : <span className={styles.dEmpty}>—</span>;
                     else if (f.type === 'long')     display = <span className={styles.dLong}>{v && v !== '-' ? v : '—'}</span>;
+                    else if (f.type === 'tags')     display = v ? (
+                      <span style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {String(v).split(', ').filter(Boolean).map(tag => (
+                          <span key={tag} style={{ display: 'inline-block', padding: '2px 8px', background: '#f4f0ec', border: '1px solid #e0d8cc', color: '#5a3e28', borderRadius: '5px', fontSize: '11.5px', fontWeight: 500, lineHeight: 1.5 }}>{tag}</span>
+                        ))}
+                      </span>
+                    ) : <span className={styles.dEmpty}>—</span>;
                     else display = <span>{(!v || v === '-') ? '—' : v}</span>;
                     return (
                       <div key={f.key} className={modalStyles.pvRow}>
@@ -2046,63 +2093,66 @@ export default function PropertiesPage() {
 
   return (
     <div className={styles.page}>
-      {/* 상단 바 */}
-      <div className={styles.topbar}>
-        <button className={styles.backBtn} onClick={() => router.push('/admin2')}>← 관리자2</button>
-        <span className={styles.topTitle}>등록된 매물 전체보기</span>
-        <span className={styles.count}>{loading ? '…' : `${filtered.length}건`}</span>
-      </div>
-
-      {/* 매물번호 검색 */}
-      <div className={styles.globalSearchBar}>
-        <div className={styles.globalSearchWrap}>
-          <span className={styles.globalSearchIcon}>🔍</span>
-          <input
-            className={styles.globalSearchInput}
-            type="text"
-            placeholder="매물번호 · 소재지 · 매물분류 · 거래종류 검색"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-          />
-          {query && (
-            <button className={styles.globalSearchClear} onClick={() => setQuery('')}>✕</button>
-          )}
+      {/* 상단 고정 헤더 */}
+      <div className={styles.stickyHeader}>
+        {/* 상단 바 */}
+        <div className={styles.topbar}>
+          <button className={styles.backBtn} onClick={() => router.push('/admin2')}>← 관리자2</button>
+          <span className={styles.topTitle}>등록된 매물 전체보기</span>
+          <span className={styles.count}>{loading ? '…' : `${filtered.length}건`}</span>
         </div>
-      </div>
 
-      {/* 1단: 대분류 탭 */}
-      <div className={styles.groupBar}>
-        <button
-          className={`${styles.groupBtn} ${activeGroup === 'all' ? styles.groupBtnActive : ''}`}
-          onClick={() => handleGroupClick('all')}
-        >
-          전체
-        </button>
-        {TAB_GROUPS.map(g => (
+        {/* 매물번호 검색 */}
+        <div className={styles.globalSearchBar}>
+          <div className={styles.globalSearchWrap}>
+            <span className={styles.globalSearchIcon}>🔍</span>
+            <input
+              className={styles.globalSearchInput}
+              type="text"
+              placeholder="매물번호 · 소재지 · 매물분류 · 거래종류 검색"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+            {query && (
+              <button className={styles.globalSearchClear} onClick={() => setQuery('')}>✕</button>
+            )}
+          </div>
+        </div>
+
+        {/* 1단: 대분류 탭 */}
+        <div className={styles.groupBar}>
           <button
-            key={g.id}
-            className={`${styles.groupBtn} ${activeGroup === g.id ? styles.groupBtnActive : ''}`}
-            onClick={() => handleGroupClick(g.id)}
+            className={`${styles.groupBtn} ${activeGroup === 'all' ? styles.groupBtnActive : ''}`}
+            onClick={() => handleGroupClick('all')}
           >
-            {g.label}
+            전체
           </button>
-        ))}
-      </div>
-
-      {/* 2단: 거래유형 서브탭 (대분류 선택 시에만) */}
-      {currentGroup && (
-        <div className={styles.tabBar}>
-          {currentGroup.tabs.map(t => (
+          {TAB_GROUPS.map(g => (
             <button
-              key={t.id}
-              className={`${styles.tabBtn} ${activeTabId === t.id ? styles.tabBtnActive : ''}`}
-              onClick={() => handleSubTabClick(t.id)}
+              key={g.id}
+              className={`${styles.groupBtn} ${activeGroup === g.id ? styles.groupBtnActive : ''}`}
+              onClick={() => handleGroupClick(g.id)}
             >
-              {t.label}
+              {g.label}
             </button>
           ))}
         </div>
-      )}
+
+        {/* 2단: 거래유형 서브탭 (대분류 선택 시에만) */}
+        {currentGroup && (
+          <div className={styles.tabBar}>
+            {currentGroup.tabs.map(t => (
+              <button
+                key={t.id}
+                className={`${styles.tabBtn} ${activeTabId === t.id ? styles.tabBtnActive : ''}`}
+                onClick={() => handleSubTabClick(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* 목록 */}
       <div className={styles.body}>
@@ -2118,6 +2168,7 @@ export default function PropertiesPage() {
             <table className={styles.table}>
               <thead>
                 <tr>
+                  <th className={styles.th}>번호</th>
                   <th className={styles.th}>유형</th>
                   <th className={styles.th}>사진</th>
                   <th className={styles.th}>매물번호</th>
@@ -2131,6 +2182,7 @@ export default function PropertiesPage() {
               <tbody>
                 {filtered.map(({ item, tab }, idx) => (
                   <tr key={`${tab.id}-${item.id}-${idx}`} className={styles.row}>
+                    <td className={`${styles.td} ${styles.tdNum}`}>{idx + 1}</td>
                     <td className={styles.td}>
                       <span className={styles.typeLabel}>{tab.typeLabel}</span>
                     </td>
@@ -2169,8 +2221,8 @@ export default function PropertiesPage() {
                     </td>
                     <td className={styles.td}>
                       <select
-                        value={item.contract_status || ''}
-                        onChange={e => handleUpdateContractStatus(item, e.target.value || null)}
+                        value={item.contract_status || '계약가능'}
+                        onChange={e => handleUpdateContractStatus(item, e.target.value)}
                         style={{
                           fontSize: '0.75rem', padding: '4px 6px', borderRadius: 6,
                           border: '1.5px solid',
@@ -2183,7 +2235,7 @@ export default function PropertiesPage() {
                           fontWeight: 700, cursor: 'pointer', outline: 'none',
                         }}
                       >
-                        <option value="">계약가능</option>
+                        <option value="계약가능">계약가능</option>
                         <option value="계약진행중">계약진행중</option>
                         <option value="계약완료">계약완료</option>
                       </select>

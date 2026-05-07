@@ -291,7 +291,14 @@ function PreviewModal({ item, onClose }) {
                             {r.isCategory && <span className={modalStyles.pvBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{r.value}</span>}
                             {r.isTransaction && <span className={modalStyles.pvBadge} style={{ background: txStyle.bg, color: txStyle.color }}>{r.value}</span>}
                             {r.isPrice && <span className={modalStyles.pvPriceBadge}>{r.value}</span>}
-                            {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
+                            {r.isTags && !r.isCategory && !r.isTransaction && !r.isPrice && (
+                              <span style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                {r.value.split(', ').filter(Boolean).map(tag => (
+                                  <span key={tag} style={{ display: 'inline-block', padding: '2px 8px', background: '#f4f0ec', border: '1px solid #e0d8cc', color: '#5a3e28', borderRadius: '5px', fontSize: '11.5px', fontWeight: 500, lineHeight: 1.5 }}>{tag}</span>
+                                ))}
+                              </span>
+                            )}
+                            {!r.isTags && !r.isCategory && !r.isTransaction && !r.isPrice && r.value}
                           </div>
                         </div>
                       );

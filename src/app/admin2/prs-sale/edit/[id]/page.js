@@ -37,6 +37,8 @@ function itemToFormValues(item) {
     relocation_fee:   item.relocation_fee,
     loan_info:        item.loan_info,
     maintenance:      fromDB(item.maintenance),
+    maintenance_note:  fromDB(item.maintenance_note),
+    maintenance_items: item.maintenance_items ? item.maintenance_items.split(', ').filter(Boolean) : [],
     dong:             fromDB(item.dong),
     ho:               fromDB(item.ho),
     move_in:          fromDB(item.move_in),

@@ -33,7 +33,9 @@ function itemToFormValues(item) {
     curr_monthly:    item.curr_monthly,
     loan_info:       item.loan_info,
     maintenance:     item.maintenance,
-    move_in:         fromDB(item.move_in),
+
+    maintenance_note:  fromDB(item.maintenance_note),
+    maintenance_items: item.maintenance_items ? item.maintenance_items.split(', ').filter(Boolean) : [],    move_in:         fromDB(item.move_in),
     curr_floor: {
       text:      fromDB(item.curr_floor),
       privacy:   item.curr_floor_privacy || '공개',

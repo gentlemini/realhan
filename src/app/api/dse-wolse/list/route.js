@@ -1,4 +1,4 @@
-﻿const NOTION_API = 'https://api.notion.com/v1';
+const NOTION_API = 'https://api.notion.com/v1';
 const DB_ID = '9de9698a398f44ce9eb1d20d97f91276';
 
 export async function GET() {
@@ -14,7 +14,7 @@ export async function GET() {
         sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         page_size: 100,
       }),
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
 
     if (!res.ok) throw new Error(`Notion ${res.status}`);
@@ -51,8 +51,10 @@ export async function GET() {
         land_share_area:         gN(p['대지지분_㎡']),
         deposit:                 gN(p['보증금_만원']),
         monthly_rent:            gN(p['월세_만원']),
-        loan_info:               gN(p['융자금_만원']),
+        loan_info:               gR(p['융자금_직접입력']) || gN(p['융자금_만원']) || null,
         maintenance:             gN(p['관리비_만원']),
+        maintenance_note:  gR(p['관리비_상세']),
+        maintenance_items: gM(p['관리비_포함항목']),
         move_in:                 gR(p['입주가능일']),
         curr_floor:              gR(p['해당층']),
         curr_floor_privacy:      gS(p['해당층_공개여부']),

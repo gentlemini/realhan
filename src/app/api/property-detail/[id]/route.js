@@ -37,6 +37,8 @@ const LABEL_MAP = {
   '월세_만원':       '월세 (만원)',
   '관리비_만원':      '관리비 (만원)',
   '관리비':         '관리비',
+  '관리비_상세':     '관리비 항목',
+  '관리비_포함항목':  '관리비 포함 항목',
   '융자금_만원':      '융자금 (만원)',
   '현보증금_만원':     '현 보증금 (만원)',
   '현월세_만원':      '현 월세 (만원)',
@@ -171,6 +173,8 @@ const FIELD_ORDER = new Map([
   // fees — 관리비 그룹 (가격 다음, 융자금 이전)
   ['관리비_만원',   61],
   ['관리비',       62],
+  ['관리비_상세',    62],
+  ['관리비_포함항목', 62],
   ['관리금_만원',   63],
   ['권리금_만원',   63],
   ['시설금_만원',   64],
@@ -314,6 +318,7 @@ export async function GET(request, { params }) {
         isPrice:       PRICE_FIELDS.has(name),
         isCategory:    name === CATEGORY_FIELD,
         isTransaction: name === TRANSACTION_FIELD,
+        isTags:        prop.type === 'multi_select',
         order,
       });
     }
@@ -322,8 +327,8 @@ export async function GET(request, { params }) {
     rows.sort((a, b) => a.order - b.order);
 
     /* strip internal order field, add section */
-    const finalRows = rows.map(({ label, value, isPrivate, isPrice, isCategory, isTransaction, order }) =>
-      ({ label, value, isPrivate, isPrice, isCategory, isTransaction, section: getSection(order) }));
+    const finalRows = rows.map(({ label, value, isPrivate, isPrice, isCategory, isTransaction, isTags, order }) =>
+      ({ label, value, isPrivate, isPrice, isCategory, isTransaction, isTags, section: getSection(order) }));
 
     /* map / image meta */
     const imageUrl   = p['대표사진URL']?.url   || '';

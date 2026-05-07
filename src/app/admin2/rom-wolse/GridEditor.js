@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import {
@@ -116,9 +116,11 @@ function LoanInfoInput({ value, onChange }) {
         <option value="융자금 없음">융자금 없음</option>
         <option value="시세대비 30% 미만">시세대비 30% 미만</option>
         <option value="시세대비 30% 이상">시세대비 30% 이상</option>
+        <option value="직접입력">직접입력</option>
       </select>
-      <input className={styles.input} type="number" inputMode="numeric" placeholder="직접 입력" value={amount} onChange={e => onChange?.({ display, amount: e.target.value })} style={{ width: 130 }} />
-      <span style={{ fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>만원</span>
+      {display === '직접입력' && (
+        <input className={styles.input} type="text" placeholder="직접 입력" value={amount} onChange={e => onChange?.({ display, amount: e.target.value })} style={{ width: 130 }} />
+      )}
     </div>
   );
 }
@@ -294,7 +296,8 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
       const la = (v && typeof v === 'object') ? v.amount : (v || '');
       if (ld === '표시안함') return <span className={styles.previewEmpty}>표시안함</span>;
       if (ld === '융자금 없음') return <span>없음</span>;
-      return <span>{ld}{la ? ' (' + Number(la).toLocaleString() + '만원)' : ''}</span>;
+      if (ld === '직접입력') return <span>{la || '—'}</span>;
+      return <span>{ld}{la ? ' (' + la + ')' : ''}</span>;
     }
     if (field.type === 'photos') return <span className={styles.previewEmpty}>사진 첨부</span>;
     if (!v) return <span className={styles.previewEmpty}>—</span>;
@@ -482,12 +485,35 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
       img.onload = () => {
         URL.revokeObjectURL(url);
         let { width, height } = img;
-        if (width <= maxPx && height <= maxPx) { resolve(file); return; }
-        if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
-        else { width = Math.round(width * maxPx / height); height = maxPx; }
+        if (width > maxPx || height > maxPx) {
+          if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
+          else { width = Math.round(width * maxPx / height); height = maxPx; }
+        }
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const wmText = '공인중개사 한민희 010-4706-8253';
+        const fz = Math.max(14, Math.round(width * 0.022));
+        ctx.save();
+        ctx.globalAlpha = 0.28;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${fz}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 5;
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(-Math.PI / 5);
+        const gapX = fz * 7.5;
+        const gapY = fz * 3.8;
+        const diag = Math.sqrt(width * width + height * height);
+        const cols = Math.ceil(diag / gapX) + 2;
+        const rows = Math.ceil(diag / gapY) + 2;
+        for (let r = -rows; r <= rows; r++)
+          for (let c = -cols; c <= cols; c++)
+            ctx.fillText(wmText, c * gapX, r * gapY);
+        ctx.restore();
         canvas.toBlob(blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', quality);
       };
       img.src = url;

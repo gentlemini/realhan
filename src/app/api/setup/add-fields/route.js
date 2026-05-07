@@ -50,6 +50,18 @@ async function addFieldsToDB(id) {
       body: JSON.stringify({
         properties: {
           '조회수': { number: { format: 'number' } },
+          '관리비_상세': { rich_text: {} },
+          '융자금_직접입력': { rich_text: {} },
+          '관리비_포함항목': { multi_select: { options: [
+            { name: '공용관리비', color: 'gray' },
+            { name: '전기료',    color: 'yellow' },
+            { name: '수도료',    color: 'blue' },
+            { name: '가스사용료', color: 'orange' },
+            { name: '난방비',    color: 'red' },
+            { name: '인터넷사용료', color: 'purple' },
+            { name: 'TV사용료',  color: 'pink' },
+            { name: '기타관리비', color: 'brown' },
+          ]}},
         },
       }),
     });

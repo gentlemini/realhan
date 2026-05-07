@@ -14,7 +14,7 @@ export async function PATCH(request) {
       },
       body: JSON.stringify({
         properties: {
-          '계약상태': status ? { select: { name: status } } : { select: null },
+          '계약상태': { select: { name: status || '계약가능' } },
         },
       }),
     });

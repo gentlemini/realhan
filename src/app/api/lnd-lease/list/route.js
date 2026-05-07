@@ -1,4 +1,4 @@
-﻿const NOTION_API = 'https://api.notion.com/v1';
+const NOTION_API = 'https://api.notion.com/v1';
 const DB_ID = '8afefc557c5a41bba9687741fd91d982';
 
 export async function GET() {
@@ -14,7 +14,7 @@ export async function GET() {
         sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         page_size: 100,
       }),
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
 
     if (!res.ok) throw new Error(`Notion ${res.status}`);
@@ -48,7 +48,7 @@ export async function GET() {
         land_area:                gN(p['면적_㎡']),
         move_in:                  gR(p['입주가능일']),
         jeonse_price:             gN(p['전세가격_만원']),
-        loan_info:                gN(p['융자금_만원']),
+        loan_info:                gR(p['융자금_직접입력']) || gN(p['융자금_만원']) || null,
         monthly_fee:              gN(p['월관리비_만원']),
         above_floors:             gN(p['지상층수']),
         rooms:                    gN(p['방수']),

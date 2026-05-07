@@ -6,6 +6,14 @@
   flex-direction: column;
 }
 
+/* ── 고정 헤더 ── */
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
 /* ── 상단 바 ── */
 .topbar {
   width: 100%;
@@ -224,10 +232,11 @@
   overflow: hidden;
 }
 
-/* 유형(1) 사진(2) 매물번호(3) 추천(4) 소재지(5) 등록일(6) */
-.th:nth-child(2) { text-align: center; }
+/* 번호(1) 유형(2) 사진(3) 매물번호(4) 추천(5) 소재지(6) 등록일(7) */
+.th:nth-child(1) { text-align: center; width: 44px; }
 .th:nth-child(3) { text-align: center; }
 .th:nth-child(4) { text-align: center; }
+.th:nth-child(5) { text-align: center; }
 
 .row {
   border-bottom: 1px solid #f0ebe4;
@@ -246,9 +255,10 @@
   text-overflow: ellipsis;
 }
 
-.td:nth-child(2) { text-align: center; padding: 4px 6px; }
-.td:nth-child(3) { text-align: center; }
+.tdNum { text-align: center; width: 44px; color: #a09080; font-size: 11px; }
+.td:nth-child(3) { text-align: center; padding: 4px 6px; }
 .td:nth-child(4) { text-align: center; }
+.td:nth-child(5) { text-align: center; }
 
 /* ── 셀 타입 ── */
 .thumb {

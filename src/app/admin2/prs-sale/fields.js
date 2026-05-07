@@ -22,6 +22,9 @@
   { id: 'installment_paid', label: '납입중도금 (만원)',        type: 'number',     colSpan: 1 },
   { id: 'relocation_fee',   label: '이주비 (만원)',            type: 'number',     colSpan: 1 },
   { id: 'maintenance',      label: '관리비',                   type: 'text',       colSpan: 2, hint: '미동기·신축 건물이라 확인 어려울 수 있음' },
+
+  { id: 'maintenance_note',  label: '관리비 항목 (직접입력)', type: 'text',       colSpan: 2 },
+  { id: 'maintenance_items', label: '관리비 포함 항목',    type: 'multicheck', colSpan: 3, options: ['공용관리비','전기료','수도료','가스사용료','난방비','인터넷사용료','TV사용료','기타관리비'] },
   { id: 'loan_info',        label: '융자금 (만원)',            type: 'loanInfo',     colSpan: 1 },
   { id: 'dong',             label: '동',                       type: 'text',       colSpan: 1, hint: '입력해도 미노출 (관리자용)' },
   { id: 'ho',               label: '호수',                     type: 'text',       colSpan: 1, hint: '입력해도 미노출 (관리자용)' },

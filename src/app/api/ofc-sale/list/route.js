@@ -1,4 +1,4 @@
-﻿const NOTION_API = 'https://api.notion.com/v1';
+const NOTION_API = 'https://api.notion.com/v1';
 const DB_ID = 'a3f757c9049b4e85a5d084a7ec7f01e3';
 
 export async function GET() {
@@ -14,7 +14,7 @@ export async function GET() {
         sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         page_size: 100,
       }),
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
 
     if (!res.ok) throw new Error(`Notion ${res.status}`);
@@ -51,8 +51,10 @@ export async function GET() {
         sale_price:            gN(p['매매가격_만원']),
         curr_deposit:          gN(p['현보증금_만원']),
         curr_monthly:          gN(p['현월세_만원']),
-        loan_info:             gN(p['융자금_만원']),
+        loan_info:             gR(p['융자금_직접입력']) || gN(p['융자금_만원']) || null,
         maintenance:           gN(p['관리비_만원']),
+        maintenance_note:  gR(p['관리비_상세']),
+        maintenance_items: gM(p['관리비_포함항목']),
         supply_area:           gN(p['공급면적_㎡']),
         exclusive_area:        gN(p['전용면적_㎡']),
         ho:                    gR(p['호수']),

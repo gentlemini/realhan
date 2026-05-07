@@ -14,6 +14,9 @@
   { id: 'exclusive_area',  label: '전용면적(㎡)',             type: 'area',     colSpan: 1 },
   { id: 'jeonse_price',    label: '전세가격 (만원)',           type: 'number',     colSpan: 1 },
   { id: 'maintenance',     label: '관리비 (만원)',             type: 'number',     colSpan: 1 },
+
+  { id: 'maintenance_note',  label: '관리비 항목 (직접입력)', type: 'text',       colSpan: 2 },
+  { id: 'maintenance_items', label: '관리비 포함 항목',    type: 'multicheck', colSpan: 3, options: ['공용관리비','전기료','수도료','가스사용료','난방비','인터넷사용료','TV사용료','기타관리비'] },
   { id: 'loan_info',       label: '융자금 정보 (만원)',        type: 'loanInfo',     colSpan: 1 },
   { id: 'move_in',         label: '입주가능일',              type: 'text',       colSpan: 1 },
   { id: 'curr_floor',      label: '해당 층',                 type: 'privacyText' },

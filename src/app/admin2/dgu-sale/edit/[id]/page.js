@@ -32,7 +32,9 @@ function itemToFormValues(item) {
     curr_monthly_rent: item.curr_monthly_rent,
     loan_info:         item.loan_info,
     maintenance:       item.maintenance,
-    move_in:           fromDB(item.move_in),
+
+    maintenance_note:  fromDB(item.maintenance_note),
+    maintenance_items: item.maintenance_items ? item.maintenance_items.split(', ').filter(Boolean) : [],    move_in:           fromDB(item.move_in),
     above_floors:      item.above_floors,
     below_floors:      item.below_floors,
     rooms:             item.rooms,

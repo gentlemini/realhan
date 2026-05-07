@@ -1,4 +1,4 @@
-﻿export function buildFields(d) {
+export function buildFields(d) {
   const f = {};
   const addT = (k, v) => { if (v) f[k] = { title: [{ text: { content: String(v) } }] }; };
   const addR = (k, v) => { f[k] = { rich_text: [{ text: { content: v ? String(v) : '-' } }] }; };
@@ -41,11 +41,18 @@
   addN('보증금_만원', d.deposit);
   addN('월세_만원', d.monthly_rent);
   if (d.loan_info && typeof d.loan_info === 'object') {
-    if (d.loan_info.amount) addN('융자금_만원', d.loan_info.amount);
+    const amt = d.loan_info.amount;
+    if (amt != null && amt !== '') {
+      addR('융자금_직접입력', String(amt));
+      const num = parseFloat(String(amt).replace(/,/g, ''));
+      if (!isNaN(num)) addN('융자금_만원', num);
+    }
   } else {
     addN('융자금_만원', d.loan_info);
   }
   addN('관리비_만원', d.maintenance);
+  addR('관리비_상세', d.maintenance_note);
+  addM('관리비_포함항목', d.maintenance_items);
   addR('입주가능일', d.move_in);
 
   if (d.curr_floor) {

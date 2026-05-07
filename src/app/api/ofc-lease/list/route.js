@@ -1,4 +1,4 @@
-﻿const NOTION_API = 'https://api.notion.com/v1';
+const NOTION_API = 'https://api.notion.com/v1';
 const DB_ID = 'b39ea1c254f54808ae2343fd1db35b1c';
 
 export async function GET() {
@@ -14,7 +14,7 @@ export async function GET() {
         sorts: [{ timestamp: 'created_time', direction: 'descending' }],
         page_size: 100,
       }),
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
 
     if (!res.ok) throw new Error(`Notion ${res.status}`);
@@ -49,8 +49,10 @@ export async function GET() {
         address_detail_privacy:   gS(p['상세주소_공개여부']),
         address_detail_memo:      gR(p['상세주소_메모']),
         jeonse_price:          gN(p['전세가격_만원']),
-        loan_info:             gN(p['융자금_만원']),
+        loan_info:             gR(p['융자금_직접입력']) || gN(p['융자금_만원']) || null,
         maintenance:           gN(p['관리비_만원']),
+        maintenance_note:  gR(p['관리비_상세']),
+        maintenance_items: gM(p['관리비_포함항목']),
         supply_area:           gN(p['공급면적_㎡']),
         exclusive_area:        gN(p['전용면적_㎡']),
         ho:                    gR(p['호수']),

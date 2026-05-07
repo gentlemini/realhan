@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin2/
+Disallow: /api/
+
+User-agent: Yeti
+Allow: /
+Disallow: /admin2/
+Disallow: /api/
+
+Sitemap: https://realhan.vercel.app/sitemap.xml

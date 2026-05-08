@@ -370,68 +370,35 @@ function PropertyItem({ property, onClick }) {
   const catStyle = CATEGORY_COLORS[property.category] || { bg: '#f3f4f6', color: '#374151' };
   const txStyle  = TX_COLORS[property.transaction]    || { bg: '#f3f4f6', color: '#374151' };
   const price    = formatPrice(property);
-
-  const badgeBase = {
-    fontSize: '0.72rem', fontWeight: 700,
-    padding: '3px 8px', borderRadius: 5,
-  };
+  const cardName = property.title || property.building_name || property.location || null;
 
   return (
     <div className={styles.card} onClick={onClick}>
       <div className={styles.cardThumb}>
-        {property.imageUrl ? (
-          <img src={property.imageUrl} alt="" className={styles.cardImg} />
-        ) : (
-          <div className={styles.cardImgFallback} style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: '#f5f2ee', fontSize: '2.4rem',
-          }}>🏠</div>
+        {property.imageUrl
+          ? <img src={property.imageUrl} alt="" className={styles.cardImg} />
+          : <div className={styles.cardPlaceholder}>🏠</div>}
+
+        <div className={styles.cardBadges}>
+          <span className={styles.cardBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{property.category}</span>
+          <span className={styles.cardBadge} style={{ background: txStyle.bg, color: txStyle.color }}>{property.transaction}</span>
+          {property.recommended && <span className={styles.cardRec}>추천</span>}
+        </div>
+
+        {property.property_id && (
+          <div className={styles.cardPropId}>{property.property_id}</div>
         )}
 
-        {/* 좌상단: 매물분류 + 거래종류 */}
-        <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
-          <span style={{ ...badgeBase, background: catStyle.bg, color: catStyle.color }}>
-            {property.category}
-          </span>
-          <span style={{ ...badgeBase, background: txStyle.bg, color: txStyle.color }}>
-            {property.transaction}
-          </span>
-        </div>
-
-        {/* 우상단: 매물번호 + 추천 */}
-        <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          {property.property_id && (
-            <span style={{
-              fontSize: '0.65rem', fontWeight: 700,
-              background: 'rgba(0,0,0,0.45)', color: '#fff',
-              padding: '2px 7px', borderRadius: 100,
-            }}>No.{property.property_id}</span>
-          )}
-          {property.recommended && <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>⭐</span>}
-        </div>
-
-        {/* 좌하단: 소재지 */}
         {property.location && (
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0,
-            padding: '18px 10px 8px',
-            background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)',
-          }}>
-            <span style={{
-              fontSize: '0.72rem', color: '#fff',
-              textShadow: '0 1px 3px rgba(0,0,0,0.6)',
-            }}>📍 {property.location}</span>
+          <div className={styles.cardLocOverlay}>
+            <span className={styles.cardLocPin}>📍</span> {property.location}
           </div>
         )}
       </div>
 
       <div className={styles.cardBody}>
-        {property.building_name && (
-          <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1c1917', margin: 0 }}>{property.building_name}</p>
-        )}
-        <p style={{ fontSize: '1.35rem', fontWeight: 800, color: '#a87b51', margin: 0 }}>
-          {price || '가격 미등록'}
-        </p>
+        {cardName && <p className={styles.cardName}>{cardName}</p>}
+        {price && <p className={styles.cardPrice} style={{ color: txStyle.color }}>{price}</p>}
         <AreaMeta property={property} />
       </div>
     </div>

@@ -215,6 +215,15 @@
 .cardBadge { font-size: .65rem; font-weight: 700; padding: 3px 9px; border-radius: 100px; }
 .cardRec { font-size: .65rem; font-weight: 700; padding: 3px 9px; border-radius: 100px; background: #b8975a; color: #fff; }
 
+.cardPropId {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  font-size: .62rem; font-weight: 700; color: rgba(255,255,255,.9);
+  background: rgba(0,0,0,.38);
+  border-radius: 5px; padding: 2px 7px;
+  letter-spacing: .02em;
+  backdrop-filter: blur(4px);
+}
+
 .cardLocOverlay {
   position: absolute; bottom: 0; left: 0; right: 0;
   padding: 20px 11px 9px;

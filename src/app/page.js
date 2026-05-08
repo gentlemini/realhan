@@ -334,6 +334,9 @@ function Card({ item, onClick }) {
           <span className={styles.cardBadge} style={{ background: ts.bg, color: ts.color }}>{item.transaction}</span>
           {item.recommended && <span className={styles.cardRec}>추천</span>}
         </div>
+        {item.property_id && (
+          <div className={styles.cardPropId}>{item.property_id}</div>
+        )}
         {item.location && (
           <div className={styles.cardLocOverlay}>
             <span className={styles.cardLocPin}>📍</span> {item.location}
@@ -341,7 +344,9 @@ function Card({ item, onClick }) {
         )}
       </div>
       <div className={styles.cardBody}>
-        <p className={styles.cardName}>{item.building_name || '—'}</p>
+        <p className={styles.cardName}>
+          {item.title ? item.title : item.building_name ? item.building_name : item.location ? item.location : null}
+        </p>
         {price && <p className={styles.cardPrice} style={{ color: ts.color }}>{price}</p>}
         {chips.length > 0 && (
           <div className={styles.cardChips}>
@@ -355,9 +360,9 @@ function Card({ item, onClick }) {
 
 // ── constants ─────────────────────────────────────────────────────────────────
 const HERO_IMGS = [
-  'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1400&q=90&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1400&q=90&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=1400&q=90&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1400&q=90&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1400&q=90&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1400&q=90&auto=format&fit=crop',
 ];
 const CATS = ['아파트','오피스텔','단독주택','다가구','다세대','상가','토지','빌딩','오피스','공장/창고','원룸','재개발','분양'];
 
@@ -370,7 +375,7 @@ export default function HomePage() {
   const [heroIn, setHeroIn]         = useState(false);
 
   useEffect(() => {
-    fetch('/api/listings')
+    fetch('/api/listings', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => setAllItems(Array.isArray(data)
         ? data.filter(p => !p.contract_status || p.contract_status === '계약가능' || p.contract_status === '계약진행중')

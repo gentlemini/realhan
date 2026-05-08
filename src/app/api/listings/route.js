@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 const NOTION_API = 'https://api.notion.com/v1';
 
 const DBS = [

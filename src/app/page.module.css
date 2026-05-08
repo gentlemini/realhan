@@ -184,8 +184,9 @@
   .listHead { margin-bottom: 24px; }
   .sectionTitle { font-size: 1.25rem; }
 }
-@media (max-width: 720px)  { .masonry { columns: 2; column-gap: 12px; } }
-@media (max-width: 400px)  { .masonry { columns: 1; } }
+@media (max-width: 720px)  { .masonry { columns: 2; column-gap: 10px; } }
+@media (max-width: 720px)  { .card { margin-bottom: 10px; } }
+@media (max-width: 360px)  { .masonry { column-gap: 8px; } }
 
 /* ── property card ────────────────────────────────────────────────────────────── */
 .card {
@@ -241,12 +242,13 @@
 .cardChip { font-size: .63rem; color: #666; background: #fff; border: 1px solid #e5e5e5; border-radius: 5px; padding: 2px 7px; }
 
 @media (max-width: 720px) {
-  .cardBody { padding: 9px 10px 11px; }
-  .cardName { font-size: .82rem; }
-  .cardPrice { font-size: .86rem; }
-  .cardChip { font-size: .6rem; padding: 2px 6px; }
-  .cardBadge { font-size: .6rem; padding: 2px 7px; }
-  .card { margin-bottom: 12px; }
+  .cardBody { padding: 8px 9px 10px; }
+  .cardName { font-size: .76rem; }
+  .cardPrice { font-size: .8rem; }
+  .cardChip { font-size: .56rem; padding: 2px 5px; }
+  .cardBadge { font-size: .56rem; padding: 2px 6px; }
+  .cardPropId { font-size: .56rem; padding: 2px 5px; }
+  .cardLocOverlay { font-size: .66rem; padding: 14px 8px 7px; }
 }
 
 /* ── loading ──────────────────────────────────────────────────────────────────── */

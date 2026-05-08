@@ -316,7 +316,7 @@ function PreviewModal({ item, onClose }) {
               </div>
               <div className={modalStyles.pvOfficeFooter}>
                 <strong>한결부동산공인중개사사무소</strong>
-                <span>대표 이동한 · 부산광역시 남구 대연동</span>
+                <span>대표 이동한 · 부산광역시 남구 대연동 368-1</span>
                 <span>등록번호 제26290-2019-00094호 · 051-612-5155</span>
               </div>
             </div>

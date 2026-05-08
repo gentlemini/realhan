@@ -1,7 +1,7 @@
 /* ── 페이지 ── */
 .page {
   min-height: 100vh;
-  background: #f0ebe4;
+  background: #f5f4f0;
   display: flex;
   flex-direction: column;
 }
@@ -11,14 +11,14 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
 }
 
 /* ── 상단 바 ── */
 .topbar {
   width: 100%;
-  background: linear-gradient(to right, #1c1917, #2a1e11);
-  border-bottom: 1px solid rgba(193,154,107,0.2);
+  background: #1e2d2e;
+  border-bottom: 1px solid rgba(184,151,90,0.2);
   padding: 0 28px;
   height: 54px;
   display: flex;
@@ -30,8 +30,8 @@
 
 .backBtn {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.2);
-  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.65);
   border-radius: 6px;
   padding: 5px 12px;
   font-size: 12px;
@@ -39,7 +39,7 @@
   transition: all 0.15s;
   white-space: nowrap;
 }
-.backBtn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.backBtn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.35); }
 
 .topTitle {
   color: #fff;
@@ -49,11 +49,11 @@
 }
 
 .count {
-  color: #c19a6b;
+  color: #b8975a;
   font-size: 12px;
   font-weight: 700;
-  background: rgba(193,154,107,0.15);
-  border: 1px solid rgba(193,154,107,0.3);
+  background: rgba(184,151,90,0.12);
+  border: 1px solid rgba(184,151,90,0.28);
   border-radius: 20px;
   padding: 3px 12px;
 }
@@ -61,7 +61,7 @@
 /* ── 전체 DB 매물번호 검색 ── */
 .globalSearchBar {
   background: #fff;
-  border-bottom: 1px solid #e8e0d8;
+  border-bottom: 1px solid #e8e3dc;
   padding: 10px 20px;
   flex-shrink: 0;
 }
@@ -80,25 +80,25 @@
   font-size: 13px;
   pointer-events: none;
   z-index: 1;
+  color: #b8975a;
 }
 
 .globalSearchInput {
   width: 100%;
   padding: 9px 36px 9px 36px;
-  border: 1.5px solid #c19a6b;
+  border: 1.5px solid #d8d0c8;
   border-radius: 8px;
   font-size: 13px;
-  color: #3a2a1a;
-  background: #fffdf9;
+  color: #1e2d2e;
+  background: #faf9f7;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
-  box-shadow: 0 1px 6px rgba(193,154,107,0.1);
 }
 .globalSearchInput:focus {
-  border-color: #a87b51;
-  box-shadow: 0 0 0 3px rgba(193,154,107,0.15);
+  border-color: #b8975a;
+  box-shadow: 0 0 0 3px rgba(184,151,90,0.12);
 }
-.globalSearchInput::placeholder { color: #c0b0a0; }
+.globalSearchInput::placeholder { color: #b8b0a4; }
 
 .globalSearchClear {
   position: absolute;
@@ -111,14 +111,14 @@
   padding: 4px;
   line-height: 1;
 }
-.globalSearchClear:hover { color: #7a5530; }
+.globalSearchClear:hover { color: #1e2d2e; }
 
 /* 전역검색 결과 유형 뱃지 */
 .typeLabel {
   display: inline-block;
-  background: rgba(168,123,81,0.12);
-  border: 1px solid rgba(168,123,81,0.25);
-  color: #7a5530;
+  background: rgba(184,151,90,0.1);
+  border: 1px solid rgba(184,151,90,0.25);
+  color: #8a6a30;
   font-size: 10px;
   font-weight: 700;
   padding: 2px 7px;
@@ -130,8 +130,8 @@
 .tabBar {
   display: flex;
   gap: 0;
-  background: #1c1917;
-  border-bottom: 2px solid #a87b51;
+  background: #1e2d2e;
+  border-bottom: 2px solid #b8975a;
   padding: 0 20px;
   flex-shrink: 0;
 }
@@ -139,20 +139,20 @@
 .tabBtn {
   background: transparent;
   border: none;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.4);
   font-size: 13px;
   font-weight: 600;
   padding: 10px 20px;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
+  border-bottom: 2px solid transparent;
   margin-bottom: -2px;
   transition: all 0.15s;
   white-space: nowrap;
 }
-.tabBtn:hover { color: rgba(255,255,255,0.75); }
+.tabBtn:hover { color: rgba(255,255,255,0.72); }
 .tabBtnActive {
-  color: #c19a6b;
-  border-bottom-color: #c19a6b;
+  color: #b8975a;
+  border-bottom-color: #b8975a;
 }
 
 /* ── 본문 ── */
@@ -162,7 +162,7 @@
   box-sizing: border-box;
 }
 
-.status    { text-align: center; color: #a07050; font-size: 14px; padding: 60px 0; }
+.status    { text-align: center; color: #8a7a6a; font-size: 14px; padding: 60px 0; }
 .statusErr { text-align: center; color: #c05050; font-size: 14px; padding: 60px 0; }
 
 /* ── 검색창 ── */
@@ -181,17 +181,17 @@
 .searchInput {
   width: 100%;
   padding: 9px 40px 9px 16px;
-  border: 1.5px solid #d8cfc4;
+  border: 1.5px solid #d8d0c8;
   border-radius: 8px;
   font-size: 13px;
-  color: #3a2a1a;
+  color: #1e2d2e;
   background: #fff;
   outline: none;
   transition: border-color 0.15s;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-.searchInput:focus { border-color: #a87b51; }
-.searchInput::placeholder { color: #c0b0a0; }
+.searchInput:focus { border-color: #b8975a; }
+.searchInput::placeholder { color: #b8b0a4; }
 
 .searchClear {
   position: absolute;
@@ -204,13 +204,14 @@
   padding: 4px;
   line-height: 1;
 }
-.searchClear:hover { color: #7a5530; }
+.searchClear:hover { color: #1e2d2e; }
 
 /* ── 테이블 ── */
 .tableWrap {
   overflow: hidden;
   border-radius: 10px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.09);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border: 1px solid #e8e3dc;
 }
 
 .table {
@@ -222,14 +223,15 @@
 }
 
 .th {
-  background: #2a1e11;
-  color: rgba(255,255,255,0.72);
+  background: #1e2d2e;
+  color: rgba(255,255,255,0.65);
   font-size: 11px;
   font-weight: 700;
-  padding: 8px 10px;
+  padding: 10px 10px;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
+  letter-spacing: 0.03em;
 }
 
 /* 번호(1) 유형(2) 사진(3) 매물번호(4) 추천(5) 소재지(6) 등록일(7) */
@@ -239,42 +241,42 @@
 .th:nth-child(5) { text-align: center; }
 
 .row {
-  border-bottom: 1px solid #f0ebe4;
+  border-bottom: 1px solid #f0ece5;
   transition: background 0.1s;
 }
 .row:last-child { border-bottom: none; }
-.row:hover { background: #faf7f4; }
+.row:hover { background: #faf8f5; }
 
 .td {
-  padding: 6px 10px;
+  padding: 7px 10px;
   vertical-align: middle;
-  color: #3a2a1a;
+  color: #2a3530;
   white-space: nowrap;
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.tdNum { text-align: center; width: 44px; color: #a09080; font-size: 11px; }
-.td:nth-child(3) { text-align: center; padding: 4px 6px; }
+.tdNum { text-align: center; width: 44px; color: #a8a098; font-size: 11px; }
+.td:nth-child(3) { text-align: center; padding: 5px 6px; }
 .td:nth-child(4) { text-align: center; }
 .td:nth-child(5) { text-align: center; }
 
 /* ── 셀 타입 ── */
 .thumb {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   object-fit: cover;
-  border-radius: 5px;
+  border-radius: 6px;
   display: block;
   margin: 0 auto;
 }
 
 .thumbEmpty {
-  width: 38px;
-  height: 38px;
-  border-radius: 5px;
-  background: #ede8e2;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: #eae6e0;
   margin: 0 auto;
 }
 
@@ -284,26 +286,26 @@
   padding: 0;
   font-size: 12px;
   font-weight: 700;
-  color: #a87b51;
+  color: #b8975a;
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.idBtn:hover { color: #7a5530; }
+.idBtn:hover { color: #8a6a30; }
 
 .editBtn {
-  background: #f0ebe4;
-  border: 1px solid #d8cfc4;
-  color: #7a5a30;
+  background: #fff;
+  border: 1px solid #d8d0c8;
+  color: #2a3530;
   font-size: 11px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 5px;
+  font-weight: 600;
+  padding: 4px 11px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
 }
-.editBtn:hover { background: #a87b51; color: #fff; border-color: #a87b51; }
+.editBtn:hover { background: #b8975a; color: #fff; border-color: #b8975a; }
 
 .recBtnOn {
   background: none;
@@ -318,16 +320,37 @@
   background: none;
   border: none;
   font-size: 18px;
-  color: #d0c8be;
+  color: #d8d0c8;
   cursor: pointer;
   padding: 0 2px;
   line-height: 1;
+  transition: color 0.15s;
 }
 .recBtnOff:hover { color: #e8a020; }
 
-.price { font-weight: 700; color: #a87b51; }
+/* 계약상태 select */
+.statusSelect {
+  border: 1px solid #d8d0c8;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #fff;
+  color: #2a3530;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.statusSelect:focus { border-color: #b8975a; }
+.statusSelectActive {
+  border-color: #22a06b;
+  color: #22a06b;
+  background: #f0faf5;
+}
+
+.price { font-weight: 700; color: #b8975a; }
 .bold  { font-weight: 700; }
-.empty { color: #d0c8be; }
+.empty { color: #c8c0b8; }
 
 .memo {
   color: #5a4a20;
@@ -342,7 +365,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.55);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -353,22 +376,22 @@
 
 .modal {
   background: #fff;
-  border-radius: 14px;
+  border-radius: 12px;
   width: 100%;
   max-width: 680px;
   max-height: 88vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.28);
 }
 
 .modalTop {
   display: flex;
   align-items: flex-start;
   padding: 18px 20px 16px;
-  border-bottom: 1px solid #f0ebe4;
-  background: #faf7f4;
+  border-bottom: 3px solid #b8975a;
+  background: #1e2d2e;
   flex-shrink: 0;
   gap: 12px;
 }
@@ -382,41 +405,42 @@
 
 .modalId {
   font-size: 11px;
-  color: #a87b51;
+  color: #b8975a;
   font-weight: 700;
 }
 
 .modalAptName {
   font-size: 18px;
   font-weight: 800;
-  color: #2a1a0a;
+  color: #fff;
   line-height: 1.3;
 }
 
 .modalTitle {
   font-size: 13px;
-  color: #7a5a30;
+  color: rgba(255,255,255,0.55);
 }
 
 .modalClose {
-  background: rgba(0,0,0,0.55);
-  border: none;
-  font-size: 16px;
-  color: #fff;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  font-size: 15px;
+  color: rgba(255,255,255,0.8);
   cursor: pointer;
   padding: 5px 12px;
-  border-radius: 20px;
+  border-radius: 6px;
   transition: all 0.15s;
   line-height: 1;
   flex-shrink: 0;
   font-weight: 700;
 }
-.modalClose:hover { background: rgba(0,0,0,0.8); }
+.modalClose:hover { background: rgba(255,255,255,0.22); color: #fff; }
 
 .modalBody {
   overflow-y: auto;
   flex: 1;
   padding: 0 20px 20px;
+  background: #f5f4f0;
 }
 
 /* 대표사진 */
@@ -424,7 +448,7 @@
   margin: 16px 0;
   border-radius: 10px;
   overflow: hidden;
-  background: #f0ebe4;
+  background: #eae6e0;
 }
 
 .modalPhotoImg {
@@ -437,18 +461,22 @@
 
 /* 섹션 */
 .section {
-  margin-top: 16px;
+  margin-top: 14px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .sectionTitle {
   font-size: 10px;
   font-weight: 800;
-  color: #a87b51;
+  color: #b8975a;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-bottom: 6px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #f0ebe4;
+  padding: 9px 14px 8px;
+  background: #f5f4f0;
+  border-bottom: 1px solid #e8e3dc;
 }
 
 .sectionGrid {
@@ -458,7 +486,7 @@
 
 .detailRow {
   display: flex;
-  border-bottom: 1px solid #f8f4f0;
+  border-bottom: 1px solid #f0ece5;
   min-height: 34px;
   align-items: stretch;
 }
@@ -467,12 +495,12 @@
 .detailLabel {
   width: 140px;
   min-width: 140px;
-  background: #faf7f4;
-  border-right: 1px solid #f0ebe4;
+  background: #faf9f7;
+  border-right: 1px solid #f0ece5;
   padding: 8px 12px;
   font-size: 11.5px;
   font-weight: 600;
-  color: #7a5a30;
+  color: #7a6a58;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -483,15 +511,15 @@
   flex: 1;
   padding: 8px 14px;
   font-size: 13px;
-  color: #3a2a1a;
+  color: #1e2d2e;
   display: flex;
   align-items: center;
 }
 
-.dPrice   { font-weight: 700; color: #a87b51; }
-.dPublic  { color: #4a8c5c; font-weight: 600; font-size: 12px; }
+.dPrice   { font-weight: 700; color: #b8975a; }
+.dPublic  { color: #22a06b; font-weight: 600; font-size: 12px; }
 .dPrivate { color: #c05050; font-weight: 600; font-size: 12px; }
-.dEmpty   { color: #d0c8be; }
+.dEmpty   { color: #c8c0b8; }
 
 .dMemo {
   color: #5a4a20;
@@ -511,42 +539,41 @@
 /* ── 대분류 그룹 바 ── */
 .groupBar {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
-  padding: 14px 20px 10px;
-  background: #f8f4ef;
-  border-bottom: 1px solid #e8e0d8;
+  padding: 12px 20px 10px;
+  background: #fff;
+  border-bottom: 1px solid #e8e3dc;
   flex-shrink: 0;
 }
 
 .groupBtn {
   background: #fff;
-  border: 1.5px solid #d8cfc4;
-  color: #7a5a30;
-  font-size: 13px;
+  border: 1.5px solid #d8d0c8;
+  color: #5a5048;
+  font-size: 12.5px;
   font-weight: 600;
-  padding: 6px 18px;
+  padding: 5px 16px;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
 }
 .groupBtn:hover {
-  background: #f0ebe4;
-  border-color: #a87b51;
-  color: #5a3e20;
+  border-color: #b8975a;
+  color: #1e2d2e;
 }
 .groupBtnActive {
-  background: #2a1e11;
-  border-color: #2a1e11;
-  color: #c19a6b;
+  background: #1e2d2e;
+  border-color: #1e2d2e;
+  color: #b8975a;
 }
 
 /* ── 지도보기 토글 버튼 ── */
 .mapToggleBtn {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.25);
-  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: rgba(255,255,255,0.75);
   border-radius: 6px;
   padding: 5px 14px;
   font-size: 12px;
@@ -555,11 +582,11 @@
   transition: all 0.15s;
   white-space: nowrap;
 }
-.mapToggleBtn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.mapToggleBtn:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
 .mapToggleBtnOn {
-  background: #a87b51;
-  border: 1px solid #a87b51;
+  background: #b8975a;
+  border: 1px solid #b8975a;
   color: #fff;
   border-radius: 6px;
   padding: 5px 14px;
@@ -569,7 +596,7 @@
   white-space: nowrap;
   transition: all 0.15s;
 }
-.mapToggleBtnOn:hover { background: #8a6040; }
+.mapToggleBtnOn:hover { background: #a6865a; }
 
 /* ── 지도 영역 ── */
 .mapBody {
@@ -588,7 +615,7 @@
 .mapPanel {
   width: 290px;
   background: #fff;
-  border-left: 1px solid #e8e0d8;
+  border-left: 1px solid #e8e3dc;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -600,28 +627,28 @@
   align-items: center;
   justify-content: space-between;
   padding: 11px 16px;
-  border-bottom: 1px solid #f0ebe4;
-  background: #faf7f4;
+  border-bottom: 1px solid #e8e3dc;
+  background: #1e2d2e;
   flex-shrink: 0;
 }
 
 .mapPanelCount {
   font-size: 13px;
   font-weight: 700;
-  color: #5a3e20;
+  color: #b8975a;
 }
 
 .mapPanelClose {
   background: none;
   border: none;
-  color: #b0a090;
+  color: rgba(255,255,255,0.45);
   font-size: 14px;
   cursor: pointer;
   padding: 2px 6px;
   border-radius: 4px;
   line-height: 1;
 }
-.mapPanelClose:hover { color: #5a3e20; background: #f0ebe4; }
+.mapPanelClose:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
 .mapPanelList {
   overflow-y: auto;
@@ -630,25 +657,25 @@
 
 .mapPanelItem {
   padding: 10px 14px;
-  border-bottom: 1px solid #f8f4f0;
+  border-bottom: 1px solid #f0ece5;
   cursor: pointer;
   transition: background 0.1s;
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
-.mapPanelItem:hover { background: #faf7f4; }
+.mapPanelItem:hover { background: #faf8f5; }
 .mapPanelItem:last-child { border-bottom: none; }
 
 .mapPanelId {
   font-weight: 700;
-  color: #a87b51;
+  color: #b8975a;
   font-size: 12px;
 }
 
 .mapPanelAddr {
   font-size: 12px;
-  color: #5a4a30;
+  color: #5a5048;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -668,7 +695,6 @@
     flex-direction: column;
   }
 
-  /* 헤더 바를 투명 오버레이로 전환 — 닫기 버튼만 사진 위에 떠있음 */
   .modalTop {
     position: absolute;
     top: 0;
@@ -682,14 +708,12 @@
   }
   .modalHeader { display: none; }
 
-  /* 본문: 사진이 맨 위, 아래는 스크롤 */
   .modalBody {
     padding: 0;
     flex: 1;
     overflow-y: auto;
   }
 
-  /* 사진: 전체폭, 고정 높이, 둥근 모서리 제거 */
   .modalPhoto {
     margin: 0;
     border-radius: 0;
@@ -703,14 +727,12 @@
     object-fit: cover;
   }
 
-  /* 사진 없을 때 닫기 버튼 배경 — 첫 섹션 바로 위에 버튼만 떠있도록 */
   .modalTopNoPhoto {
-    background: #faf7f4;
-    border-bottom: 1px solid #e8ddd0;
+    background: #1e2d2e;
+    border-bottom: 1px solid rgba(184,151,90,0.25);
     position: relative;
   }
 
-  /* 섹션 패딩 */
   .section { padding: 0 16px; }
   .sectionGrid { padding-bottom: 4px; }
   .detailRow { padding: 8px 0; }
@@ -720,13 +742,11 @@
    모바일 반응형  (≤ 768px)
    ═══════════════════════════════════════ */
 @media (max-width: 768px) {
-  /* 상단 바 */
   .topbar { padding: 0 10px; gap: 8px; height: 48px; }
   .topTitle { font-size: 13px; }
   .backBtn { padding: 4px 8px; font-size: 11px; }
   .count { font-size: 11px; padding: 2px 9px; }
 
-  /* 탭 바 가로 스크롤 */
   .tabBar {
     padding: 0 8px;
     overflow-x: auto;
@@ -736,43 +756,37 @@
   .tabBar::-webkit-scrollbar { display: none; }
   .tabBtn { padding: 9px 12px; font-size: 11.5px; white-space: nowrap; }
 
-  /* 전역 검색 */
   .globalSearchBar { padding: 8px 12px; }
   .globalSearchWrap { max-width: 100%; }
 
-  /* 본문 패딩 */
   .body { padding: 10px 12px 80px; }
 
-  /* 검색창 */
   .searchBar { max-width: 100%; margin-bottom: 12px; }
 
-  /* ── 게시판 리스트 스타일 ── */
   .tableWrap {
     overflow: visible;
     border-radius: 10px;
     box-shadow: 0 1px 6px rgba(0,0,0,0.08);
     background: #fff;
-    border: 1px solid #e8e2d8;
+    border: 1px solid #e8e3dc;
   }
 
   .table       { display: block; min-width: unset; background: transparent; }
   .table thead { display: none; }
   .table tbody { display: block; }
 
-  /* 각 행 = 카드 2줄 레이아웃 */
   .row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     padding: 10px 12px 8px;
-    border-bottom: 1px solid #f0ebe4;
+    border-bottom: 1px solid #f0ece5;
     transition: background 0.1s;
     row-gap: 6px;
   }
   .row:last-child { border-bottom: none; }
-  .row:hover { background: #faf7f4; }
+  .row:hover { background: #faf8f5; }
 
-  /* 1줄→2줄 강제 줄바꿈 */
   .row::after {
     content: '';
     flex-basis: 100%;
@@ -780,17 +794,15 @@
     order: 55;
   }
 
-  /* ── 1번째 줄: 유형·사진·번호·★·수정 ── */
   .td:nth-child(1) { order: 10; flex-shrink: 0; padding: 0;            display: flex; align-items: center; }
   .td:nth-child(2) { order: 20; flex-shrink: 0; padding: 0 7px 0 5px; display: flex; align-items: center; }
   .td:nth-child(3) { order: 30; flex: 1; min-width: 0; padding: 0;     display: flex; align-items: center; }
   .td:nth-child(4) { order: 40; flex-shrink: 0; padding: 0 6px;        display: flex; align-items: center; }
   .td:nth-child(8) { order: 50; flex-shrink: 0; padding: 0;            display: flex; align-items: center; }
 
-  /* ── 2번째 줄: 날짜(좌)·소재지(중)·계약상태(우) ── */
   .td:nth-child(6) {
     order: 60; flex-shrink: 0; padding: 0 8px 0 0;
-    font-size: 11px; color: #b0a898; white-space: nowrap;
+    font-size: 11px; color: #a8a098; white-space: nowrap;
     display: flex; align-items: center;
   }
   .td:nth-child(5) {
@@ -808,10 +820,10 @@
     display: flex; align-items: center;
   }
 
-  .thumb      { width: 34px; height: 34px; border-radius: 5px; }
-  .thumbEmpty { width: 34px; height: 34px; border-radius: 5px; }
+  .thumb      { width: 36px; height: 36px; border-radius: 5px; }
+  .thumbEmpty { width: 36px; height: 36px; border-radius: 5px; }
   .typeLabel  { font-size: 10px; padding: 2px 6px; }
   .idBtn      { font-size: 12px; font-weight: 700; }
   .recBtnOn, .recBtnOff { font-size: 14px; }
-  .editBtn    { font-size: 10px; padding: 2px 8px; }
+  .editBtn    { font-size: 10px; padding: 3px 9px; }
 }

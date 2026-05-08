@@ -72,3 +72,13 @@ input, textarea, select {
 main {
   flex: 1;
 }
+
+/* design-preview 시안 페이지: 기존 헤더/푸터/플로팅 숨김 */
+body.design-preview-active > header,
+body.design-preview-active > footer,
+body.design-preview-active > nav {
+  display: none !important;
+}
+body.design-preview-active > main {
+  padding-top: 0 !important;
+}

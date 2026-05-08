@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import HeroBanner from '@/components/HeroBanner';
 import styles from './page.module.css';
 
 const KAKAO_APP_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || '';
@@ -44,23 +43,15 @@ function fmtMan(v) {
 }
 
 function formatPrice(item) {
-  const { transaction, sale_price, jeonse_price, deposit, monthly_rent, maintenance } = item;
-  if (transaction === '매매' && sale_price)
-    return `매매 ${fmtMan(sale_price)}`;
-  if (transaction === '전세' && jeonse_price)
-    return `전세 ${fmtMan(jeonse_price)} / ${maintenance ? fmtMan(maintenance) : '-'}`;
-  if (transaction === '월세') {
-    const d = deposit      || 0;
-    const m = monthly_rent || 0;
-    const c = maintenance  || 0;
-    return `월세 ${fmtMan(d)} / ${fmtMan(m)} / ${fmtMan(c)}`;
-  }
+  const { transaction, sale_price, jeonse_price, deposit, monthly_rent } = item;
+  if (transaction === '매매' && sale_price)   return `매매 ${fmtMan(sale_price)}`;
+  if (transaction === '전세' && jeonse_price) return `전세 ${fmtMan(jeonse_price)}`;
+  if (transaction === '월세') return `월세 ${fmtMan(deposit || 0)} / ${fmtMan(monthly_rent || 0)}`;
   return '';
 }
 
-/* ── 카카오 지도 (미리보기용) ── */
+// ── Kakao SDK ─────────────────────────────────────────────────────────────────
 let _kakaoPromise = null;
-
 function loadKakaoSdk() {
   if (_kakaoPromise) return _kakaoPromise;
   _kakaoPromise = new Promise((resolve, reject) => {
@@ -74,11 +65,7 @@ function loadKakaoSdk() {
     }
     if (window.kakao?.maps) { poll(); return; }
     const existing = document.getElementById('kakao-map-sdk');
-    if (existing) {
-      if (window.kakao) { poll(); return; }
-      existing.addEventListener('load', poll, { once: true });
-      return;
-    }
+    if (existing) { if (window.kakao) { poll(); return; } existing.addEventListener('load', poll, { once: true }); return; }
     if (!KAKAO_APP_KEY) { reject(new Error('no key')); return; }
     const s = document.createElement('script');
     s.id = 'kakao-map-sdk';
@@ -97,7 +84,6 @@ function PreviewMap({ lat, lng, radius }) {
     let cancelled = false;
     loadKakaoSdk().then(() => {
       if (cancelled || !mapRef.current) return;
-      if (!mapRef.current.offsetWidth && !mapRef.current.offsetHeight) return;
       const { kakao } = window;
       const center = new kakao.maps.LatLng(lat, lng);
       const map = new kakao.maps.Map(mapRef.current, { center, level: 5 });
@@ -105,7 +91,7 @@ function PreviewMap({ lat, lng, radius }) {
       if (!radius || radius === 0) {
         new kakao.maps.Marker({ position: center, map });
       } else {
-        new kakao.maps.Circle({ center, radius, strokeWeight: 2, strokeColor: '#a87b51', strokeOpacity: 0.8, fillColor: '#c19a6b', fillOpacity: 0.15, map });
+        new kakao.maps.Circle({ center, radius, strokeWeight: 2, strokeColor: '#2a3e3f', strokeOpacity: 0.8, fillColor: '#2a3e3f', fillOpacity: 0.12, map });
       }
     }).catch(() => {});
     return () => { cancelled = true; };
@@ -113,45 +99,36 @@ function PreviewMap({ lat, lng, radius }) {
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
 }
 
-/* ── 상세보기 모달 (admin2 미리보기와 동일 레이아웃) ── */
+// ── Modal ─────────────────────────────────────────────────────────────────────
 function PreviewModal({ item, onClose }) {
   const catStyle = CATEGORY_COLORS[item.category] || { bg: '#f3f4f6', color: '#374151' };
   const txStyle  = TX_COLORS[item.transaction]    || { bg: '#f3f4f6', color: '#374151' };
-
-  const [detail,  setDetail]  = useState(null);
+  const [detail, setDetail]     = useState(null);
   const [detLoading, setDetLoading] = useState(true);
 
-  /* 전체 필드 fetch */
   useEffect(() => {
     setDetLoading(true);
     fetch(`/api/property-detail/${item.id}`)
-      .then(r => r.json())
-      .then(d => setDetail(d))
-      .catch(() => setDetail(null))
-      .finally(() => setDetLoading(false));
+      .then(r => r.json()).then(d => setDetail(d)).catch(() => setDetail(null)).finally(() => setDetLoading(false));
   }, [item.id]);
 
   const imageUrls = detail?.imageUrls?.length ? detail.imageUrls
                   : (detail?.imageUrl || item.imageUrl) ? [detail?.imageUrl || item.imageUrl] : [];
-  const imageUrl  = imageUrls[0] || '';
-
   const [photoIdx, setPhotoIdx] = useState(0);
   useEffect(() => { setPhotoIdx(0); }, [item.id]);
   const currentPhoto = imageUrls[photoIdx] || '';
   const prevPhoto = () => setPhotoIdx(i => (i - 1 + imageUrls.length) % imageUrls.length);
   const nextPhoto = () => setPhotoIdx(i => (i + 1) % imageUrls.length);
 
-  const hasMap   = (detail?.map_lat ?? item.map_lat) && (detail?.map_lng ?? item.map_lng);
-  const mapLat   = detail?.map_lat   ?? item.map_lat;
-  const mapLng   = detail?.map_lng   ?? item.map_lng;
+  const hasMap    = (detail?.map_lat ?? item.map_lat) && (detail?.map_lng ?? item.map_lng);
+  const mapLat    = detail?.map_lat    ?? item.map_lat;
+  const mapLng    = detail?.map_lng    ?? item.map_lng;
   const mapRadius = detail?.map_radius ?? item.map_radius ?? 0;
-
-  /* 제목: 상세에서 '매물 특징' 행 값 사용, 없으면 building_name */
   const titleRow  = detail?.rows?.find(r => r.label === '매물 특징');
   const modalTitle = titleRow?.value || item.building_name || '';
 
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    const handler = e => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
     const siteHeader = document.querySelector('header');
@@ -166,43 +143,25 @@ function PreviewModal({ item, onClose }) {
   return (
     <div className={styles.pvOverlay} onClick={onClose}>
       <div className={styles.pvBox} onClick={e => e.stopPropagation()}>
-
-        {/* 닫기 */}
         <button className={styles.pvClose} onClick={onClose}>✕</button>
-
-        {/* 카카오 상담 버튼 */}
-        <a
-          href="https://pf.kakao.com/_QaxliG"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.pvKakaoBtn}
-        >
-          <img
-            src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png"
-            alt="카카오톡 상담"
-            className={styles.pvKakaoIcon}
-          />
+        <a href="https://pf.kakao.com/_QaxliG" target="_blank" rel="noopener noreferrer" className={styles.pvKakaoBtn}>
+          <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png" alt="" className={styles.pvKakaoIcon} />
           <span>카카오톡 상담</span>
         </a>
-
         <div className={styles.pvLayout}>
-          {/* 좌: 사진 */}
           <div className={styles.pvPhotoCol} style={{ position: 'relative' }}>
             {currentPhoto ? (
               <>
                 <img src={currentPhoto} alt={`사진 ${photoIdx + 1}`} className={styles.pvPhotoImg} />
                 {imageUrls.length > 1 && (
                   <>
-                    <button onClick={prevPhoto} className={styles.pvSlidePrev} aria-label="이전">&#8249;</button>
-                    <button onClick={nextPhoto} className={styles.pvSlideNext} aria-label="다음">&#8250;</button>
+                    <button onClick={prevPhoto} className={styles.pvSlidePrev}>&#8249;</button>
+                    <button onClick={nextPhoto} className={styles.pvSlideNext}>&#8250;</button>
                     <div className={styles.pvSlideDots}>
                       {imageUrls.map((_, i) => (
-                        <span
-                          key={i}
-                          className={styles.pvSlideDot}
-                          style={{ background: i === photoIdx ? '#5a3e28' : 'rgba(255,255,255,0.6)' }}
-                          onClick={() => setPhotoIdx(i)}
-                        />
+                        <span key={i} className={styles.pvSlideDot}
+                          style={{ background: i === photoIdx ? '#2a3e3f' : 'rgba(255,255,255,0.6)' }}
+                          onClick={() => setPhotoIdx(i)} />
                       ))}
                     </div>
                     <div className={styles.pvSlideCount}>{photoIdx + 1} / {imageUrls.length}</div>
@@ -213,50 +172,31 @@ function PreviewModal({ item, onClose }) {
               <div className={styles.pvPhotoArea}>
                 <span className={styles.pvPhotoGhost}>사진위치</span>
                 <div className={styles.pvPhotoFallback}>
-                  <p className={styles.pvFallbackSub}>사진 첨부 없을시 아래 내용</p>
+                  <p className={styles.pvFallbackSub}>사진 첨부 없을시</p>
                   <p className={styles.pvFallbackName}>"공인중개사 한민희"</p>
                   <p className={styles.pvFallbackPhone}>"010-4706-8253"</p>
                 </div>
               </div>
             )}
           </div>
-
-          {/* 우: 지도 + 데이터 */}
           <div className={styles.pvDataCol}>
-            {/* 데스크탑 지도 (pvDataScroll 위, 고정) */}
             <div className={styles.pvMapBox}>
-              {hasMap ? (
-                <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
-              ) : (
-                <span className={styles.pvMapPlaceholder}>지도 위치 미등록</span>
-              )}
+              {hasMap ? <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
+                      : <span className={styles.pvMapPlaceholder}>지도 위치 미등록</span>}
             </div>
-
-            {/* 스크롤 데이터 */}
             <div className={styles.pvDataScroll}>
-              {/* 헤더 */}
               <div className={styles.pvDataHeader}>
                 <div className={styles.pvHeaderSub}>
                   <span className={styles.fBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
                   <span className={styles.fBadge} style={{ background: txStyle.bg, color: txStyle.color }}>{item.transaction}</span>
                 </div>
-                <div className={styles.pvTitle}>
-                  {modalTitle || <span className={styles.pvTitleEmpty}>매물제목 미입력</span>}
-                </div>
+                <div className={styles.pvTitle}>{modalTitle || <span className={styles.pvTitleEmpty}>매물제목 미입력</span>}</div>
               </div>
-
-              {/* 모바일 전용 지도 (헤더 아래, 스크롤 영역 내) */}
               {!detLoading && hasMap && (
-                <div className={styles.pvMobileMap}>
-                  <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
-                </div>
+                <div className={styles.pvMobileMap}><PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} /></div>
               )}
-
-              {/* 필드 행 */}
               {detLoading ? (
-                <div className={styles.pvDetailLoading}>
-                  <div className={styles.spinner} />
-                </div>
+                <div className={styles.pvDetailLoading}><div className={styles.spinner} /></div>
               ) : (() => {
                 const rows = detail?.rows || [];
                 const sections = [];
@@ -270,19 +210,19 @@ function PreviewModal({ item, onClose }) {
                   <div key={sec.title}>
                     <div className={styles.pvRowSection}>{sec.title}</div>
                     {sec.rows.map(r => {
-                      const rCatStyle = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
-                      const rTxStyle  = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
+                      const rc = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
+                      const rt = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
                       return (
                         <div key={r.label} className={`${styles.pvRow} ${r.isPrice ? styles.pvRowHighlight : ''}`}>
                           <div className={styles.pvLabel}>{r.label}</div>
                           <div className={`${styles.pvValue} ${r.isPrivate ? styles.pvPrivate : ''}`}>
-                            {r.isCategory && <span className={styles.pvBadge} style={{ background: rCatStyle.bg, color: rCatStyle.color }}>{r.value}</span>}
-                            {r.isTransaction && <span className={styles.pvBadge} style={{ background: rTxStyle.bg, color: rTxStyle.color }}>{r.value}</span>}
+                            {r.isCategory && <span className={styles.pvBadge} style={{ background: rc.bg, color: rc.color }}>{r.value}</span>}
+                            {r.isTransaction && <span className={styles.pvBadge} style={{ background: rt.bg, color: rt.color }}>{r.value}</span>}
                             {r.isPrice && <span className={styles.pvPriceBadge}>{r.value}</span>}
                             {r.isTags && !r.isCategory && !r.isTransaction && !r.isPrice && (
                               <span style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                {r.value.split(', ').filter(Boolean).map(tag => (
-                                  <span key={tag} style={{ display: 'inline-block', padding: '2px 8px', background: '#f4f0ec', border: '1px solid #e0d8cc', color: '#5a3e28', borderRadius: '5px', fontSize: '11.5px', fontWeight: 500, lineHeight: 1.5 }}>{tag}</span>
+                                {r.value.split(', ').filter(Boolean).map(t => (
+                                  <span key={t} style={{ padding: '2px 8px', background: '#f4f0ec', border: '1px solid #e0d8cc', color: '#2a3e3f', borderRadius: '5px', fontSize: '11.5px', fontWeight: 500 }}>{t}</span>
                                 ))}
                               </span>
                             )}
@@ -294,8 +234,6 @@ function PreviewModal({ item, onClose }) {
                   </div>
                 ));
               })()}
-
-              {/* 담당자 카드 */}
               <div className={styles.pvAgentCard}>
                 <img src="/profile.png" alt="한민희" className={styles.pvAgentAvatar} />
                 <div className={styles.pvAgentInfo}>
@@ -303,11 +241,9 @@ function PreviewModal({ item, onClose }) {
                   <div className={styles.pvAgentRole}>부동산 전담 매니저</div>
                 </div>
               </div>
-
-              {/* 사무소 등록 정보 */}
               <div className={styles.pvOfficeFooter}>
                 <strong>한결부동산공인중개사사무소</strong>
-                <span>대표 이동한 · 부산광역시 남구 대연동</span>
+                <span>대표 이동한 · 부산광역시 남구 대연동 368-1</span>
                 <span>등록번호 제26290-2019-00094호 · 051-612-5155</span>
               </div>
             </div>
@@ -318,168 +254,142 @@ function PreviewModal({ item, onClose }) {
   );
 }
 
-/* ── AreaMeta 칩 (면적·층·방향) ── */
-function AreaMeta({ property: p }) {
+// ── hooks ─────────────────────────────────────────────────────────────────────
+function useReveal(thr = .1) {
+  const [v, setV] = useState(false);
+  const obsRef = useRef(null);
+  const ref = useCallback(node => {
+    if (obsRef.current) { obsRef.current.disconnect(); obsRef.current = null; }
+    if (!node) return;
+    const o = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setV(true); o.disconnect(); obsRef.current = null; }
+    }, { threshold: thr });
+    o.observe(node);
+    obsRef.current = o;
+  }, [thr]);
+  return [ref, v];
+}
+
+function useCountUp(target, dur = 1600, active = false) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (!active || !target) return;
+    let s = null;
+    const step = ts => {
+      if (!s) s = ts;
+      const p = Math.min((ts - s) / dur, 1);
+      setN(Math.floor(p * target));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, active, dur]);
+  return n;
+}
+
+function useHorzScroll() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const onWheel = e => {
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+  return ref;
+}
+
+// ── components ────────────────────────────────────────────────────────────────
+function Ornament() {
+  return (
+    <div className={styles.ornamentWrap}>
+      <div className={styles.ornamentLine} />
+      <div className={styles.ornamentDiamond} />
+      <div className={styles.ornamentLine} />
+    </div>
+  );
+}
+
+function Card({ item, onClick }) {
+  const cs = CATEGORY_COLORS[item.category] || { bg: '#f3f4f6', color: '#374151' };
+  const ts = TX_COLORS[item.transaction]    || { bg: '#f3f4f6', color: '#374151' };
+  const price = formatPrice(item);
   const chips = [];
-  if (p.supply_area)    chips.push(`공급 ${p.supply_area}㎡`);
-  if (p.exclusive_area) chips.push(`전용 ${p.exclusive_area}㎡`);
-  if (p.contract_area)  chips.push(`임대 ${p.contract_area}㎡`);
-  if (p.land_area)      chips.push(`대지 ${p.land_area}㎡`);
-  if (p.build_area)     chips.push(`건축 ${p.build_area}㎡`);
-  if (p.total_area)     chips.push(`연면적 ${p.total_area}㎡`);
-  if (p.expected_area)  chips.push(`예상 ${p.expected_area}㎡`);
-  const floorText = p.curr_floor
-    ? (p.total_floors ? `${p.curr_floor}/${p.total_floors}층` : `${p.curr_floor}층`)
-    : null;
-  if (floorText)   chips.push(floorText);
-  if (p.direction) chips.push(`${p.direction}향`);
-  if (p.rooms)     chips.push(`방 ${p.rooms}개`);
-  if (chips.length === 0) return null;
+  if (item.supply_area)    chips.push(`공급 ${item.supply_area}㎡`);
+  if (item.exclusive_area) chips.push(`전용 ${item.exclusive_area}㎡`);
+  if (item.curr_floor)     chips.push(item.total_floors ? `${item.curr_floor}/${item.total_floors}층` : `${item.curr_floor}층`);
+  if (item.direction)      chips.push(`${item.direction}향`);
+  if (item.rooms)          chips.push(`방 ${item.rooms}개`);
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 6px', marginTop: 4, borderTop: '1px solid #f0ebe4', paddingTop: 6 }}>
-      {chips.map(c => (
-        <span key={c} style={{ fontSize: '0.7rem', color: '#78716c', background: '#f5f2ee', borderRadius: 4, padding: '2px 6px' }}>{c}</span>
-      ))}
-    </div>
-  );
-}
-
-/* ── 카드 ── */
-function PropertyCard({ item, onCardClick }) {
-  const catStyle = CATEGORY_COLORS[item.category] || { bg: '#f3f4f6', color: '#374151' };
-  const txStyle  = TX_COLORS[item.transaction]    || { bg: '#f3f4f6', color: '#374151' };
-  const price    = formatPrice(item);
-
-  const badgeBase = { fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 5 };
-
-  return (
-    <div className={styles.fCard} onClick={() => onCardClick(item)}>
-      <div className={styles.fCardThumb}>
-        {item.imageUrl ? (
-          <img src={item.imageUrl} alt="" className={styles.fCardImg} />
-        ) : (
-          <div className={styles.fImgPlaceholder}>
-            <span className={styles.fImgIcon}>🏠</span>
-          </div>
-        )}
-
-        {/* 좌상단: 매물분류 + 거래종류 */}
-        <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
-          <span style={{ ...badgeBase, background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
-          <span style={{ ...badgeBase, background: txStyle.bg,  color: txStyle.color  }}>{item.transaction}</span>
+    <div className={styles.card} onClick={onClick}>
+      <div className={styles.cardThumb}>
+        {item.imageUrl
+          ? <img src={item.imageUrl} alt="" className={styles.cardImg} />
+          : <div className={styles.cardPlaceholder}>🏠</div>}
+        <div className={styles.cardBadges}>
+          <span className={styles.cardBadge} style={{ background: cs.bg, color: cs.color }}>{item.category}</span>
+          <span className={styles.cardBadge} style={{ background: ts.bg, color: ts.color }}>{item.transaction}</span>
+          {item.recommended && <span className={styles.cardRec}>추천</span>}
         </div>
-
-        {/* 우상단: 매물번호 + 추천 */}
-        <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          {item.property_id && (
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, background: 'rgba(0,0,0,0.45)', color: '#fff', padding: '2px 7px', borderRadius: 100 }}>
-              No.{item.property_id}
-            </span>
-          )}
-          {item.recommended && <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>⭐</span>}
-        </div>
-
-        {/* 좌하단: 소재지 그라디언트 오버레이 */}
         {item.location && (
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '18px 10px 8px', background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)' }}>
-            <span style={{ fontSize: '0.72rem', color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>📍 {item.location}</span>
+          <div className={styles.cardLocOverlay}>
+            <span className={styles.cardLocPin}>📍</span> {item.location}
           </div>
         )}
       </div>
-
-      <div className={styles.fCardBody}>
-        <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1c1917', margin: 0 }}>
-          {item.building_name || item.title || '—'}
-        </p>
-        <p style={{ fontSize: '1.2rem', fontWeight: 800, color: '#a87b51', margin: 0 }}>
-          {price || '가격 미등록'}
-        </p>
-        <AreaMeta property={item} />
+      <div className={styles.cardBody}>
+        <p className={styles.cardName}>{item.building_name || '—'}</p>
+        {price && <p className={styles.cardPrice} style={{ color: ts.color }}>{price}</p>}
+        {chips.length > 0 && (
+          <div className={styles.cardChips}>
+            {chips.map(c => <span key={c} className={styles.cardChip}>{c}</span>)}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-const CATEGORY_META = {
-  '아파트':      { emoji: '🏢', accent: '#2563eb' },
-  '오피스텔':    { emoji: '🏙️', accent: '#7c3aed' },
-  '단독주택':    { emoji: '🏠', accent: '#059669' },
-  '다가구':      { emoji: '🏘️', accent: '#d97706' },
-  '다세대':      { emoji: '🏗️', accent: '#dc2626' },
-  '원룸':        { emoji: '🛏️', accent: '#0891b2' },
-  '투룸':        { emoji: '🛋️', accent: '#9333ea' },
-  '쓰리룸':      { emoji: '🏡', accent: '#0d9488' },
-  '상가':        { emoji: '🏪', accent: '#ea580c' },
-  '오피스':      { emoji: '💼', accent: '#475569' },
-  '공장/창고':   { emoji: '🏭', accent: '#57534e' },
-  '빌딩':        { emoji: '🏬', accent: '#0369a1' },
-  '토지':        { emoji: '🌾', accent: '#16a34a' },
-  '재개발':      { emoji: '🔨', accent: '#b91c1c' },
-  '분양':        { emoji: '🔑', accent: '#b45309' },
-};
+// ── constants ─────────────────────────────────────────────────────────────────
+const HERO_IMGS = [
+  'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1400&q=90&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1400&q=90&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=1400&q=90&auto=format&fit=crop',
+];
+const CATS = ['아파트','오피스텔','단독주택','다가구','다세대','상가','토지','빌딩','오피스','공장/창고','원룸','재개발','분양'];
 
-/* ── 카테고리 버튼 ── */
-function CategoryBtn({ label }) {
-  const meta = CATEGORY_META[label] || { emoji: '🏠', accent: '#a87b51' };
-  return (
-    <Link
-      href={`/properties?category=${encodeURIComponent(label)}`}
-      className={styles.catBtn}
-      style={{ '--cat-accent': meta.accent }}
-    >
-      <span className={styles.catEmoji}>{meta.emoji}</span>
-      <span className={styles.catLabel}>{label}</span>
-    </Link>
-  );
-}
-
-/* ── 섹션 ── */
-function Section({ title, desc, items, loading, onCardClick, bg }) {
-  if (loading) {
-    return (
-      <section className={styles.propSection} style={{ background: bg }}>
-        <div className={styles.propInner}>
-          <div className={styles.loading}><div className={styles.spinner} /></div>
-        </div>
-      </section>
-    );
-  }
-  return (
-    <section className={styles.propSection} style={{ background: bg }}>
-      <div className={styles.propInner}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{title}</h2>
-          <p className={styles.sectionDesc}>{desc}</p>
-        </div>
-        {items.length === 0 ? (
-          <p className={styles.emptyMsg}>등록된 매물이 없습니다.</p>
-        ) : (
-          <div className={styles.featuredGrid}>
-            {items.slice(0, 8).map(item => (
-              <PropertyCard key={item.id} item={item} onCardClick={onCardClick} />
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-/* ── 메인 페이지 ── */
+// ── main ──────────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [allItems,     setAllItems]     = useState([]);
-  const [loading,      setLoading]      = useState(true);
+  const [allItems, setAllItems]     = useState([]);
+  const [loading, setLoading]       = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [imgIdx, setImgIdx]         = useState(0);
+  const [heroIn, setHeroIn]         = useState(false);
 
   useEffect(() => {
     fetch('/api/listings')
       .then(r => r.json())
-      .then(data => setAllItems(Array.isArray(data) ? data.filter(p => !p.contract_status || p.contract_status === '계약가능' || p.contract_status === '계약진행중') : []))
+      .then(data => setAllItems(Array.isArray(data)
+        ? data.filter(p => !p.contract_status || p.contract_status === '계약가능' || p.contract_status === '계약진행중')
+        : []))
       .catch(() => setAllItems([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleCardClick = useCallback((item) => {
+  useEffect(() => {
+    const t = setInterval(() => setImgIdx(i => (i + 1) % HERO_IMGS.length), 5200);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setHeroIn(true), 80);
+    return () => clearTimeout(t);
+  }, []);
+
+  const handleCardClick = useCallback(item => {
     const newCount = (item.view_count || 0) + 1;
     const updated  = { ...item, view_count: newCount };
     setAllItems(prev => prev.map(i => i.id === item.id ? updated : i));
@@ -497,52 +407,201 @@ export default function HomePage() {
   const popularItems     = [...allItems].sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
   const recommendedItems = allItems.filter(i => i.recommended);
 
+  const catScrollRef = useHorzScroll();
+  const [featRef, featV] = useReveal(.08);
+  const [catRef,  catV]  = useReveal(.1);
+  const [latRef,  latV]  = useReveal(.06);
+  const [popRef,  popV]  = useReveal(.06);
+  const [recRef,  recV]  = useReveal(.06);
+  const [ctaRef,  ctaV]  = useReveal();
+  const [statRef, statV] = useReveal(.2);
+  const cnt = useCountUp(allItems.length, 1600, statV);
+
+  const catCounts = {};
+  for (const item of allItems) catCounts[item.category] = (catCounts[item.category] || 0) + 1;
+
   return (
     <>
-      <HeroBanner />
-
-      <div className={styles.statsBar}>
-        <div className={styles.statsInner}>
-          <div className={styles.stat}>
-            <span className={styles.statNum}>{loading ? '—' : `${allItems.length}+`}</span>
-            <span className={styles.statLabel}>등록 매물</span>
+      {/* ── Hero ── */}
+      <section className={styles.hero}>
+        {/* 사진 (60%) */}
+        <div className={`${styles.heroRight} ${heroIn ? styles.heroRightIn : ''}`}>
+          <div className={styles.heroImgWrap}>
+            {HERO_IMGS.map((src, i) => (
+              <img key={src} src={src} alt="" className={styles.heroImg}
+                style={{ position: i === 0 ? 'relative' : 'absolute', inset: 0, opacity: i === imgIdx ? 1 : 0, transition: 'opacity 1.6s ease-in-out' }} />
+            ))}
           </div>
-          <div className={styles.statDivider} />
-          <div className={styles.stat}>
-            <span className={styles.statNum}>1:1</span>
-            <span className={styles.statLabel}>전담 상담</span>
+          {/* 세로 스탯 */}
+          <div className={styles.heroStatStrip} ref={statRef}>
+            <div className={styles.heroStatItem}>
+              <span className={styles.heroStatN}>{statV ? cnt : '—'}+</span>
+              <span className={styles.heroStatL}>등록 매물</span>
+            </div>
+            <div className={styles.heroStatDivH} />
+            <div className={styles.heroStatItem}>
+              <span className={styles.heroStatN}>1:1</span>
+              <span className={styles.heroStatL}>전담 상담</span>
+            </div>
+            <div className={styles.heroStatDivH} />
+            <div className={styles.heroStatItem}>
+              <span className={styles.heroStatN}>부산</span>
+              <span className={styles.heroStatL}>전문 지역</span>
+            </div>
           </div>
-          <div className={styles.statDivider} />
-          <div className={styles.stat}>
-            <span className={styles.statNum}>부산 전지역</span>
-            <span className={styles.statLabel}>전문 지역</span>
+          {/* 슬라이더 도트 */}
+          <div className={styles.heroDots}>
+            {HERO_IMGS.map((_, i) => (
+              <button key={i}
+                className={`${styles.heroDot} ${i === imgIdx ? styles.heroDotActive : ''}`}
+                onClick={() => setImgIdx(i)} />
+            ))}
+          </div>
+          {/* 골드 프로그레스 바 */}
+          <div className={styles.heroProgressTrack}>
+            <div key={imgIdx} className={styles.heroProgressFill} />
           </div>
         </div>
-      </div>
 
-      <section className={styles.catSection}>
-        <p className={styles.catSectionTitle}>매물 종류</p>
-        <div className={styles.categoryGrid}>
-          {['아파트','오피스텔','단독주택','다가구','다세대','원룸','투룸','쓰리룸','상가','오피스','공장/창고','빌딩','토지','재개발','분양'].map(label => (
-            <CategoryBtn key={label} label={label} />
-          ))}
+        {/* 텍스트 (40%) */}
+        <div className={`${styles.heroLeft} ${heroIn ? styles.heroLeftIn : ''}`}>
+          <p className={styles.heroEye}>Busan Real Estate</p>
+          <h1 className={styles.heroH1}>
+            We Provide<br />
+            <em className={styles.heroH1Em}>The Essential</em><br />
+            Value to Your House
+          </h1>
+          <p className={styles.heroSub}>
+            We will put in greatest value and happiness in design.<br />
+            친절한 한민희 부장이 1:1로 최고의 부동산을 찾아드립니다.
+          </p>
+          <div className={styles.heroBtns}>
+            <Link href="/properties" className={styles.heroBtnP}>매물 보기 →</Link>
+            <Link href="/contact" className={styles.heroBtnS}>빠른 상담</Link>
+          </div>
         </div>
       </section>
 
-      <Section title="🆕 최신매물" desc="새로 등록된 매물을 확인하세요"  items={latestItems}      loading={loading} onCardClick={handleCardClick} bg="#f8f6f2" />
-      <Section title="🔥 인기매물" desc="많이 조회된 매물을 확인하세요" items={popularItems}     loading={loading} onCardClick={handleCardClick} bg="#fff"     />
-      <Section title="⭐ 추천매물" desc="엄선된 추천 매물을 확인하세요" items={recommendedItems} loading={loading} onCardClick={handleCardClick} bg="#f8f6f2" />
+      {/* ── Featured + About ── */}
+      {!loading && allItems.length >= 2 && (
+        <section className={`${styles.featured} ${styles.rv} ${featV ? styles.in : ''}`} ref={featRef}>
+          <div className={styles.featuredInner}>
+            <div className={styles.featuredImgs}>
+              {latestItems.slice(0, 2).map((item, i) => (
+                <div key={item.id}
+                  className={`${styles.featuredImgBox} ${i === 0 ? styles.featuredImgBoxMain : styles.featuredImgBoxSub}`}
+                  onClick={() => handleCardClick(item)}>
+                  <img src={item.imageUrl || [
+                    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=85',
+                    'https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=500&q=80'
+                  ][i]} alt="" className={styles.featuredImg} />
+                  <div className={styles.featuredImgOverlay}>
+                    <div className={styles.featuredImgMeta}>
+                      <span className={styles.featuredCat}>{item.category}</span>
+                      <span className={styles.featuredTx} style={{ background: TX_COLORS[item.transaction]?.bg, color: TX_COLORS[item.transaction]?.color }}>{item.transaction}</span>
+                    </div>
+                    <span className={styles.featuredPrice}>{formatPrice(item) || '가격 협의'}</span>
+                    {item.building_name && <span className={styles.featuredName}>{item.building_name}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className={styles.featuredAbout}>
+              <p className={styles.eye}>About us</p>
+              <h2 className={styles.featuredTitle}>한결부동산<br />공인중개사사무소</h2>
+              <p className={styles.featuredText}>We create the most ideal real estate transactions through intelligent, thoughtful consultation to make your life more livable and more valuable. 부산 전 지역 부동산 전문가로 아파트·상가·토지·빌딩까지 최적의 매물을 연결해 드립니다.</p>
+              <Link href="/about" className={styles.featuredBtn}>더 알아보기 →</Link>
+            </div>
+          </div>
+        </section>
+      )}
 
-      <section className={styles.ctaBanner}>
+      <Ornament />
+
+      {/* ── 카테고리 바 ── */}
+      <div className={`${styles.catBar} ${styles.rv} ${catV ? styles.in : ''}`} ref={catRef}>
+        <div className={styles.catBarInner} ref={catScrollRef}>
+          <Link href="/properties" className={`${styles.catChip} ${styles.catChipActive}`}>
+            <span className={styles.catChipName}>전체</span>
+            <span className={styles.catChipCount}>{allItems.length}</span>
+          </Link>
+          {CATS.map(c => (
+            <Link key={c} href={`/properties?category=${encodeURIComponent(c)}`} className={styles.catChip}>
+              <span className={styles.catChipName}>{c}</span>
+              {catCounts[c] > 0 && <span className={styles.catChipCount}>{catCounts[c]}</span>}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* ── 최신 매물 ── */}
+      {!loading && latestItems.length > 0 && (
+        <section className={styles.listSection}>
+          <div className={`${styles.listHead} ${styles.rv} ${latV ? styles.in : ''}`} ref={latRef}>
+            <div><p className={styles.eye}>New Listings</p><h2 className={styles.sectionTitle}>최신 매물</h2></div>
+            <Link href="/properties" className={styles.listMore}>전체 보기 →</Link>
+          </div>
+          <div className={styles.masonry}>
+            {latestItems.slice(0, 8).map((item, i) => (
+              <div key={item.id} className={styles.masonryItem}
+                style={{ opacity: latV ? 1 : 0, transform: latV ? 'none' : 'translateY(20px)', transition: `opacity .6s ease ${i * 60}ms, transform .6s ease ${i * 60}ms` }}>
+                <Card item={item} onClick={() => handleCardClick(item)} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── 인기 매물 ── */}
+      {!loading && popularItems.length > 0 && (
+        <section className={`${styles.listSection} ${styles.listSectionAlt}`}>
+          <div className={`${styles.listHead} ${styles.rv} ${popV ? styles.in : ''}`} ref={popRef}>
+            <div><p className={styles.eye}>Popular</p><h2 className={styles.sectionTitle}>인기 매물</h2></div>
+            <Link href="/properties" className={styles.listMore}>전체 보기 →</Link>
+          </div>
+          <div className={styles.masonry}>
+            {popularItems.slice(0, 8).map((item, i) => (
+              <div key={item.id} className={styles.masonryItem}
+                style={{ opacity: popV ? 1 : 0, transform: popV ? 'none' : 'translateY(20px)', transition: `opacity .6s ease ${i * 60}ms, transform .6s ease ${i * 60}ms` }}>
+                <Card item={item} onClick={() => handleCardClick(item)} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── 추천 매물 ── */}
+      {!loading && recommendedItems.length > 0 && (
+        <section className={styles.listSection}>
+          <div className={`${styles.listHead} ${styles.rv} ${recV ? styles.in : ''}`} ref={recRef}>
+            <div><p className={styles.eye}>Recommended</p><h2 className={styles.sectionTitle}>추천 매물</h2></div>
+            <Link href="/properties" className={styles.listMore}>전체 보기 →</Link>
+          </div>
+          <div className={styles.masonry}>
+            {recommendedItems.slice(0, 8).map((item, i) => (
+              <div key={item.id} className={styles.masonryItem}
+                style={{ opacity: recV ? 1 : 0, transform: recV ? 'none' : 'translateY(20px)', transition: `opacity .6s ease ${i * 60}ms, transform .6s ease ${i * 60}ms` }}>
+                <Card item={item} onClick={() => handleCardClick(item)} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <Ornament />
+
+      {/* ── CTA ── */}
+      <section className={`${styles.cta} ${styles.rv} ${ctaV ? styles.in : ''}`} ref={ctaRef}>
         <div className={styles.ctaInner}>
-          <h2 className={styles.ctaTitle}>원하는 매물을 찾지 못하셨나요?</h2>
-          <p className={styles.ctaDesc}>
-            친절한 한민희 부장에게 직접 상담을 요청하세요.<br />
-            원하시는 조건에 딱 맞는 매물을 찾아드립니다.
-          </p>
-          <div className={styles.ctaActions}>
+          <p className={styles.eye}>Contact Us</p>
+          <h2 className={styles.ctaTitle}>원하는 매물을 찾지<br />못하셨나요?</h2>
+          <p className={styles.ctaSub}>친절한 한민희 부장에게 직접 상담을 요청하세요.<br />원하시는 조건에 딱 맞는 매물을 찾아드립니다.</p>
+          <div className={styles.ctaBtns}>
             <a href="tel:010-4706-8253" className={styles.ctaCall}>📞 010-4706-8253</a>
-            <a href="/contact" className={styles.ctaLink}>온라인 문의 →</a>
+            <a href="https://pf.kakao.com/_QaxliG" target="_blank" rel="noopener noreferrer" className={styles.ctaKakao}>
+              <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png" alt="" className={styles.ctaKakaoIcon} />카카오톡 상담
+            </a>
+            <Link href="/contact" className={styles.ctaContact}>온라인 문의 →</Link>
           </div>
         </div>
       </section>

@@ -137,14 +137,10 @@ export default function Admin2Page() {
                 <button
                   key={btn.id}
                   className={`${styles.btn} ${isActive ? styles.btnActive : ''}`}
-                  style={{ background: group.color }}
+                  style={{ '--btnColor': group.color }}
                   disabled={!isActive}
                   onClick={isActive ? () => router.push(ROUTE_MAP[btn.id] || '/admin2') : undefined}
                 >
-                  {isActive
-                    ? <span className={styles.activeBadge}>개발중</span>
-                    : <span className={styles.lockIcon}>🔒</span>
-                  }
                   <span className={styles.btnLabel}>{btn.label}</span>
                   {btn.sub && <span className={styles.btnSub}>{btn.sub}</span>}
                 </button>

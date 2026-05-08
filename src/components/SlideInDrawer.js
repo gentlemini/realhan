@@ -349,7 +349,7 @@ export default function SlideInDrawer({ isOpen, onClose, property }) {
               <div className={styles.officeFooter}>
                 <strong className={styles.officeFooterName}>한결부동산</strong>
                 <p>한결부동산공인중개사사무소 · 대표 이동한</p>
-                <p>부산광역시 남구 대연동 · 등록번호 제26290-2019-00094호</p>
+                <p>부산광역시 남구 대연동 368-1 · 등록번호 제26290-2019-00094호</p>
                 <p>☎ 051-612-5155</p>
               </div>
               </div>

@@ -474,7 +474,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
 
   function initSingleMap() {
     const geocoder = new window.kakao.maps.services.Geocoder();
-    geocoder.addressSearch(address || '부산광역시 남구 대연동', (result, status) => {
+    geocoder.addressSearch(address || '부산광역시 남구 대연동 368-1', (result, status) => {
       if (status !== window.kakao.maps.services.Status.OK) { setError(true); return; }
       const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x);
       const isDongLevel = !adminMode && /[가-힣]+(?:동|가|읍|면|리)\s*$/.test((address || '').trim());

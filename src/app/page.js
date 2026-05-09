@@ -514,7 +514,7 @@ export default function HomePage() {
             <div className={styles.featuredAbout}>
               <p className={styles.eye}>About us</p>
               <h2 className={styles.featuredTitle}>한결부동산<br />공인중개사사무소</h2>
-              <p className={styles.featuredText}>We create the most ideal real estate transactions through intelligent, thoughtful consultation to make your life more livable and more valuable. 부산 전 지역 부동산 전문가로 아파트·상가·토지·빌딩까지 최적의 매물을 연결해 드립니다.</p>
+              <p className={styles.featuredText}>부동산 전문가로서 아파트·상가·토지·빌딩까지 최적의 매물을 연결해 드립니다. 많은 연락 부탁드립니다.</p>
               <Link href="/about" className={styles.featuredBtn}>더 알아보기 →</Link>
             </div>
           </div>

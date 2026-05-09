@@ -119,9 +119,12 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/" className={styles.logo}>
-          <span className={styles.logoBlack}>한결</span>
-          <span className={styles.logoGold}>부동산</span>
-          <span className={styles.logoSub}>공인중개사사무소</span>
+          <span className={styles.logoAgent}>친절한 공인중개사 한민희</span>
+          <div className={styles.logoRow}>
+            <span className={styles.logoBlack}>한결</span>
+            <span className={styles.logoGold}>부동산</span>
+            <span className={styles.logoSub}>공인중개사사무소</span>
+          </div>
         </Link>
 
         <nav

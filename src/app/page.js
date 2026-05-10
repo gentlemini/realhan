@@ -99,6 +99,12 @@ function PreviewMap({ lat, lng, radius }) {
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
 }
 
+function getYouTubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
 // ── Modal ─────────────────────────────────────────────────────────────────────
 function PreviewModal({ item, onClose }) {
   const catStyle = CATEGORY_COLORS[item.category] || { bg: '#f3f4f6', color: '#374151' };
@@ -219,6 +225,19 @@ function PreviewModal({ item, onClose }) {
                   </a>
                 )}
               </div>
+
+              {detail?.youtube_url && getYouTubeId(detail.youtube_url) && (
+                <div style={{ margin: '12px 16px', borderRadius: '8px', overflow: 'hidden', aspectRatio: '16/9' }}>
+                  <iframe
+                    src={`https://www.youtube.com/embed/${getYouTubeId(detail.youtube_url)}`}
+                    title="매물 영상"
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+
               {!detLoading && hasMap && (
                 <div className={styles.pvMobileMap}><PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} /></div>
               )}

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -55,6 +55,8 @@ function itemToFormValues(item) {
     access_road:         item.access_road || '',
     inspection_date:     fromDB(item.inspection_date),
     description:         fromDB(item.description),
+    youtube_url:   fromDB(item.youtube_url),
+    blog_url:      fromDB(item.blog_url),
     map_config: (item.map_lat && item.map_lng) ? {
       lat:       item.map_lat,
       lng:       item.map_lng,

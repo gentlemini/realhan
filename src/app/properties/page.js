@@ -135,6 +135,12 @@ function PreviewMap({ lat, lng, radius }) {
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
 }
 
+function getYouTubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
 function PreviewModal({ item, onClose }) {
   const catStyle = CATEGORY_COLORS[item.category] || { bg: '#f3f4f6', color: '#374151' };
   const txStyle  = TX_COLORS[item.transaction]    || { bg: '#f3f4f6', color: '#374151' };
@@ -284,6 +290,18 @@ function PreviewModal({ item, onClose }) {
                   </a>
                 )}
               </div>
+
+              {detail?.youtube_url && getYouTubeId(detail.youtube_url) && (
+                <div style={{ margin: '12px 16px', borderRadius: '8px', overflow: 'hidden', aspectRatio: '16/9' }}>
+                  <iframe
+                    src={`https://www.youtube.com/embed/${getYouTubeId(detail.youtube_url)}`}
+                    title="매물 영상"
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )}
 
               {/* 모바일 전용 지도 (헤더 아래, 스크롤 영역 내) */}
               {!detLoading && hasMap && (

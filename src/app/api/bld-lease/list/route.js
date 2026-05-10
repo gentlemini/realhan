@@ -1,4 +1,4 @@
-const NOTION_API = 'https://api.notion.com/v1';
+﻿const NOTION_API = 'https://api.notion.com/v1';
 const DB_ID = 'a6faf09f929c492eb6e19c67fa3708ef';
 
 export async function GET() {
@@ -90,6 +90,8 @@ export async function GET() {
         imageUrl:                 gU(p['대표사진URL']),
         imageUrls:             gFiles(p['사진첨부']),
         contract_status:       gS(p['계약상태']),
+        youtube_url:           gU(p['유튜브URL']),
+        blog_url:              gU(p['블로그URL']),
         created_time:          page.created_time,
       };
     });

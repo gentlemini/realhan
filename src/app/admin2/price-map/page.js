@@ -277,6 +277,20 @@ function makeLabelDiv(label, count, style, onClick) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+function makePinDiv(name, onClick) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;';
+  const dot = document.createElement('div');
+  dot.style.cssText = 'width:12px;height:12px;border-radius:50%;background:#ef4444;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.45);';
+  const label = document.createElement('div');
+  label.style.cssText = 'margin-top:3px;background:rgba(239,68,68,0.93);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3);max-width:130px;overflow:hidden;text-overflow:ellipsis;';
+  label.textContent = name;
+  wrap.appendChild(dot);
+  wrap.appendChild(label);
+  wrap.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+  return wrap;
+}
+
 function PreviewMap({ lat, lng }) {
   const mapRef = useRef(null);
   useEffect(() => {
@@ -420,11 +434,12 @@ function PreviewModal({ item, onClose }) {
   );
 }
 
-function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsChange, centerLatLng = null, myLocationLatLng = null }) {
+function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsChange, centerLatLng = null, myLocationLatLng = null, mapPins = [], onMapRightClick = null, onPinClick = null }) {
   const mapRef              = useRef(null);
   const mapInstanceRef      = useRef(null);
   const mapReadyRef         = useRef(false);
   const myLocOverlayRef     = useRef(null);
+  const pinOverlaysRef      = useRef([]);
   const geocacheRef         = useRef({});
   const overlaysRef         = useRef([]);
   const filteredRef         = useRef(filtered);
@@ -432,16 +447,44 @@ function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsCha
   const onPropertyClickRef  = useRef(onPropertyClick);
   const onClusterClickRef   = useRef(onClusterClick);
   const onBoundsChangeRef   = useRef(onBoundsChange);
+  const onMapRightClickRef  = useRef(onMapRightClick);
+  const onPinClickRef       = useRef(onPinClick);
   const centerLatLngRef     = useRef(centerLatLng);
   filteredRef.current         = filtered;
   onPropertyClickRef.current  = onPropertyClick;
   onClusterClickRef.current   = onClusterClick;
   onBoundsChangeRef.current   = onBoundsChange;
+  onMapRightClickRef.current  = onMapRightClick;
+  onPinClickRef.current       = onPinClick;
   centerLatLngRef.current     = centerLatLng;
 
   function clearOverlays() {
     overlaysRef.current.forEach(o => o.setMap(null));
     overlaysRef.current = [];
+  }
+
+  function clearPinOverlays() {
+    pinOverlaysRef.current.forEach(o => o.setMap(null));
+    pinOverlaysRef.current = [];
+  }
+
+  function renderPinOverlays(pins) {
+    clearPinOverlays();
+    if (!mapInstanceRef.current || !pins?.length) return;
+    pins.forEach(pin => {
+      const div = makePinDiv(pin.name, () => {
+        if (onPinClickRef.current) onPinClickRef.current(pin);
+      });
+      const overlay = new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(pin.lat, pin.lng),
+        content: div,
+        map: mapInstanceRef.current,
+        zIndex: 20,
+        xAnchor: 0.5,
+        yAnchor: 1.2,
+      });
+      pinOverlaysRef.current.push(overlay);
+    });
   }
 
   function renderAll(geocoded) {
@@ -587,15 +630,57 @@ function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsCha
         }
       });
 
+      // PC 우클릭
+      window.kakao.maps.event.addListener(map, 'rightclick', (e) => {
+        if (onMapRightClickRef.current) {
+          onMapRightClickRef.current({ lat: e.latLng.getLat(), lng: e.latLng.getLng() });
+        }
+      });
+
+      // 모바일 롱프레스
+      let touchTimer = null;
+      let touchMoved = false;
+      let savedTouch = null;
+      const onTouchStart = (e) => {
+        touchMoved = false;
+        savedTouch = e.touches[0];
+        touchTimer = setTimeout(() => {
+          if (!touchMoved && savedTouch && mapInstanceRef.current) {
+            const rect = mapRef.current.getBoundingClientRect();
+            const proj = mapInstanceRef.current.getProjection();
+            const point = new window.kakao.maps.Point(
+              savedTouch.clientX - rect.left,
+              savedTouch.clientY - rect.top
+            );
+            const latlng = proj.coordsFromPoint(point);
+            if (onMapRightClickRef.current) {
+              onMapRightClickRef.current({ lat: latlng.getLat(), lng: latlng.getLng() });
+            }
+          }
+        }, 600);
+      };
+      const onTouchMove = () => { touchMoved = true; clearTimeout(touchTimer); };
+      const onTouchEnd = () => clearTimeout(touchTimer);
+      mapRef.current.addEventListener('touchstart', onTouchStart, { passive: true });
+      mapRef.current.addEventListener('touchmove', onTouchMove, { passive: true });
+      mapRef.current.addEventListener('touchend', onTouchEnd);
+      mapRef.current.addEventListener('contextmenu', (e) => e.preventDefault());
+
       geocodeAndRender(filteredRef.current);
+      renderPinOverlays(mapPins);
     }).catch(() => {});
-    return () => { clearOverlays(); };
+    return () => { clearOverlays(); clearPinOverlays(); };
   }, []);
 
   useEffect(() => {
     if (!mapReadyRef.current) return;
     geocodeAndRender(filtered);
   }, [filtered]);
+
+  useEffect(() => {
+    if (!mapReadyRef.current) return;
+    renderPinOverlays(mapPins);
+  }, [mapPins]);
 
   useEffect(() => {
     if (!centerLatLng || !mapReadyRef.current || !mapInstanceRef.current) return;
@@ -721,9 +806,53 @@ function PriceMapInner() {
   const [myLocation,    setMyLocation]    = useState(null);
   const [myLocDot,      setMyLocDot]      = useState(null);
   const [locDotVisible, setLocDotVisible] = useState(false);
+  const [pins,          setPins]          = useState([]);
+  const [pendingPin,    setPendingPin]    = useState(null);
+  const [pinLabel,      setPinLabel]      = useState('');
+  const [pinSaving,     setPinSaving]     = useState(false);
+  const [pinListOpen,   setPinListOpen]   = useState(false);
   const watchIdRef = useRef(null);
   const hasInitRef = useRef(false);
   const LIST_PAGE_SIZE = 10;
+
+  useEffect(() => {
+    fetch('/api/map-pins?page=금액지도')
+      .then(r => r.json())
+      .then(data => setPins(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  const handleSavePin = useCallback(async () => {
+    if (!pinLabel.trim() || !pendingPin) return;
+    setPinSaving(true);
+    try {
+      const res = await fetch('/api/map-pins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: pinLabel.trim(), lat: pendingPin.lat, lng: pendingPin.lng, page: '금액지도' }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setPins(prev => [...prev, { id: data.id, name: pinLabel.trim(), lat: pendingPin.lat, lng: pendingPin.lng }]);
+      }
+    } catch {}
+    setPinSaving(false);
+    setPendingPin(null);
+    setPinLabel('');
+  }, [pinLabel, pendingPin]);
+
+  const handleDeletePin = useCallback(async (pin) => {
+    try {
+      await fetch(`/api/map-pins/${pin.id}`, { method: 'DELETE' });
+      setPins(prev => prev.filter(p => p.id !== pin.id));
+    } catch {}
+  }, []);
+
+  const handlePinClick = useCallback((pin) => {
+    if (window.confirm(`"${pin.name}" 핀을 삭제할까요?`)) {
+      handleDeletePin(pin);
+    }
+  }, [handleDeletePin]);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -808,6 +937,9 @@ function PriceMapInner() {
               filtered={filtered}
               centerLatLng={myLocation}
               myLocationLatLng={locDotVisible ? myLocDot : null}
+              mapPins={pins}
+              onMapRightClick={setPendingPin}
+              onPinClick={handlePinClick}
               onPropertyClick={setSelectedItem}
               onClusterClick={props => setMapSheetItems(props)}
               onBoundsChange={props => setBoundsProps(props)}
@@ -822,6 +954,40 @@ function PriceMapInner() {
                 <path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z"/>
               </svg>
             </button>
+            {/* 핀 목록 토글 */}
+            <button
+              className={`${localStyles.pinListToggle} ${pinListOpen ? localStyles.pinListToggleActive : ''}`}
+              onClick={() => setPinListOpen(v => !v)}
+              title="핀 마커 목록"
+            >
+              📍 {pins.length}
+            </button>
+            {/* 핀 목록 패널 */}
+            {pinListOpen && (
+              <div className={localStyles.pinListPanel}>
+                <div className={localStyles.pinListHeader}>
+                  <span>📍 핀 마커</span>
+                  <button className={localStyles.pinListClose} onClick={() => setPinListOpen(false)}>✕</button>
+                </div>
+                {pins.length === 0 ? (
+                  <div style={{ padding: '12px', fontSize: '12px', color: '#9ca3af', textAlign: 'center' }}>
+                    우클릭/길게눌러 핀 추가
+                  </div>
+                ) : pins.map(pin => (
+                  <div key={pin.id} className={localStyles.pinListItem}>
+                    <span
+                      className={localStyles.pinListName}
+                      onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })}
+                    >{pin.name}</span>
+                    <button
+                      className={localStyles.pinListDelete}
+                      onClick={() => handleDeletePin(pin)}
+                      title="삭제"
+                    >🗑</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 지도보기 모드 상단 검색+필터 오버레이 */}
@@ -968,6 +1134,34 @@ function PriceMapInner() {
         </div>
 
         {selectedItem && <PreviewModal item={selectedItem} onClose={handleClose} />}
+
+        {/* 핀 추가 팝업 */}
+        {pendingPin && (
+          <>
+            <div className={localStyles.pinPopupBg} onClick={() => { setPendingPin(null); setPinLabel(''); }} />
+            <div className={localStyles.pinPopup}>
+              <div className={localStyles.pinPopupTitle}>📍 핀 마커 추가</div>
+              <input
+                className={localStyles.pinPopupInput}
+                type="text"
+                value={pinLabel}
+                onChange={e => setPinLabel(e.target.value)}
+                placeholder="예: 500/60 손님"
+                autoFocus
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleSavePin();
+                  if (e.key === 'Escape') { setPendingPin(null); setPinLabel(''); }
+                }}
+              />
+              <div className={localStyles.pinPopupBtns}>
+                <button className={localStyles.pinPopupCancel} onClick={() => { setPendingPin(null); setPinLabel(''); }}>취소</button>
+                <button className={localStyles.pinPopupSave} onClick={handleSavePin} disabled={!pinLabel.trim() || pinSaving}>
+                  {pinSaving ? '저장중...' : '저장'}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         {viewMode === 'map' && !mapSheetItems && listItems.length > 0 && (
           <div className={styles.mapBoundsBar} onClick={() => setMapSheetItems(listItems)}>

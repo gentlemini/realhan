@@ -153,11 +153,26 @@ function makeMyLocContent() {
   return wrap;
 }
 
-export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds, adminMode = false, centerLatLng = null, myLocationLatLng = null }) {
+function makePinDiv(name, onClick) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;';
+  const dot = document.createElement('div');
+  dot.style.cssText = 'width:12px;height:12px;border-radius:50%;background:#ef4444;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.45);';
+  const label = document.createElement('div');
+  label.style.cssText = 'margin-top:3px;background:rgba(239,68,68,0.93);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3);max-width:130px;overflow:hidden;text-overflow:ellipsis;';
+  label.textContent = name;
+  wrap.appendChild(dot);
+  wrap.appendChild(label);
+  wrap.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+  return wrap;
+}
+
+export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds, adminMode = false, centerLatLng = null, myLocationLatLng = null, mapPins = [], onMapRightClick = null, onPinClick = null }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapReadyRef = useRef(false);
   const myLocOverlayRef = useRef(null);
+  const pinOverlaysRef = useRef([]);
   const boundsLockedRef = useRef(false);
   const propertiesRef = useRef(properties);
   const hiddenPropertiesRef = useRef(hiddenProperties);
@@ -172,6 +187,10 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
   onBoundsChangeRef.current = onBoundsChange;
   const onGeocodedIdsRef = useRef(onGeocodedIds);
   onGeocodedIdsRef.current = onGeocodedIds;
+  const onMapRightClickRef = useRef(onMapRightClick);
+  onMapRightClickRef.current = onMapRightClick;
+  const onPinClickRef = useRef(onPinClick);
+  onPinClickRef.current = onPinClick;
   const centerLatLngRef = useRef(centerLatLng);
   centerLatLngRef.current = centerLatLng;
   propertiesRef.current = properties;
@@ -234,6 +253,12 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
   }, [myLocationLatLng]);
 
   useEffect(() => {
+    if (!mapReadyRef.current || !mapInstanceRef.current) return;
+    clearPinOverlays();
+    renderPinOverlays(mapPins);
+  }, [mapPins]);
+
+  useEffect(() => {
     if (!mapReadyRef.current || !isMulti) return;
     prevModeRef.current = null;
     updateMarkers(properties);
@@ -279,8 +304,47 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
       onBoundsChangeRef.current(visible, { swLat: sw.getLat(), swLng: sw.getLng(), neLat: ne.getLat(), neLng: ne.getLng() });
     });
 
+    if (adminMode) {
+      // PC 우클릭
+      window.kakao.maps.event.addListener(map, 'rightclick', (e) => {
+        if (onMapRightClickRef.current) {
+          onMapRightClickRef.current({ lat: e.latLng.getLat(), lng: e.latLng.getLng() });
+        }
+      });
+
+      // 모바일 롱프레스
+      let touchTimer = null;
+      let touchMoved = false;
+      let savedTouch = null;
+      const onTouchStart = (e) => {
+        touchMoved = false;
+        savedTouch = e.touches[0];
+        touchTimer = setTimeout(() => {
+          if (!touchMoved && savedTouch && mapInstanceRef.current) {
+            const rect = mapRef.current.getBoundingClientRect();
+            const proj = mapInstanceRef.current.getProjection();
+            const point = new window.kakao.maps.Point(
+              savedTouch.clientX - rect.left,
+              savedTouch.clientY - rect.top
+            );
+            const latlng = proj.coordsFromPoint(point);
+            if (onMapRightClickRef.current) {
+              onMapRightClickRef.current({ lat: latlng.getLat(), lng: latlng.getLng() });
+            }
+          }
+        }, 600);
+      };
+      const onTouchMove = () => { touchMoved = true; clearTimeout(touchTimer); };
+      const onTouchEnd = () => clearTimeout(touchTimer);
+      mapRef.current.addEventListener('touchstart', onTouchStart, { passive: true });
+      mapRef.current.addEventListener('touchmove', onTouchMove, { passive: true });
+      mapRef.current.addEventListener('touchend', onTouchEnd);
+      mapRef.current.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
+
     updateMarkers(propertiesRef.current);
     updateHiddenGeocoded(hiddenPropertiesRef.current || []);
+    renderPinOverlays(mapPins);
   }
 
   function clearOverlays() {
@@ -288,6 +352,30 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     circlesRef.current.forEach(c => c.setMap(null));
     overlaysRef.current = [];
     circlesRef.current = [];
+  }
+
+  function clearPinOverlays() {
+    pinOverlaysRef.current.forEach(o => o.setMap(null));
+    pinOverlaysRef.current = [];
+  }
+
+  function renderPinOverlays(pins) {
+    clearPinOverlays();
+    if (!mapInstanceRef.current || !pins?.length) return;
+    pins.forEach(pin => {
+      const div = makePinDiv(pin.name, () => {
+        if (onPinClickRef.current) onPinClickRef.current(pin);
+      });
+      const overlay = new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(pin.lat, pin.lng),
+        content: div,
+        map: mapInstanceRef.current,
+        zIndex: 20,
+        xAnchor: 0.5,
+        yAnchor: 1.2,
+      });
+      pinOverlaysRef.current.push(overlay);
+    });
   }
 
   function clearMapObjects() {

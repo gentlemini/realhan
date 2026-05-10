@@ -397,6 +397,11 @@ function AdminMapInner() {
   const [myLocation,    setMyLocation]    = useState(null);
   const [myLocDot,      setMyLocDot]      = useState(null);
   const [locDotVisible, setLocDotVisible] = useState(false);
+  const [pins,          setPins]          = useState([]);
+  const [pendingPin,    setPendingPin]    = useState(null);
+  const [pinLabel,      setPinLabel]      = useState('');
+  const [pinSaving,     setPinSaving]     = useState(false);
+  const [pinListOpen,   setPinListOpen]   = useState(false);
   const watchIdRef = useRef(null);
   const hasInitRef = useRef(false);
   const LIST_PAGE_SIZE = 10;
@@ -423,6 +428,45 @@ function AdminMapInner() {
     setLocDotVisible(true);
     setMyLocation({ ...myLocDot, level: 7 });
   }, [myLocDot]);
+
+  useEffect(() => {
+    fetch('/api/map-pins?page=매물지도')
+      .then(r => r.json())
+      .then(data => setPins(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  const handleSavePin = useCallback(async () => {
+    if (!pinLabel.trim() || !pendingPin) return;
+    setPinSaving(true);
+    try {
+      const res = await fetch('/api/map-pins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: pinLabel.trim(), lat: pendingPin.lat, lng: pendingPin.lng, page: '매물지도' }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setPins(prev => [...prev, { id: data.id, name: pinLabel.trim(), lat: pendingPin.lat, lng: pendingPin.lng }]);
+      }
+    } catch {}
+    setPinSaving(false);
+    setPendingPin(null);
+    setPinLabel('');
+  }, [pinLabel, pendingPin]);
+
+  const handleDeletePin = useCallback(async (pin) => {
+    try {
+      await fetch(`/api/map-pins/${pin.id}`, { method: 'DELETE' });
+      setPins(prev => prev.filter(p => p.id !== pin.id));
+    } catch {}
+  }, []);
+
+  const handlePinClick = useCallback((pin) => {
+    if (window.confirm(`"${pin.name}" 핀을 삭제할까요?`)) {
+      handleDeletePin(pin);
+    }
+  }, [handleDeletePin]);
 
   useEffect(() => { setClusterProps(null); setBoundsProps(null); setMapBounds(null); setGeocodedIds(new Set()); }, [selectedType, selectedTx, keyword]);
   useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps, clusterProps]);
@@ -508,6 +552,9 @@ function AdminMapInner() {
               adminMode={true}
               centerLatLng={myLocation}
               myLocationLatLng={locDotVisible ? myLocDot : null}
+              mapPins={pins}
+              onMapRightClick={setPendingPin}
+              onPinClick={handlePinClick}
               onGeocodedIds={ids => setGeocodedIds(ids)}
               onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
               onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); setMapSheetItems(null); }}
@@ -522,6 +569,40 @@ function AdminMapInner() {
                 <path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z"/>
               </svg>
             </button>
+            {/* 핀 목록 토글 */}
+            <button
+              className={`${localStyles.pinListToggle} ${pinListOpen ? localStyles.pinListToggleActive : ''}`}
+              onClick={() => setPinListOpen(v => !v)}
+              title="핀 마커 목록"
+            >
+              📍 {pins.length}
+            </button>
+            {/* 핀 목록 패널 */}
+            {pinListOpen && (
+              <div className={localStyles.pinListPanel}>
+                <div className={localStyles.pinListHeader}>
+                  <span>📍 핀 마커</span>
+                  <button className={localStyles.pinListClose} onClick={() => setPinListOpen(false)}>✕</button>
+                </div>
+                {pins.length === 0 ? (
+                  <div style={{ padding: '12px', fontSize: '12px', color: '#9ca3af', textAlign: 'center' }}>
+                    우클릭/길게눌러 핀 추가
+                  </div>
+                ) : pins.map(pin => (
+                  <div key={pin.id} className={localStyles.pinListItem}>
+                    <span
+                      className={localStyles.pinListName}
+                      onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })}
+                    >{pin.name}</span>
+                    <button
+                      className={localStyles.pinListDelete}
+                      onClick={() => handleDeletePin(pin)}
+                      title="삭제"
+                    >🗑</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 지도보기 모드 상단 검색+필터 오버레이 */}
@@ -680,6 +761,34 @@ function AdminMapInner() {
         </div>
 
         {selectedItem && <PreviewModal item={selectedItem} onClose={handleClose} />}
+
+        {/* 핀 추가 팝업 */}
+        {pendingPin && (
+          <>
+            <div className={localStyles.pinPopupBg} onClick={() => { setPendingPin(null); setPinLabel(''); }} />
+            <div className={localStyles.pinPopup}>
+              <div className={localStyles.pinPopupTitle}>📍 핀 마커 추가</div>
+              <input
+                className={localStyles.pinPopupInput}
+                type="text"
+                value={pinLabel}
+                onChange={e => setPinLabel(e.target.value)}
+                placeholder="예: 500/60 손님"
+                autoFocus
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleSavePin();
+                  if (e.key === 'Escape') { setPendingPin(null); setPinLabel(''); }
+                }}
+              />
+              <div className={localStyles.pinPopupBtns}>
+                <button className={localStyles.pinPopupCancel} onClick={() => { setPendingPin(null); setPinLabel(''); }}>취소</button>
+                <button className={localStyles.pinPopupSave} onClick={handleSavePin} disabled={!pinLabel.trim() || pinSaving}>
+                  {pinSaving ? '저장중...' : '저장'}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         {viewMode === 'map' && !mapSheetItems && boundsProps !== null && listItems.length > 0 && (
           <div className={styles.mapBoundsBar} onClick={() => setMapSheetItems(listItems)}>

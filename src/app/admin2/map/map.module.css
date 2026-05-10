@@ -41,3 +41,163 @@
     gap: 0;
   }
 }
+
+/* ── 핀 마커 UI ─────────────────────────────────────── */
+
+/* 입력 팝업 배경 dim */
+.pinPopupBg {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+/* 입력 팝업 박스 */
+.pinPopup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 20px 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  width: 290px;
+  max-width: 92vw;
+}
+.pinPopupTitle {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #1f2937;
+}
+.pinPopupInput {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}
+.pinPopupInput:focus { border-color: #ef4444; }
+.pinPopupBtns {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pinPopupCancel {
+  flex: 1;
+  padding: 9px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  color: #374151;
+}
+.pinPopupCancel:hover { background: #f9fafb; }
+.pinPopupSave {
+  flex: 1;
+  padding: 9px;
+  border: none;
+  border-radius: 8px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pinPopupSave:hover { background: #dc2626; }
+.pinPopupSave:disabled { opacity: 0.5; cursor: default; }
+
+/* 핀 목록 토글 버튼 */
+.pinListToggle {
+  position: absolute;
+  bottom: 62px;
+  right: 12px;
+  z-index: 10;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 7px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.pinListToggle:hover { border-color: #ef4444; color: #ef4444; }
+.pinListToggleActive { border-color: #ef4444; color: #ef4444; }
+
+/* 핀 목록 패널 */
+.pinListPanel {
+  position: absolute;
+  top: 60px;
+  left: 8px;
+  z-index: 10;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  width: 210px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.pinListHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+}
+.pinListClose {
+  background: none;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 2px 4px;
+}
+.pinListClose:hover { color: #374151; }
+.pinListItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #f9fafb;
+  gap: 6px;
+}
+.pinListItem:last-child { border-bottom: none; }
+.pinListName {
+  flex: 1;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pinListName:hover { color: #ef4444; }
+.pinListDelete {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+  color: #d1d5db;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.pinListDelete:hover { color: #ef4444; }

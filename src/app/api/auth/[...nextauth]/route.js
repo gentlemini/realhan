@@ -11,6 +11,7 @@ const ALLOWED_EMAILS = ['air.minisoul@gmail.com', 'air.minisoul2@gmail.com'];
 const isProd = process.env.NODE_ENV === 'production';
 
 const authOptions = {
+  trustHost: true,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,

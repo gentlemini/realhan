@@ -1,6 +1,5 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import styles from '../admin2.module.css';
@@ -12,6 +11,30 @@ const ERROR_MSG = {
   OAuthCallback: '로그인 콜백 처리에 실패했습니다. 다시 시도해 주세요.',
   Default: '로그인 중 오류가 발생했습니다.',
 };
+
+async function handleSignIn() {
+  // CSRF 토큰 취득 후 네이티브 form POST — iOS Safari에서 fetch 쿠키 제한 우회
+  const res = await fetch('/api/auth/csrf');
+  const { csrfToken } = await res.json();
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/api/auth/signin/google';
+
+  for (const [name, value] of [
+    ['csrfToken', csrfToken],
+    ['callbackUrl', '/admin2'],
+  ]) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+}
 
 function LoginForm() {
   const params = useSearchParams();
@@ -33,7 +56,7 @@ function LoginForm() {
       <button
         className={styles.loginBtn}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
-        onClick={() => signIn('google', { callbackUrl: '/admin2' })}
+        onClick={handleSignIn}
       >
         <svg width="18" height="18" viewBox="0 0 48 48" fill="none" style={{ display: 'block', flexShrink: 0 }}>
           <path d="M44.5 20H24v8.5h11.7C34.1 33.7 29.6 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6-6C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 20-7.6 20-21 0-1.4-.2-2.7-.5-4z" fill="#FFC107"/>

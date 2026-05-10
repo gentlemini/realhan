@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const NOTION_TOKEN = process.env.NOTION_TOKEN;
+const NOTION_TOKEN = process.env.NOTION_API_KEY;
 
 const DB_IDS = [
   '8e7d1a23e5be419f820889a2dd20623b', // apt-sale

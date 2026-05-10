@@ -35,6 +35,8 @@
   { id: 'unit_parking',          label: '세대당 주차대수',                 type: 'number',     colSpan: 1 },
   { id: 'approval_date',         label: '사용검사일/사용승인일/준공일',      type: 'text',       colSpan: 2 },
   { id: 'building_use_text',     label: '건축물용도(상세)',                 type: 'text',       colSpan: 1 },
+  { id: 'youtube_url', label: '유튜브 URL',  type: 'text', colSpan: 2, hint: 'https://youtu.be/... 또는 https://youtube.com/watch?v=...' },
+  { id: 'blog_url',    label: '블로그 URL',   type: 'text', colSpan: 2, hint: '네이버 블로그 등 링크 주소' },
   { id: 'description',           label: '매물 상세정보',                   type: 'textarea',   colSpan: 3 },
   { id: 'photos',                label: '사진정보',                        type: 'photos',     colSpan: 3, hint: '기존 Cloudinary 연결방식 유지' },
   { id: 'opt_ac',       label: '에어컨',    type: 'multicheck', colSpan: 3, options: ['벽걸이에어컨', '스탠드에어컨', '전장에어컨'] },

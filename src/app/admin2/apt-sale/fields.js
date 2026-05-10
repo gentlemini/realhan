@@ -35,6 +35,8 @@
   { id: 'building_use',    label: '건축물용도',              type: 'select',     colSpan: 1, options: ['공동주택','숙박시설','업무시설'] },
   { id: 'building_use_text', label: '건축물용도(상세)',      type: 'text',       colSpan: 1 },
   { id: 'approval_date',   label: '사용검사일/사용승인일/준공일', type: 'text',  colSpan: 2 },
+  { id: 'youtube_url', label: '유튜브 URL',  type: 'text', colSpan: 2, hint: 'https://youtu.be/... 또는 https://youtube.com/watch?v=...' },
+  { id: 'blog_url',    label: '블로그 URL',   type: 'text', colSpan: 2, hint: '네이버 블로그 등 링크 주소' },
   { id: 'description',     label: '매물 상세정보',           type: 'textarea',   colSpan: 3 },
   { id: 'photos',          label: '사진정보',                type: 'photos',     colSpan: 3, hint: '기존 Cloudinary 연결방식 유지' },
   // ── 시설정보 ──

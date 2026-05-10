@@ -1,4 +1,4 @@
-export function buildFields(d) {
+﻿export function buildFields(d) {
   const f = {};
   const addT = (k, v) => { if (v) f[k] = { title: [{ text: { content: String(v) } }] }; };
   const addR = (k, v) => { f[k] = { rich_text: [{ text: { content: v ? String(v) : '-' } }] }; };
@@ -79,6 +79,8 @@ export function buildFields(d) {
   addR('사용승인일', d.approval_date);
   addR('건축물용도', d.building_use_text);
   addR('매물상세정보', d.description);
+  addU('유튜브URL', d.youtube_url);
+  addU('블로그URL', d.blog_url);
 
   addU('대표사진URL', d.imageUrl);
   if (Array.isArray(d.imageUrls) && d.imageUrls.length) {

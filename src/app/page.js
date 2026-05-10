@@ -189,8 +189,35 @@ function PreviewModal({ item, onClose }) {
                 <div className={styles.pvHeaderSub}>
                   <span className={styles.fBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
                   <span className={styles.fBadge} style={{ background: txStyle.bg, color: txStyle.color }}>{item.transaction}</span>
+                  {item.contract_status && (
+                    <span className={styles.fBadge} style={{
+                      background: item.contract_status === '계약진행중' ? '#fffbeb' : '#f0fdf4',
+                      color:      item.contract_status === '계약진행중' ? '#92400e' : '#166534',
+                    }}>{item.contract_status}</span>
+                  )}
                 </div>
                 <div className={styles.pvTitle}>{modalTitle || <span className={styles.pvTitleEmpty}>매물제목 미입력</span>}</div>
+                {(detail?.blog_url) && (
+                  <a
+                    href={detail.blog_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      marginTop: '10px',
+                      padding: '6px 14px',
+                      background: '#03C75A', color: '#fff',
+                      borderRadius: '6px', fontSize: '12px', fontWeight: 700,
+                      textDecoration: 'none',
+                    }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M16.5 3h-9A4.5 4.5 0 003 7.5v9A4.5 4.5 0 007.5 21h9A4.5 4.5 0 0021 16.5v-9A4.5 4.5 0 0016.5 3zm-4.25 13.25c-2.9 0-5.25-2.35-5.25-5.25S9.35 5.75 12.25 5.75 17.5 8.1 17.5 11s-2.35 5.25-5.25 5.25zm0-8.5a3.25 3.25 0 100 6.5 3.25 3.25 0 000-6.5z"/>
+                    </svg>
+                    블로그 바로가기
+                  </a>
+                )}
               </div>
               {!detLoading && hasMap && (
                 <div className={styles.pvMobileMap}><PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} /></div>

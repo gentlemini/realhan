@@ -35,6 +35,8 @@
   { id: 'approval_date',  label: '사용승인일',       type: 'text',           colSpan: 1 },
   { id: 'heating_type',   label: '난방시설',         type: 'radio',          colSpan: 2, options: ['지역난방', '중앙난방', '개별난방'] },
   { id: 'heating_fuel',   label: '난방연료',         type: 'radio',          colSpan: 2, options: ['도시가스', '기름', 'LPG', '전기', '심야전기', '연탄'] },
+  { id: 'youtube_url', label: '유튜브 URL',  type: 'text', colSpan: 2, hint: 'https://youtu.be/... 또는 https://youtube.com/watch?v=...' },
+  { id: 'blog_url',    label: '블로그 URL',   type: 'text', colSpan: 2, hint: '네이버 블로그 등 링크 주소' },
   { id: 'description',    label: '매물 상세정보',    type: 'textarea',       colSpan: 3 },
   { id: 'photos',         label: '사진정보',         type: 'photos',         colSpan: 3 },
   { id: 'opt_ac',       label: '에어컨',    type: 'multicheck', colSpan: 3, options: ['벽걸이에어컨', '스탠드에어컨', '전장에어컨'] },

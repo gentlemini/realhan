@@ -100,6 +100,8 @@ async function queryDB({ id, nameField }) {
         map_radius:    gN(p['지도_반경']),
         map_hidden:    gC(p['지도_숨김']),
         contract_status: gS(p['계약상태']),
+        blog_url:      gU(p['블로그URL']),
+        youtube_url:   gU(p['유튜브URL']),
         imageUrl:      gU(p['대표사진URL']),
         imageUrls:     gFiles(p['사진첨부']),
         created_time:  page.created_time,

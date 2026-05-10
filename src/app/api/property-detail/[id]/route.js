@@ -4,6 +4,7 @@ const ALWAYS_HIDDEN = new Set([
   '추천매물', '조회수', '대표사진URL',
   '지도_위도', '지도_경도', '지도_반경', '지도_숨김',
   '관리자메모', '사진첨부',
+  '유튜브URL', '블로그URL',
 ]);
 
 const HIDDEN_SUFFIX = ['_공개여부', '_메모', '_관리자메모'];
@@ -337,8 +338,10 @@ export async function GET(request, { params }) {
     const map_lng    = p['지도_경도']?.number   ?? null;
     const map_radius = p['지도_반경']?.number   ?? null;
 
-    const allImages = imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : []);
-    return Response.json({ rows: finalRows, imageUrl, imageUrls: allImages, map_lat, map_lng, map_radius });
+    const allImages  = imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : []);
+    const blog_url   = p['블로그URL']?.url   || null;
+    const youtube_url = p['유튜브URL']?.url  || null;
+    return Response.json({ rows: finalRows, imageUrl, imageUrls: allImages, map_lat, map_lng, map_radius, blog_url, youtube_url });
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });
   }

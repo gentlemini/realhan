@@ -42,6 +42,8 @@
   { id: 'opt_security', label: '보안옵션',  type: 'multicheck', colSpan: 3, options: ['경비원', '비디오폰', '인터폰', '카드키', 'CCTV', '사설경비', '현관보안', '방범창'] },
   { id: 'opt_extra',    label: '기타옵션',  type: 'multicheck', colSpan: 3, options: ['엘리베이터', '화재경보기', '베란다', '테라스', '마당', '무인택배함'] },
   { id: 'opt_parking',  label: '주차옵션',  type: 'multicheck', colSpan: 2, options: ['자주식주차', '기계식주차'] },
+  { id: 'youtube_url', label: '유튜브 URL',  type: 'text', colSpan: 2, hint: 'https://youtu.be/... 또는 https://youtube.com/watch?v=...' },
+  { id: 'blog_url',    label: '블로그 URL',   type: 'text', colSpan: 2, hint: '네이버 블로그 등 링크 주소' },
   { id: 'description',  label: '매물 상세정보', type: 'textarea', colSpan: 3 },
 ];
 

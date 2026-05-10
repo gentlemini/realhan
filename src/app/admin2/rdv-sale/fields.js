@@ -37,6 +37,8 @@
   { id: 'recommended_use', label: '추천용도',                 type: 'text',       colSpan: 2 },
   { id: 'zoning',          label: '용도지역',                 type: 'text',       colSpan: 1 },
   { id: 'inspection_date', label: '사용검사일/사용승인일/준공일', type: 'text',   colSpan: 1 },
+  { id: 'youtube_url', label: '유튜브 URL',  type: 'text', colSpan: 2, hint: 'https://youtu.be/... 또는 https://youtube.com/watch?v=...' },
+  { id: 'blog_url',    label: '블로그 URL',   type: 'text', colSpan: 2, hint: '네이버 블로그 등 링크 주소' },
   { id: 'description',     label: '매물 상세정보',            type: 'textarea',   colSpan: 3 },
   { id: 'photos',          label: '사진정보',                 type: 'photos',     colSpan: 3 },
 ];

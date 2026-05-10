@@ -1,4 +1,4 @@
-export function buildFields(d) {
+﻿export function buildFields(d) {
   const f = {};
   const addT = (k, v) => { if (v) f[k] = { title: [{ text: { content: String(v) } }] }; };
   const addR = (k, v) => { f[k] = { rich_text: [{ text: { content: v ? String(v) : '-' } }] }; };
@@ -89,6 +89,8 @@ export function buildFields(d) {
   }
 
   addR('매물상세정보', d.description);
+  addU('유튜브URL', d.youtube_url);
+  addU('블로그URL', d.blog_url);
   if (d.admin_memo) addR('관리자메모', d.admin_memo);
   addR('매물등록일', d.registered_date);
 

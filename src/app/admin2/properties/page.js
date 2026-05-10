@@ -6,6 +6,12 @@ import { useRouter } from 'next/navigation';
 import styles from './properties.module.css';
 import modalStyles from '../../page.module.css';
 
+function getYouTubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
 const CATEGORY_COLORS = {
   '아파트':      { bg: '#e8f0fe', color: '#1a56db' },
   '오피스텔':    { bg: '#fef3c7', color: '#92400e' },
@@ -1874,6 +1880,17 @@ function DetailModal({ item, detailSections, onClose }) {
   const mapLat = item.map_lat;
   const mapLng = item.map_lng;
 
+  const imageUrls = item.imageUrls?.length ? item.imageUrls : (item.imageUrl ? [item.imageUrl] : []);
+  const youtubeId = getYouTubeId(item.youtube_url);
+  const slides = [
+    ...(youtubeId ? [{ type: 'youtube', id: youtubeId }] : []),
+    ...imageUrls.map(url => ({ type: 'photo', url })),
+  ];
+  const [slideIdx, setSlideIdx] = useState(0);
+  const prevSlide = () => setSlideIdx(i => (i - 1 + slides.length) % slides.length);
+  const nextSlide = () => setSlideIdx(i => (i + 1) % slides.length);
+  const currentSlide = slides[slideIdx];
+
   return createPortal(
     <div className={modalStyles.pvOverlay} onClick={onClose}>
       <div className={modalStyles.pvBox} onClick={e => e.stopPropagation()}>
@@ -1881,10 +1898,38 @@ function DetailModal({ item, detailSections, onClose }) {
         <button className={modalStyles.pvClose} onClick={onClose}>✕</button>
 
         <div className={modalStyles.pvLayout}>
-          {/* 사진 */}
+          {/* 사진/영상 슬라이더 */}
           <div className={modalStyles.pvPhotoCol} style={{ position: 'relative' }}>
-            {item.imageUrl ? (
-              <img src={item.imageUrl} alt="대표사진" className={modalStyles.pvPhotoImg} />
+            {currentSlide ? (
+              <>
+                {currentSlide.type === 'youtube' ? (
+                  <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <iframe
+                      src={`https://www.youtube.com/embed/${currentSlide.id}`}
+                      title="매물 영상"
+                      style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                ) : (
+                  <img src={currentSlide.url} alt="매물사진" className={modalStyles.pvPhotoImg} />
+                )}
+                {slides.length > 1 && (
+                  <>
+                    <button onClick={prevSlide} className={modalStyles.pvSlidePrev}>&#8249;</button>
+                    <button onClick={nextSlide} className={modalStyles.pvSlideNext}>&#8250;</button>
+                    <div className={modalStyles.pvSlideDots}>
+                      {slides.map((_, i) => (
+                        <span key={i} className={modalStyles.pvSlideDot}
+                          style={{ background: i === slideIdx ? '#2a3e3f' : 'rgba(255,255,255,0.6)' }}
+                          onClick={() => setSlideIdx(i)} />
+                      ))}
+                    </div>
+                    <div className={modalStyles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
+                  </>
+                )}
+              </>
             ) : (
               <div className={modalStyles.pvPhotoArea}>
                 <span className={modalStyles.pvPhotoGhost}>사진없음</span>
@@ -1906,6 +1951,12 @@ function DetailModal({ item, detailSections, onClose }) {
                 <div className={modalStyles.pvHeaderSub}>
                   <span className={modalStyles.fBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
                   <span className={modalStyles.fBadge} style={{ background: txStyle.bg,  color: txStyle.color  }}>{item.transaction}</span>
+                  {item.contract_status && (
+                    <span className={modalStyles.fBadge} style={{
+                      background: item.contract_status === '계약진행중' ? '#fffbeb' : '#f0fdf4',
+                      color:      item.contract_status === '계약진행중' ? '#92400e' : '#166534',
+                    }}>{item.contract_status}</span>
+                  )}
                 </div>
                 <div className={modalStyles.pvTitle}>{modalTitle || <span className={modalStyles.pvTitleEmpty}>매물제목 미입력</span>}</div>
               </div>
@@ -1946,6 +1997,18 @@ function DetailModal({ item, detailSections, onClose }) {
                   })}
                 </div>
               ))}
+              {item.blog_url && (
+                <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+                  <a href={item.blog_url} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#03C75A', color: '#fff', borderRadius: '6px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}
+                    onClick={e => e.stopPropagation()}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M16.5 3h-9A4.5 4.5 0 003 7.5v9A4.5 4.5 0 007.5 21h9A4.5 4.5 0 0021 16.5v-9A4.5 4.5 0 0016.5 3zm-4.25 13.25c-2.9 0-5.25-2.35-5.25-5.25S9.35 5.75 12.25 5.75 17.5 8.1 17.5 11s-2.35 5.25-5.25 5.25zm0-8.5a3.25 3.25 0 100 6.5 3.25 3.25 0 000-6.5z"/>
+                    </svg>
+                    블로그 바로가기
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>

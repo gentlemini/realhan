@@ -343,9 +343,14 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
     return <span>{String(v)}</span>;
   }
 
-  const [pvPhotoIdx, setPvPhotoIdx] = useState(repIdx || 0);
+  const [pvSlideIdx, setPvSlideIdx] = useState(0);
   const visibleFields = fields.filter(f => !['spacer', 'twoCol', 'mapConfig', 'photos'].includes(f.type) && f.id !== 'title');
-  const pvCurrent = filePreviews?.[pvPhotoIdx]?.preview || null;
+  const ytId = formValues?.youtube_url ? (() => { const m = formValues.youtube_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([a-zA-Z0-9_-]{11})/); return m ? m[1] : null; })() : null;
+  const pvSlides = [
+    ...(ytId ? [{ type: 'youtube', id: ytId }] : []),
+    ...(filePreviews || []).map(fp => ({ type: 'photo', preview: fp.preview })),
+  ];
+  const pvCurrentSlide = pvSlides[pvSlideIdx] || null;
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -364,19 +369,27 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
         <div className={styles.previewLayout}>
           {/* 좌: 사진 */}
           <div className={styles.previewPhotoCol} style={{ position: 'relative' }}>
-            {pvCurrent ? (
+            {pvCurrentSlide ? (
               <>
-                <img src={pvCurrent} alt={`사진 ${pvPhotoIdx + 1}`} className={styles.previewPhotoImg} />
-                {(filePreviews?.length || 0) > 1 && (
+                {pvCurrentSlide.type === 'youtube' ? (
+                  <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <iframe src={`https://www.youtube.com/embed/${pvCurrentSlide.id}`} title="매물 영상"
+                      style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                  </div>
+                ) : (
+                  <img src={pvCurrentSlide.preview} alt={`사진 ${pvSlideIdx + (ytId ? 0 : 1)}`} className={styles.previewPhotoImg} />
+                )}
+                {pvSlides.length > 1 && (
                   <>
-                    <button onClick={() => setPvPhotoIdx(i => (i - 1 + filePreviews.length) % filePreviews.length)} style={{ position:'absolute', top:'50%', left:10, transform:'translateY(-50%)', background:'rgba(0,0,0,0.35)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, fontSize:26, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>&#8249;</button>
-                    <button onClick={() => setPvPhotoIdx(i => (i + 1) % filePreviews.length)} style={{ position:'absolute', top:'50%', right:10, transform:'translateY(-50%)', background:'rgba(0,0,0,0.35)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, fontSize:26, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>&#8250;</button>
+                    <button onClick={() => setPvSlideIdx(i => (i - 1 + pvSlides.length) % pvSlides.length)} style={{ position:'absolute', top:'50%', left:10, transform:'translateY(-50%)', background:'rgba(0,0,0,0.35)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, fontSize:26, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>&#8249;</button>
+                    <button onClick={() => setPvSlideIdx(i => (i + 1) % pvSlides.length)} style={{ position:'absolute', top:'50%', right:10, transform:'translateY(-50%)', background:'rgba(0,0,0,0.35)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, fontSize:26, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>&#8250;</button>
                     <div style={{ position:'absolute', bottom:12, left:'50%', transform:'translateX(-50%)', display:'flex', gap:6, zIndex:10 }}>
-                      {filePreviews.map((_, i) => (
-                        <span key={i} onClick={() => setPvPhotoIdx(i)} style={{ width:8, height:8, borderRadius:'50%', cursor:'pointer', border:'1px solid rgba(255,255,255,0.5)', background: i === pvPhotoIdx ? '#5a3e28' : 'rgba(255,255,255,0.6)' }} />
+                      {pvSlides.map((_, i) => (
+                        <span key={i} onClick={() => setPvSlideIdx(i)} style={{ width:8, height:8, borderRadius:'50%', cursor:'pointer', border:'1px solid rgba(255,255,255,0.5)', background: i === pvSlideIdx ? '#5a3e28' : 'rgba(255,255,255,0.6)' }} />
                       ))}
                     </div>
-                    <div style={{ position:'absolute', bottom:10, right:14, background:'rgba(0,0,0,0.45)', color:'#fff', fontSize:12, padding:'2px 8px', borderRadius:10, zIndex:10, pointerEvents:'none' }}>{pvPhotoIdx + 1} / {filePreviews.length}</div>
+                    <div style={{ position:'absolute', bottom:10, right:14, background:'rgba(0,0,0,0.45)', color:'#fff', fontSize:12, padding:'2px 8px', borderRadius:10, zIndex:10, pointerEvents:'none' }}>{pvSlideIdx + 1} / {pvSlides.length}</div>
                   </>
                 )}
               </>
@@ -427,6 +440,18 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
                 </div>
               ))}
 
+              {formValues?.blog_url && (
+                <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+                  <a href={formValues.blog_url} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#03C75A', color: '#fff', borderRadius: '6px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}
+                    onClick={e => e.stopPropagation()}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M16.5 3h-9A4.5 4.5 0 003 7.5v9A4.5 4.5 0 007.5 21h9A4.5 4.5 0 0021 16.5v-9A4.5 4.5 0 0016.5 3zm-4.25 13.25c-2.9 0-5.25-2.35-5.25-5.25S9.35 5.75 12.25 5.75 17.5 8.1 17.5 11s-2.35 5.25-5.25 5.25zm0-8.5a3.25 3.25 0 100 6.5 3.25 3.25 0 000-6.5z"/>
+                    </svg>
+                    블로그 바로가기
+                  </a>
+                </div>
+              )}
               {/* 담당 공인중개사 */}
               <div className={styles.agentCard}>
                 <img src="/profile.png" alt="한민희" className={styles.agentAvatar} />

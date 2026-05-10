@@ -32,13 +32,14 @@ function checkRateLimit(ip) {
   return count;
 }
 
-export function middleware(request) {
+export function proxy(request) {
   const { pathname } = request.nextUrl;
 
   if (!pathname.startsWith('/api/')) return NextResponse.next();
 
   /* 제외 경로 */
   const exempt = [
+    '/api/auth',
     '/api/upload', '/api/setup/', '/api/inquiry',
     '/api/property-request', '/api/update-contract-status',
     '/api/address-search',

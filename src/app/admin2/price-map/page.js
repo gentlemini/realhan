@@ -981,6 +981,7 @@ function PriceMapInner() {
   useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps]);
 
   return (
+    <>
     <div className={localStyles.wrap}>
       <div className={styles.page}>
 
@@ -1313,6 +1314,7 @@ function PriceMapInner() {
       </>,
       document.body
     )}
+    </>
   );
 }
 

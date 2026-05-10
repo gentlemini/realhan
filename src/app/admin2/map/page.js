@@ -591,6 +591,7 @@ function AdminMapInner() {
   }, [clusterProps, boundsProps, filtered, geocodedIds]);
 
   return (
+    <>
     <div className={localStyles.wrap}>
       <div className={styles.page}>
 
@@ -939,6 +940,7 @@ function AdminMapInner() {
       </>,
       document.body
     )}
+    </>
   );
 }
 

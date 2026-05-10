@@ -279,9 +279,9 @@ function makeLabelDiv(label, count, style, onClick) {
 
 function makePinDiv(onClick) {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;width:32px;height:32px;';
+  wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;width:26px;height:26px;';
   const dot = document.createElement('div');
-  dot.style.cssText = 'width:28px;height:28px;border-radius:50%;background:#ef4444;border:3.5px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,0.5);transition:transform 0.12s;';
+  dot.style.cssText = 'width:22px;height:22px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.5);transition:transform 0.12s;';
   dot.addEventListener('mouseenter', () => { dot.style.transform = 'scale(1.2)'; });
   dot.addEventListener('mouseleave', () => { dot.style.transform = ''; });
   wrap.appendChild(dot);

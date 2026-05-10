@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import {
@@ -561,7 +561,19 @@ export default function GridEditor({ onBack, isEdit = false, initialValues = nul
         if (Array.isArray(parsed) && parsed.length) {
           const typeMap = Object.fromEntries(DEFAULT_FIELDS.map(f => [f.id, f.type]));
           const fixed = parsed.map(f => typeMap[f.id] ? { ...f, type: typeMap[f.id] } : f);
-          setFields(fixed);
+          const savedIds = new Set(fixed.map(f => f.id));
+          const defaultIds = DEFAULT_FIELDS.map(f => f.id);
+          const merged = [...fixed];
+          for (const nf of DEFAULT_FIELDS.filter(f => !savedIds.has(f.id))) {
+            const di = defaultIds.indexOf(nf.id);
+            let at = merged.length;
+            for (let i = di - 1; i >= 0; i--) {
+              const pi = merged.findIndex(f => f.id === defaultIds[i]);
+              if (pi !== -1) { at = pi + 1; break; }
+            }
+            merged.splice(at, 0, nf);
+          }
+          setFields(merged);
           return;
         }
       }

@@ -338,7 +338,7 @@ function PreviewModal({ fields, formValues, filePreviews, repIdx, onClose }) {
 
   const visibleFields = fields.filter(f => !['spacer', 'twoCol', 'mapConfig', 'photos'].includes(f.type) && f.id !== 'title');
     const [pvSlideIdx, setPvSlideIdx] = useState(0);
-  const ytId = formValues?.youtube_url ? (() => { const m = formValues.youtube_url.match(/(?:youtu\\.be\\/|youtube\\.com\\/(?:watch\\?v=|embed\\/|v\\/))([a-zA-Z0-9_-]{11})/); return m ? m[1] : null; })() : null;
+  const ytId = formValues?.youtube_url ? (() => { const m = formValues.youtube_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([a-zA-Z0-9_-]{11})/); return m ? m[1] : null; })() : null;
   const pvSlides = [
     ...(ytId ? [{ type: 'youtube', id: ytId }] : []),
     ...(filePreviews || []).map(fp => ({ type: 'photo', preview: fp.preview })),

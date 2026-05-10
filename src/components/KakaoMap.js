@@ -132,10 +132,32 @@ function groupBy(geocoded, keyFn) {
   return groups;
 }
 
-export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds, adminMode = false, centerLatLng = null }) {
+function ensurePulseStyle() {
+  if (document.getElementById('my-loc-pulse-style')) return;
+  const s = document.createElement('style');
+  s.id = 'my-loc-pulse-style';
+  s.textContent = '@keyframes myLocPulse{0%{transform:scale(1);opacity:.6}70%{transform:scale(2.8);opacity:0}100%{transform:scale(1);opacity:0}}';
+  document.head.appendChild(s);
+}
+
+function makeMyLocContent() {
+  ensurePulseStyle();
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:relative;width:18px;height:18px;pointer-events:none;';
+  const pulse = document.createElement('div');
+  pulse.style.cssText = 'position:absolute;inset:-5px;border-radius:50%;background:rgba(66,133,244,0.35);animation:myLocPulse 2s ease-out infinite;';
+  const dot = document.createElement('div');
+  dot.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#4285f4;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);';
+  wrap.appendChild(pulse);
+  wrap.appendChild(dot);
+  return wrap;
+}
+
+export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds, adminMode = false, centerLatLng = null, myLocationLatLng = null }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapReadyRef = useRef(false);
+  const myLocOverlayRef = useRef(null);
   const boundsLockedRef = useRef(false);
   const propertiesRef = useRef(properties);
   const hiddenPropertiesRef = useRef(hiddenProperties);
@@ -190,9 +212,26 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
   useEffect(() => {
     if (!centerLatLng || !mapReadyRef.current || !mapInstanceRef.current) return;
     const latlng = new window.kakao.maps.LatLng(centerLatLng.lat, centerLatLng.lng);
-    mapInstanceRef.current.setLevel(centerLatLng.level ?? 5);
+    mapInstanceRef.current.setLevel(centerLatLng.level ?? 7);
     mapInstanceRef.current.setCenter(latlng);
   }, [centerLatLng]);
+
+  useEffect(() => {
+    if (!myLocationLatLng || !mapInstanceRef.current) return;
+    const pos = new window.kakao.maps.LatLng(myLocationLatLng.lat, myLocationLatLng.lng);
+    if (myLocOverlayRef.current) {
+      myLocOverlayRef.current.setPosition(pos);
+    } else {
+      myLocOverlayRef.current = new window.kakao.maps.CustomOverlay({
+        position: pos,
+        content: makeMyLocContent(),
+        map: mapInstanceRef.current,
+        zIndex: 15,
+        xAnchor: 0.5,
+        yAnchor: 0.5,
+      });
+    }
+  }, [myLocationLatLng]);
 
   useEffect(() => {
     if (!mapReadyRef.current || !isMulti) return;

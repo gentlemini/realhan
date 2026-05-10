@@ -395,27 +395,34 @@ function AdminMapInner() {
   const [mapSheetItems, setMapSheetItems] = useState(null);
   const [listPage,      setListPage]      = useState(1);
   const [myLocation,    setMyLocation]    = useState(null);
-  const [locLoading,    setLocLoading]    = useState(false);
+  const [myLocDot,      setMyLocDot]      = useState(null);
+  const [locDotVisible, setLocDotVisible] = useState(false);
+  const watchIdRef = useRef(null);
+  const hasInitRef = useRef(false);
   const LIST_PAGE_SIZE = 10;
 
   useEffect(() => {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      pos => setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, level: 7 }),
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      pos => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setMyLocDot(loc);
+        if (!hasInitRef.current) {
+          hasInitRef.current = true;
+          setMyLocation({ ...loc, level: 7 });
+        }
+      },
       () => {},
-      { enableHighAccuracy: false, timeout: 6000 }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
+    return () => { if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current); };
   }, []);
 
   const goToMyLocation = useCallback(() => {
-    if (!navigator.geolocation || locLoading) return;
-    setLocLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      pos => { setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, level: 5 }); setLocLoading(false); },
-      () => setLocLoading(false),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  }, [locLoading]);
+    if (!myLocDot) return;
+    setLocDotVisible(true);
+    setMyLocation({ ...myLocDot, level: 7 });
+  }, [myLocDot]);
 
   useEffect(() => { setClusterProps(null); setBoundsProps(null); setMapBounds(null); setGeocodedIds(new Set()); }, [selectedType, selectedTx, keyword]);
   useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps, clusterProps]);
@@ -500,25 +507,20 @@ function AdminMapInner() {
               properties={mapProps}
               adminMode={true}
               centerLatLng={myLocation}
+              myLocationLatLng={locDotVisible ? myLocDot : null}
               onGeocodedIds={ids => setGeocodedIds(ids)}
               onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
               onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); setMapSheetItems(null); }}
             />
             <button
-              className={`${styles.myLocBtn} ${locLoading ? styles.myLocBtnLoading : ''} ${myLocation ? styles.myLocBtnActive : ''}`}
+              className={`${styles.myLocBtn} ${myLocDot ? styles.myLocBtnActive : ''}`}
               onClick={goToMyLocation}
               title="현재 위치"
             >
-              {locLoading ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-                  <path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z"/>
-                </svg>
-              )}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                <path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z"/>
+              </svg>
             </button>
           </div>
 

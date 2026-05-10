@@ -420,10 +420,11 @@ function PreviewModal({ item, onClose }) {
   );
 }
 
-function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsChange, centerLatLng = null }) {
+function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsChange, centerLatLng = null, myLocationLatLng = null }) {
   const mapRef              = useRef(null);
   const mapInstanceRef      = useRef(null);
   const mapReadyRef         = useRef(false);
+  const myLocOverlayRef     = useRef(null);
   const geocacheRef         = useRef({});
   const overlaysRef         = useRef([]);
   const filteredRef         = useRef(filtered);
@@ -599,9 +600,40 @@ function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsCha
   useEffect(() => {
     if (!centerLatLng || !mapReadyRef.current || !mapInstanceRef.current) return;
     const latlng = new window.kakao.maps.LatLng(centerLatLng.lat, centerLatLng.lng);
-    mapInstanceRef.current.setLevel(centerLatLng.level ?? 5);
+    mapInstanceRef.current.setLevel(centerLatLng.level ?? 7);
     mapInstanceRef.current.setCenter(latlng);
   }, [centerLatLng]);
+
+  useEffect(() => {
+    if (!myLocationLatLng || !mapInstanceRef.current) return;
+    const pos = new window.kakao.maps.LatLng(myLocationLatLng.lat, myLocationLatLng.lng);
+    if (myLocOverlayRef.current) {
+      myLocOverlayRef.current.setPosition(pos);
+    } else {
+      if (!document.getElementById('my-loc-pulse-style')) {
+        const s = document.createElement('style');
+        s.id = 'my-loc-pulse-style';
+        s.textContent = '@keyframes myLocPulse{0%{transform:scale(1);opacity:.6}70%{transform:scale(2.8);opacity:0}100%{transform:scale(1);opacity:0}}';
+        document.head.appendChild(s);
+      }
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;width:18px;height:18px;pointer-events:none;';
+      const pulse = document.createElement('div');
+      pulse.style.cssText = 'position:absolute;inset:-5px;border-radius:50%;background:rgba(66,133,244,0.35);animation:myLocPulse 2s ease-out infinite;';
+      const dot = document.createElement('div');
+      dot.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#4285f4;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);';
+      wrap.appendChild(pulse);
+      wrap.appendChild(dot);
+      myLocOverlayRef.current = new window.kakao.maps.CustomOverlay({
+        position: pos,
+        content: wrap,
+        map: mapInstanceRef.current,
+        zIndex: 15,
+        xAnchor: 0.5,
+        yAnchor: 0.5,
+      });
+    }
+  }, [myLocationLatLng]);
 
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
 }
@@ -687,27 +719,34 @@ function PriceMapInner() {
   const [boundsProps,   setBoundsProps]   = useState(null);
   const [listPage,      setListPage]      = useState(1);
   const [myLocation,    setMyLocation]    = useState(null);
-  const [locLoading,    setLocLoading]    = useState(false);
+  const [myLocDot,      setMyLocDot]      = useState(null);
+  const [locDotVisible, setLocDotVisible] = useState(false);
+  const watchIdRef = useRef(null);
+  const hasInitRef = useRef(false);
   const LIST_PAGE_SIZE = 10;
 
   useEffect(() => {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      pos => setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, level: 7 }),
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      pos => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setMyLocDot(loc);
+        if (!hasInitRef.current) {
+          hasInitRef.current = true;
+          setMyLocation({ ...loc, level: 7 });
+        }
+      },
       () => {},
-      { enableHighAccuracy: false, timeout: 6000 }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
+    return () => { if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current); };
   }, []);
 
   const goToMyLocation = useCallback(() => {
-    if (!navigator.geolocation || locLoading) return;
-    setLocLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      pos => { setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, level: 5 }); setLocLoading(false); },
-      () => setLocLoading(false),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  }, [locLoading]);
+    if (!myLocDot) return;
+    setLocDotVisible(true);
+    setMyLocation({ ...myLocDot, level: 7 });
+  }, [myLocDot]);
 
   useEffect(() => {
     fetch('/api/listings')
@@ -768,25 +807,20 @@ function PriceMapInner() {
             <PriceMapCanvas
               filtered={filtered}
               centerLatLng={myLocation}
+              myLocationLatLng={locDotVisible ? myLocDot : null}
               onPropertyClick={setSelectedItem}
               onClusterClick={props => setMapSheetItems(props)}
               onBoundsChange={props => setBoundsProps(props)}
             />
             <button
-              className={`${styles.myLocBtn} ${locLoading ? styles.myLocBtnLoading : ''} ${myLocation ? styles.myLocBtnActive : ''}`}
+              className={`${styles.myLocBtn} ${myLocDot ? styles.myLocBtnActive : ''}`}
               onClick={goToMyLocation}
               title="현재 위치"
             >
-              {locLoading ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-                  <path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z"/>
-                </svg>
-              )}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                <path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z"/>
+              </svg>
             </button>
           </div>
 

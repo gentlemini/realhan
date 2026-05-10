@@ -1,26 +1,10 @@
-﻿const NOTION_API = 'https://api.notion.com/v1';
+﻿import { queryAllPages } from '@/lib/notionList';
 const DB_ID = '6afc8681b6dc4f47bad1552153007ef6';
 
 export async function GET() {
   try {
-    const res = await fetch(`${NOTION_API}/databases/${DB_ID}/query`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
-        'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        sorts: [{ timestamp: 'created_time', direction: 'descending' }],
-        page_size: 100,
-      }),
-      cache: 'no-store',
-    });
-
-    if (!res.ok) throw new Error(`Notion ${res.status}`);
-    const data = await res.json();
-
-    const items = data.results.map(page => {
+    const results = await queryAllPages(DB_ID);
+    const items = results.map(page => {
       const p = page.properties;
       const gT = f => f?.title?.[0]?.plain_text  || '';
       const gR = f => f?.rich_text?.[0]?.plain_text || '';
@@ -46,8 +30,8 @@ export async function GET() {
         address_detail_memo:      gR(p['상세주소_메모']),
         address_public:           gS(p['지번노출여부']),
         building_type:            gS(p['건물유형']),
-        contract_area:            gN(p['임대계약면적_㎡']),
-        exclusive_area:           gN(p['전용면적_㎡']),
+        contract_area:            gR(p['임대계약면적_㎡']),
+        exclusive_area:           gR(p['전용면적_㎡']),
         deposit:                  gN(p['보증금_만원']),
         monthly_rent:             gN(p['월세_만원']),
         loan_info:                gR(p['융자금_직접입력']) || gN(p['융자금_만원']) || null,

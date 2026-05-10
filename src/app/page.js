@@ -7,19 +7,35 @@ import styles from './page.module.css';
 const KAKAO_APP_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || '';
 
 const CATEGORY_COLORS = {
-  '아파트':      { bg: '#e8f0fe', color: '#1a56db' },
-  '오피스텔':    { bg: '#fef3c7', color: '#92400e' },
-  '단독주택':    { bg: '#d1fae5', color: '#065f46' },
-  '다가구':      { bg: '#ede9fe', color: '#5b21b6' },
-  '다세대':      { bg: '#fce7f3', color: '#9d174d' },
-  '상가':        { bg: '#fee2e2', color: '#991b1b' },
-  '토지':        { bg: '#ecfdf5', color: '#047857' },
-  '빌딩':        { bg: '#f0f9ff', color: '#0369a1' },
-  '오피스':      { bg: '#f5f3ff', color: '#6d28d9' },
-  '공장/창고':   { bg: '#fff7ed', color: '#c2410c' },
-  '원룸/고시원': { bg: '#fdf4ff', color: '#86198f' },
-  '재개발':      { bg: '#f0fdf4', color: '#166534' },
-  '분양':        { bg: '#fffbeb', color: '#b45309' },
+  '아파트':        { bg: '#e8f0fe', color: '#1a56db' },
+  '오피스텔':      { bg: '#fef3c7', color: '#92400e' },
+  '단독주택':      { bg: '#d1fae5', color: '#065f46' },
+  '다가구':        { bg: '#ede9fe', color: '#5b21b6' },
+  '다세대':        { bg: '#fce7f3', color: '#9d174d' },
+  '연립':          { bg: '#fce7f3', color: '#9d174d' },
+  '빌라':          { bg: '#fce7f3', color: '#9d174d' },
+  '상가주택':      { bg: '#fce7f3', color: '#9d174d' },
+  '상가':          { bg: '#fee2e2', color: '#991b1b' },
+  '일반상가':      { bg: '#fee2e2', color: '#991b1b' },
+  '단지내상가':    { bg: '#fee2e2', color: '#991b1b' },
+  '복합상가':      { bg: '#fee2e2', color: '#991b1b' },
+  '토지':          { bg: '#ecfdf5', color: '#047857' },
+  '빌딩':          { bg: '#f0f9ff', color: '#0369a1' },
+  '빌딩건물기타':  { bg: '#f0f9ff', color: '#0369a1' },
+  '펜션':          { bg: '#f0f9ff', color: '#0369a1' },
+  '상가건물':      { bg: '#f0f9ff', color: '#0369a1' },
+  '오피스':        { bg: '#f5f3ff', color: '#6d28d9' },
+  '대형사무실':    { bg: '#f5f3ff', color: '#6d28d9' },
+  '중소형사무실':  { bg: '#f5f3ff', color: '#6d28d9' },
+  '지식산업센터':  { bg: '#f5f3ff', color: '#6d28d9' },
+  '공장/창고':     { bg: '#fff7ed', color: '#c2410c' },
+  '원룸/고시원':   { bg: '#fdf4ff', color: '#86198f' },
+  '원룸':          { bg: '#fdf4ff', color: '#86198f' },
+  '투룸':          { bg: '#fdf4ff', color: '#86198f' },
+  '쓰리룸':        { bg: '#fdf4ff', color: '#86198f' },
+  '재개발':        { bg: '#f0fdf4', color: '#166534' },
+  '분양':          { bg: '#fffbeb', color: '#b45309' },
+  '분양권':        { bg: '#fffbeb', color: '#b45309' },
 };
 
 const TX_COLORS = {
@@ -101,7 +117,7 @@ function PreviewMap({ lat, lng, radius }) {
 
 function getYouTubeId(url) {
   if (!url) return null;
-  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([a-zA-Z0-9_-]{11})/);
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/);
   return m ? m[1] : null;
 }
 
@@ -160,45 +176,49 @@ function PreviewModal({ item, onClose }) {
           <span>카카오톡 상담</span>
         </a>
         <div className={styles.pvLayout}>
-          <div className={styles.pvPhotoCol} style={{ position: 'relative' }}>
-            {currentSlide ? (
-              <>
-                {currentSlide.type === 'youtube' ? (
-                  <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <iframe
-                      src={`https://www.youtube.com/embed/${currentSlide.id}`}
-                      title="매물 영상"
-                      style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                ) : (
-                  <img src={currentSlide.url} alt={`사진 ${slideIdx + (youtubeId ? 0 : 1)}`} className={styles.pvPhotoImg} />
-                )}
-                {slides.length > 1 && (
-                  <>
-                    <button onClick={prevSlide} className={styles.pvSlidePrev}>&#8249;</button>
-                    <button onClick={nextSlide} className={styles.pvSlideNext}>&#8250;</button>
-                    <div className={styles.pvSlideDots}>
-                      {slides.map((s, i) => (
-                        <span key={i} className={styles.pvSlideDot}
-                          style={{ background: i === slideIdx ? '#2a3e3f' : 'rgba(255,255,255,0.6)' }}
-                          onClick={() => setSlideIdx(i)} />
-                      ))}
+          <div className={styles.pvPhotoCol}>
+            <div className={styles.pvPhotoMain}>
+              {currentSlide ? (
+                <>
+                  {currentSlide.type === 'youtube' ? (
+                    <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${currentSlide.id}`}
+                        title="매물 영상"
+                        style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
                     </div>
-                    <div className={styles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
-                  </>
-                )}
-              </>
-            ) : (
-              <div className={styles.pvPhotoArea}>
-                <span className={styles.pvPhotoGhost}>사진위치</span>
-                <div className={styles.pvPhotoFallback}>
-                  <p className={styles.pvFallbackSub}>사진 첨부 없을시</p>
-                  <p className={styles.pvFallbackName}>"공인중개사 한민희"</p>
-                  <p className={styles.pvFallbackPhone}>"010-4706-8253"</p>
+                  ) : (
+                    <img src={currentSlide.url} alt={`사진 ${slideIdx + (youtubeId ? 0 : 1)}`} className={styles.pvPhotoImg} />
+                  )}
+                  {slides.length > 1 && (
+                    <>
+                      <button onClick={prevSlide} className={styles.pvSlidePrev}>&#8249;</button>
+                      <button onClick={nextSlide} className={styles.pvSlideNext}>&#8250;</button>
+                      <div className={styles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div className={styles.pvPhotoArea}>
+                  <span className={styles.pvPhotoGhost}>사진위치</span>
+                  <div className={styles.pvPhotoFallback}>
+                    <p className={styles.pvFallbackSub}>사진 첨부 없을시</p>
+                    <p className={styles.pvFallbackName}>"공인중개사 한민희"</p>
+                    <p className={styles.pvFallbackPhone}>"010-4706-8253"</p>
+                  </div>
                 </div>
+              )}
+            </div>
+            {slides.length > 1 && (
+              <div className={styles.pvThumbs}>
+                {slides.map((s, i) => (
+                  <div key={i} className={`${styles.pvThumb} ${i === slideIdx ? styles.pvThumbActive : ''}`} onClick={() => setSlideIdx(i)}>
+                    <img src={s.type === 'youtube' ? `https://img.youtube.com/vi/${s.id}/mqdefault.jpg` : s.url} alt={`${i + 1}`} />
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -384,7 +404,7 @@ function Card({ item, onClick }) {
         <div className={styles.cardBadges}>
           <span className={styles.cardBadge} style={{ background: cs.bg, color: cs.color }}>{item.category}</span>
           <span className={styles.cardBadge} style={{ background: ts.bg, color: ts.color }}>{item.transaction}</span>
-          {item.recommended && <span className={styles.cardRec}>추천</span>}
+
         </div>
         {item.property_id && (
           <div className={styles.cardPropId}>{item.property_id}</div>
@@ -400,6 +420,9 @@ function Card({ item, onClick }) {
           {item.title ? item.title : item.building_name ? item.building_name : item.location ? item.location : null}
         </p>
         {price && <p className={styles.cardPrice} style={{ color: ts.color }}>{price}</p>}
+        {(item.transaction === '전세' || item.transaction === '월세') && item.maintenance > 0 && (
+          <p className={styles.cardMaintFee}>관리비 {fmtMan(item.maintenance)}원</p>
+        )}
         {chips.length > 0 && (
           <div className={styles.cardChips}>
             {chips.map(c => <span key={c} className={styles.cardChip}>{c}</span>)}
@@ -522,15 +545,15 @@ export default function HomePage() {
 
         {/* 텍스트 (40%) */}
         <div className={`${styles.heroLeft} ${heroIn ? styles.heroLeftIn : ''}`}>
-          <p className={styles.heroEye}>Busan Real Estate</p>
+          <p className={styles.heroEye}>공인중개사 한민희</p>
           <h1 className={styles.heroH1}>
-            We Provide<br />
-            <em className={styles.heroH1Em}>The Essential</em><br />
-            Value to Your House
+            <span className={styles.heroLine}><span className={`${styles.heroLineInner} ${styles.heroH1Gold}`}>친절한한부장</span></span>
+            <span className={styles.heroLine}><em className={`${styles.heroLineInner} ${styles.heroH1Em}`}>친절한 중개를</em></span>
+            <span className={styles.heroLine}><span className={styles.heroLineInner}>약속드립니다</span></span>
           </h1>
           <p className={styles.heroSub}>
-            We will put in greatest value and happiness in design.<br />
-            친절한 한민희 부장이 1:1로 최고의 부동산을 찾아드립니다.
+            부산 남구·수영구 전문 공인중개사.<br />
+            한민희 부장이 1:1로 최고의 부동산을 찾아드립니다.
           </p>
           <div className={styles.heroBtns}>
             <Link href="/properties" className={styles.heroBtnP}>매물 보기 →</Link>

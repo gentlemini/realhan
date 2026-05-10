@@ -32,8 +32,8 @@
     if (d.ho.adminMemo) addR('호수_관리자메모', d.ho.adminMemo);
   }
 
-  addN('공급면적_㎡', d.supply_area);
-  addN('전용면적_㎡', d.exclusive_area);
+  addR('공급면적_㎡', d.supply_area);
+  addR('전용면적_㎡', d.exclusive_area);
   addN('보증금_만원', d.deposit);
   addN('월세_만원', d.monthly_rent);
   if (d.loan_info && typeof d.loan_info === 'object') {

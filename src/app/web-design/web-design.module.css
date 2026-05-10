@@ -1,0 +1,293 @@
+.page {
+  background: #0d0d0d;
+  color: #f0ede8;
+  min-height: 100vh;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 60px;
+  padding: 100px 120px 80px 160px;
+  background: linear-gradient(135deg, #0d0d0d 0%, #1a1408 50%, #0d0d0d 100%);
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 50%, rgba(184,151,90,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 20% 80%, rgba(184,151,90,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.heroInner { position: relative; z-index: 1; flex: 1; max-width: 680px; }
+
+.heroEye {
+  font-size: .65rem; font-weight: 700; letter-spacing: .28em;
+  color: #b8975a; text-transform: uppercase; margin-bottom: 24px;
+  display: flex; align-items: center; gap: 10px;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .6s ease .1s, transform .6s ease .1s;
+}
+.heroEye::before { content: ''; width: 28px; height: 2px; background: #b8975a; flex-shrink: 0; }
+.heroIn .heroEye { opacity: 1; transform: none; }
+
+.heroH1 {
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  font-weight: 900; line-height: 1.1; letter-spacing: -.04em;
+  margin-bottom: 28px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+.line1, .line2, .line3 {
+  display: block;
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
+}
+.heroIn .line1 { opacity: 1; transform: none; transition-delay: .2s; }
+.heroIn .line2 { opacity: 1; transform: none; transition-delay: .35s; }
+.heroIn .line3 { opacity: 1; transform: none; transition-delay: .5s; }
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.gold {
+  font-style: normal;
+  background: linear-gradient(90deg, #c8973a 0%, #f5d97e 40%, #c8973a 60%, #f5d97e 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3.5s linear infinite;
+}
+
+.heroSub {
+  font-size: 1rem; color: #a0998e; line-height: 1.9;
+  margin-bottom: 40px; word-break: keep-all;
+  padding-left: 16px; border-left: 2px solid #3a3028;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .6s ease .7s, transform .6s ease .7s;
+}
+.heroIn .heroSub { opacity: 1; transform: none; }
+
+.heroBtns {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .6s ease .85s, transform .6s ease .85s;
+}
+.heroIn .heroBtns { opacity: 1; transform: none; }
+
+.btnPrimary {
+  padding: 15px 32px; background: #b8975a; color: #0d0d0d;
+  font-size: .88rem; font-weight: 800; border-radius: 4px;
+  text-decoration: none; letter-spacing: .02em;
+  transition: background .2s, transform .15s;
+}
+.btnPrimary:hover { background: #d4aa6a; transform: translateY(-2px); }
+
+.btnSecondary {
+  padding: 14px 30px; border: 1.5px solid #3a3028; color: #c8b89a;
+  font-size: .88rem; font-weight: 600; border-radius: 4px;
+  text-decoration: none; transition: border-color .2s, color .2s;
+}
+.btnSecondary:hover { border-color: #b8975a; color: #f5d97e; }
+
+.heroBadge {
+  position: relative; z-index: 1;
+  flex-shrink: 0;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, #2a1e0a, #1a1408);
+  border: 1px solid rgba(184,151,90,0.35);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px; text-align: center;
+  box-shadow: 0 0 40px rgba(184,151,90,0.15);
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+.badgeText { font-size: .65rem; font-weight: 700; letter-spacing: .15em; color: #b8975a; text-transform: uppercase; }
+.badgePrice { font-size: .95rem; font-weight: 800; color: #f5d97e; }
+
+/* ── 기술 스택 스크롤 ── */
+.stackSection {
+  border-top: 1px solid #1e1a14;
+  border-bottom: 1px solid #1e1a14;
+  background: #0a0a0a;
+  overflow: hidden;
+  padding: 16px 0;
+}
+@keyframes scrollX {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.stackScroll {
+  display: flex; gap: 20px; width: max-content;
+  animation: scrollX 18s linear infinite;
+}
+.stackChip {
+  padding: 7px 20px; border: 1px solid #2a2420;
+  border-radius: 100px; font-size: .72rem; font-weight: 600;
+  color: #a0998e; white-space: nowrap;
+  background: #111;
+}
+
+/* ── 공통 섹션 ── */
+.sectionInner {
+  max-width: 1100px; margin: 0 auto; padding: 90px 40px;
+}
+.eye {
+  font-size: .62rem; font-weight: 700; letter-spacing: .28em;
+  color: #b8975a; text-transform: uppercase; margin-bottom: 10px;
+}
+.sectionTitle {
+  font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 900;
+  color: #f0ede8; letter-spacing: -.03em; margin-bottom: 48px;
+}
+
+/* ── 이런 분께 ── */
+.targetSection { background: #111008; }
+.targetGrid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+}
+.targetCard {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 24px 28px; border-radius: 12px;
+  background: #191410; border: 1px solid #2a2218;
+  transition: border-color .2s, transform .2s;
+}
+.targetCard:hover { border-color: #b8975a; transform: translateY(-3px); }
+.targetIcon { font-size: 1.8rem; flex-shrink: 0; margin-top: 2px; }
+.targetText { font-size: .92rem; color: #c8b89a; line-height: 1.6; }
+
+/* ── 기능 목록 ── */
+.featSection { background: #0d0d0d; }
+.featGrid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.featCard {
+  padding: 28px 24px; border-radius: 12px;
+  background: #111008; border: 1px solid #1e1a10;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.featCard:hover {
+  border-color: rgba(184,151,90,.45);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(184,151,90,.08);
+}
+.featIcon { font-size: 2rem; display: block; margin-bottom: 14px; }
+.featTitle { font-size: .95rem; font-weight: 700; color: #f0ede8; margin-bottom: 8px; }
+.featDesc { font-size: .82rem; color: #807870; line-height: 1.7; }
+
+/* ── 데모 ── */
+.demoSection { background: #111008; border-top: 1px solid #1e1a14; }
+.demoDesc {
+  font-size: .95rem; color: #a0998e; line-height: 1.8;
+  margin-bottom: 32px; word-break: keep-all;
+}
+.demoLinks { display: flex; gap: 16px; flex-wrap: wrap; }
+.demoLink {
+  padding: 10px 22px; border: 1px solid #3a3028;
+  border-radius: 100px; color: #b8975a; font-size: .82rem; font-weight: 600;
+  text-decoration: none; transition: border-color .2s, background .2s;
+}
+.demoLink:hover { border-color: #b8975a; background: rgba(184,151,90,.08); }
+
+/* ── 제작 과정 ── */
+.processSection { background: #0d0d0d; }
+.processSteps { display: flex; flex-direction: column; gap: 0; }
+.processStep {
+  display: flex; align-items: flex-start; gap: 28px;
+  padding: 28px 0; border-bottom: 1px solid #1a1610;
+}
+.processStep:last-child { border-bottom: none; }
+.processNum {
+  font-size: 2.5rem; font-weight: 900; color: #2a2218;
+  letter-spacing: -.04em; flex-shrink: 0; width: 72px;
+  line-height: 1;
+}
+.processTitle { font-size: 1rem; font-weight: 700; color: #e8dece; margin-bottom: 6px; }
+.processDesc { font-size: .85rem; color: #807870; line-height: 1.7; }
+
+/* ── 가격 & CTA ── */
+.ctaSection {
+  background: linear-gradient(135deg, #1a1408 0%, #0d0d0d 100%);
+  border-top: 1px solid #2a2218;
+}
+.ctaInner {
+  max-width: 640px; margin: 0 auto; padding: 100px 40px;
+  text-align: center;
+}
+.ctaEye {
+  font-size: .62rem; font-weight: 700; letter-spacing: .28em;
+  color: #b8975a; text-transform: uppercase; margin-bottom: 10px;
+}
+.ctaTitle {
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 900;
+  color: #f0ede8; letter-spacing: -.04em; margin-bottom: 36px;
+}
+.priceBox {
+  background: #191410; border: 1px solid #3a3028;
+  border-radius: 16px; padding: 40px 36px; margin-bottom: 36px;
+  position: relative; overflow: hidden;
+}
+.priceBox::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #c8973a, #f5d97e, #c8973a);
+}
+.priceLabel { font-size: .72rem; font-weight: 700; letter-spacing: .15em; color: #b8975a; text-transform: uppercase; margin-bottom: 8px; }
+.priceValue {
+  font-size: 3rem; font-weight: 900; letter-spacing: -.04em;
+  background: linear-gradient(90deg, #c8973a, #f5d97e);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+.priceSub { font-size: .84rem; color: #807870; margin-bottom: 28px; }
+.priceList {
+  list-style: none; padding: 0; margin: 0;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; text-align: left;
+}
+.priceList li { font-size: .84rem; color: #c8b89a; }
+
+.ctaBtns { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.ctaBtnPrimary {
+  padding: 18px; background: #b8975a; color: #0d0d0d;
+  font-size: .95rem; font-weight: 800; border-radius: 8px;
+  text-decoration: none; transition: background .2s;
+}
+.ctaBtnPrimary:hover { background: #d4aa6a; }
+.ctaBtnSecondary {
+  padding: 16px; border: 1.5px solid #3a3028; color: #c8b89a;
+  font-size: .9rem; font-weight: 600; border-radius: 8px;
+  text-decoration: none; transition: border-color .2s, color .2s;
+}
+.ctaBtnSecondary:hover { border-color: #b8975a; color: #f5d97e; }
+.ctaNote { font-size: .78rem; color: #504840; }
+
+/* ── 반응형 ── */
+@media (max-width: 900px) {
+  .hero { padding: 80px 40px 60px; min-height: auto; }
+  .heroBadge { display: none; }
+  .targetGrid { grid-template-columns: 1fr; }
+  .featGrid { grid-template-columns: 1fr 1fr; }
+  .sectionInner { padding: 60px 24px; }
+  .ctaInner { padding: 60px 24px; }
+  .priceList { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .featGrid { grid-template-columns: 1fr; }
+  .demoLinks { flex-direction: column; }
+  .heroBtns { flex-direction: column; }
+}

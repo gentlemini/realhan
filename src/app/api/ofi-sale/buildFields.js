@@ -35,8 +35,8 @@
   }
 
   addS('건물유형', d.building_type);
-  addN('임대계약면적_㎡', d.contract_area);
-  addN('전용면적_㎡', d.exclusive_area);
+  addR('임대계약면적_㎡', d.contract_area);
+  addR('전용면적_㎡', d.exclusive_area);
   addN('매매가격_만원', d.sale_price);
   addN('현보증금_만원', d.curr_deposit);
   addN('현월세_만원', d.curr_monthly);

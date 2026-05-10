@@ -76,9 +76,10 @@
 
 .loginHint { margin-top: 20px; font-size: 0.78rem; color: #b0a898; }
 
-/* ── 모바일 상단바 / 하단 탭바 — 데스크탑에서 숨김 ── */
+/* ── 모바일 상단바 / 드로어 — 데스크탑에서 숨김 ── */
 .mobileTopBar  { display: none; }
-.mobileNav     { display: none; }
+.drawer        { display: none; }
+.drawerOverlay { display: none; }
 
 /* ── 전체 레이아웃 ── */
 .layout {
@@ -549,7 +550,7 @@
   /* 데스크탑 사이드바 숨김 */
   .sidebar { display: none; }
 
-  /* ── 모바일 상단 바 ── */
+  /* ── 모바일 상단 바 (사이트 헤더 바로 아래 고정) ── */
   .mobileTopBar {
     display: flex;
     align-items: center;
@@ -558,9 +559,11 @@
     padding: 0 16px;
     height: 48px;
     flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    z-index: 50;
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    z-index: 60;
     border-bottom: 1px solid rgba(184,151,90,0.18);
   }
 
@@ -572,24 +575,13 @@
     text-transform: uppercase;
   }
 
-  .mobileLogoutBtn {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.35);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px 10px;
-    border-radius: 6px;
-    transition: color 0.15s;
-  }
-  .mobileLogoutBtn:hover { color: #ef4444; }
+  .mobileLogoutBtn { display: none; }
 
-  /* ── 메인 스크롤 영역 ── */
+  /* ── 메인 스크롤 영역 (fixed 관리자 바 48px 아래부터 시작) ── */
   .mainScroll {
     height: auto;
     flex: 1;
-    padding: 16px 14px 80px;
+    padding: 64px 14px 24px; /* 48px(관리자바) + 16px 여백 */
     overflow-y: auto;
   }
 
@@ -610,48 +602,168 @@
   .btnLabel { font-size: 11.5px; }
   .btnSub   { font-size: 8.5px; }
 
-  /* ── 모바일 하단 탭바 ── */
-  .mobileNav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 62px;
-    background: #1e2d2e;
-    border-top: 1px solid rgba(184,151,90,0.18);
-    z-index: 100;
-    box-shadow: 0 -4px 16px rgba(0,0,0,0.22);
-  }
-
-  .mobileNavItem {
-    flex: 1;
+  /* ── 햄버거 버튼 ── */
+  .mobileMenuBtn {
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 0;
-    color: rgba(255,255,255,0.3);
-    transition: color 0.15s;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background 0.15s;
   }
-  .mobileNavItem:hover { color: rgba(184,151,90,0.7); }
+  .mobileMenuBtn:hover { background: rgba(184,151,90,0.12); }
+  .mobileMenuBtn span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: rgba(255,255,255,0.75);
+    border-radius: 2px;
+    transition: background 0.15s;
+  }
+  .mobileMenuBtn:hover span { background: #b8975a; }
 
-  .mobileNavItemActive { color: #b8975a; }
-
-  .mobileNavIcon {
-    font-size: 1.1rem;
-    line-height: 1;
+  /* ── 드로어 오버레이 ── */
+  .drawerOverlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    animation: fadeIn 0.2s ease;
   }
 
-  .mobileNavLabel {
-    font-size: 0.55rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
+
+  /* ── 드로어 패널 ── */
+  .drawer {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 72vw;
+    max-width: 280px;
+    background: #1e2d2e;
+    z-index: 300;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.35);
+  }
+
+  .drawerOpen {
+    transform: translateX(0);
+  }
+
+  .drawerHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(184,151,90,0.18);
+    flex-shrink: 0;
+  }
+
+  .drawerTitle {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #b8975a;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .drawerClose {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.06);
+    border: none;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .drawerClose:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+  .drawerNav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .drawerItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    border-radius: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255,255,255,0.45);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    width: 100%;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+  }
+  .drawerItem:hover { background: rgba(184,151,90,0.1); color: rgba(255,255,255,0.85); }
+
+  .drawerItemActive {
+    background: rgba(184,151,90,0.16);
+    color: #b8975a;
+    font-weight: 700;
+  }
+
+  .drawerItemIcon { font-size: 1.1rem; width: 22px; text-align: center; flex-shrink: 0; }
+  .drawerItemLabel { flex: 1; }
+
+  .drawerItemDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #b8975a;
+    flex-shrink: 0;
+  }
+
+  .drawerFooter {
+    padding: 10px 10px 24px;
+    border-top: 1px solid rgba(184,151,90,0.12);
+    flex-shrink: 0;
+  }
+
+  .drawerLogout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255,255,255,0.28);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+  }
+  .drawerLogout:hover { background: rgba(220,38,38,0.12); color: #ef4444; }
 
   /* ── 설정 카드 ── */
   .settingsCard { padding: 20px 16px 18px; }

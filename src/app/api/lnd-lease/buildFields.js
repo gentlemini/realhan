@@ -34,7 +34,7 @@
     addC('지도_숨김', d.map_config.mapHidden);
   }
 
-  addN('면적_㎡', d.land_area);
+  addR('면적_㎡', d.land_area);
   addR('입주가능일', d.move_in);
   addN('전세가격_만원', d.jeonse_price);
   if (d.loan_info && typeof d.loan_info === 'object') {

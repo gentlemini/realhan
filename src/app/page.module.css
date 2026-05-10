@@ -48,18 +48,71 @@
 .heroLeft {
   padding: 80px 56px 72px 64px;
   display: flex; flex-direction: column; justify-content: center;
-  opacity: 0; transform: translateX(-20px);
-  transition: opacity .9s ease .2s, transform .9s ease .2s;
 }
-.heroLeftIn { opacity: 1; transform: none; }
-.heroEye { font-size: .66rem; font-weight: 700; letter-spacing: .24em; color: #b8975a; text-transform: uppercase; margin-bottom: 22px; }
+.heroEye {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .66rem; font-weight: 700; letter-spacing: .24em; color: #b8975a;
+  text-transform: uppercase; margin-bottom: 22px;
+  opacity: 0; transform: translateY(12px);
+  transition: opacity .6s ease .1s, transform .6s ease .1s;
+}
+.heroEye::before {
+  content: ''; display: block; width: 28px; height: 2px; background: #b8975a; flex-shrink: 0;
+}
+.heroLeftIn .heroEye { opacity: 1; transform: none; }
+
+/* 각 줄 순차 등장 */
+.heroLine {
+  display: block; overflow: hidden;
+}
+.heroLineInner {
+  display: block;
+  opacity: 0; transform: translateY(32px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1);
+}
+.heroLeftIn .heroLine:nth-child(1) .heroLineInner { opacity: 1; transform: none; transition-delay: .25s; }
+.heroLeftIn .heroLine:nth-child(2) .heroLineInner { opacity: 1; transform: none; transition-delay: .42s; }
+.heroLeftIn .heroLine:nth-child(3) .heroLineInner { opacity: 1; transform: none; transition-delay: .58s; }
+
 .heroH1 {
   font-size: clamp(1.8rem, 2.8vw, 2.8rem); font-weight: 900;
-  line-height: 1.1; color: #1a1a1a; letter-spacing: -.04em;
+  line-height: 1.2; color: #1a1a1a; letter-spacing: -.04em;
   margin-bottom: 8px; word-break: keep-all;
 }
-.heroH1Em { font-style: italic; color: #2a3e3f; }
-.heroSub { font-size: .88rem; color: #8c8c88; line-height: 1.85; margin-top: 16px; margin-bottom: 40px; word-break: keep-all; }
+
+/* 첫 줄: 금빛 shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.heroH1Gold {
+  background: linear-gradient(90deg, #c8973a 0%, #f5d97e 40%, #c8973a 60%, #f5d97e 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3.5s linear infinite;
+}
+
+/* 두 번째 줄: 이탤릭 + 자동 그려지는 밑줄 */
+.heroH1Em {
+  font-style: italic; color: #2a3e3f;
+  position: relative; display: inline-block;
+}
+.heroH1Em::after {
+  content: ''; position: absolute; bottom: -4px; left: 0;
+  height: 3px; width: 0; background: #b8975a; border-radius: 2px;
+  transition: width 0.8s cubic-bezier(.16,1,.3,1) 1.1s;
+}
+.heroLeftIn .heroH1Em::after { width: 100%; }
+
+.heroSub {
+  font-size: .88rem; color: #8c8c88; line-height: 1.85;
+  margin-top: 20px; margin-bottom: 40px; word-break: keep-all;
+  padding-left: 14px; border-left: 2px solid #e8e2d8;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .6s ease .85s, transform .6s ease .85s;
+}
+.heroLeftIn .heroSub { opacity: 1; transform: none; }
 .heroBtns { display: flex; gap: 12px; flex-wrap: wrap; }
 .heroBtnP { padding: 13px 30px; background: #2a3e3f; color: #fff; font-size: .85rem; font-weight: 700; border-radius: 3px; text-decoration: none; letter-spacing: .02em; transition: background .2s, transform .15s; }
 .heroBtnP:hover { background: #3d5859; transform: translateY(-2px); }
@@ -175,22 +228,27 @@
 .listMore { font-size: .76rem; font-weight: 600; color: #2a3e3f; border-bottom: 1px solid rgba(42,62,63,.4); padding-bottom: 1px; white-space: nowrap; flex-shrink: 0; text-decoration: none; transition: opacity .2s; }
 .listMore:hover { opacity: .65; }
 
-.masonry { max-width: 1160px; margin: 0 auto; columns: 4; column-gap: 16px; }
-.masonryItem { break-inside: avoid; }
+.masonry {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.masonryItem { display: flex; flex-direction: column; }
 
-@media (max-width: 1100px) { .masonry { columns: 3; } }
+@media (max-width: 1100px) { .masonry { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 768px) {
   .listSection { padding: 28px 14px; }
   .listHead { margin-bottom: 16px; }
   .sectionTitle { font-size: 1.25rem; }
+  .masonry { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
-@media (max-width: 720px)  { .masonry { columns: 2; column-gap: 10px; } }
-@media (max-width: 720px)  { .card { margin-bottom: 10px; } }
-@media (max-width: 360px)  { .masonry { column-gap: 8px; } }
+@media (max-width: 360px) { .masonry { gap: 8px; } }
 
 /* ── property card ────────────────────────────────────────────────────────────── */
 .card {
-  break-inside: avoid; margin-bottom: 18px;
   background: #fff; border-radius: 12px; overflow: hidden;
   border: 1px solid #eee;
   box-shadow: 0 2px 8px rgba(0,0,0,.06);
@@ -237,7 +295,8 @@
 
 .cardBody { padding: 11px 13px 13px; }
 .cardName { font-size: .88rem; font-weight: 600; color: #1a1a1a; margin: 0 0 5px; line-height: 1.35; }
-.cardPrice { font-size: .92rem; font-weight: 800; margin: 0 0 7px; letter-spacing: -.01em; }
+.cardPrice { font-size: .92rem; font-weight: 800; margin: 0 0 4px; letter-spacing: -.01em; }
+.cardMaintFee { font-size: .75rem; color: #888; margin: 0 0 6px; }
 .cardChips { display: flex; flex-wrap: wrap; gap: 4px; }
 .cardChip { font-size: .63rem; color: #666; background: #fff; border: 1px solid #e5e5e5; border-radius: 5px; padding: 2px 7px; }
 
@@ -336,7 +395,11 @@
 
 .pvPhotoCol {
   width: 65%; flex-shrink: 0;
+  display: flex; flex-direction: column;
   overflow: hidden; background: #f5f4f0;
+}
+.pvPhotoMain {
+  flex: 1; position: relative; overflow: hidden; background: #f5f4f0;
 }
 .pvPhotoImg { width: 100%; height: 100%; object-fit: contain; display: block; background: #f5f4f0; }
 .pvPhotoArea {
@@ -346,6 +409,21 @@
   gap: 20px; padding: 40px; box-sizing: border-box;
   background: #f5f4f0;
 }
+
+.pvThumbs {
+  display: flex; gap: 5px; padding: 6px 8px;
+  overflow-x: auto; background: #111; flex-shrink: 0;
+  justify-content: center;
+}
+.pvThumbs::-webkit-scrollbar { height: 3px; }
+.pvThumbs::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
+.pvThumb {
+  width: 56px; height: 40px; flex-shrink: 0; border-radius: 4px;
+  overflow: hidden; cursor: pointer; border: 2px solid transparent;
+  opacity: 0.55; transition: opacity 0.15s, border-color 0.15s;
+}
+.pvThumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pvThumbActive { border-color: #b8975a; opacity: 1; }
 
 .pvSlidePrev, .pvSlideNext {
   position: absolute; top: 50%; transform: translateY(-50%);
@@ -471,7 +549,7 @@
 .pvDetailLoading { display: flex; align-items: center; justify-content: center; padding: 56px 0; }
 .pvPrivate { color: #b8975a; font-style: italic; font-size: 12px; }
 
-.pvBadge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 11px; font-weight: 700; }
+.pvBadge { display: inline-block; padding: 3px 11px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: .02em; }
 .pvPriceBadge {
   display: inline-block; padding: 5px 16px; border-radius: 2px;
   background: #b8975a; color: #fff; font-size: 15px; font-weight: 800; letter-spacing: .02em;

@@ -108,7 +108,7 @@ function PropertyCard({ property, onClick }) {
         ) : (
           <div className={styles.imgFallback}><PropertyImageFallback /></div>
         )}
-        {isRecommended && <span className={styles.recommendBadge}>⭐ 추천</span>}
+
         <span
           className={styles.typeBadge}
           style={{ background: badgeStyle.bg, color: badgeStyle.color }}

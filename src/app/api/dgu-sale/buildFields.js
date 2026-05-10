@@ -35,10 +35,10 @@
   }
 
   addS('건물유형', '건물전체');
-  addN('연면적_㎡', d.total_floor_area);
-  addN('대지면적_㎡', d.land_area);
-  addN('건축면적_㎡', d.building_area);
-  addN('전용면적_㎡', d.exclusive_area);
+  addR('연면적_㎡', d.total_floor_area);
+  addR('대지면적_㎡', d.land_area);
+  addR('건축면적_㎡', d.building_area);
+  addR('전용면적_㎡', d.exclusive_area);
   addN('매매가격_만원', d.sale_price);
   addN('전보증금_만원', d.curr_jeonse);
   addN('전월세_만원', d.curr_monthly_rent);

@@ -213,48 +213,49 @@ function PreviewModal({ item, onClose }) {
         </a>
 
         <div className={modalStyles.pvLayout}>
-          <div className={modalStyles.pvPhotoCol} style={{ position: 'relative' }}>
-            {currentSlide ? (
-              <>
-                {currentSlide.type === 'youtube' ? (
-                  <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <iframe
-                      src={`https://www.youtube.com/embed/${currentSlide.id}`}
-                      title="매물 영상"
-                      style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                ) : (
-                  <img src={currentSlide.url} alt={`사진 ${slideIdx + (youtubeId ? 0 : 1)}`} className={modalStyles.pvPhotoImg} />
-                )}
-                {slides.length > 1 && (
-                  <>
-                    <button onClick={prevSlide} className={modalStyles.pvSlidePrev} aria-label="이전">&#8249;</button>
-                    <button onClick={nextSlide} className={modalStyles.pvSlideNext} aria-label="다음">&#8250;</button>
-                    <div className={modalStyles.pvSlideDots}>
-                      {slides.map((s, i) => (
-                        <span
-                          key={i}
-                          className={modalStyles.pvSlideDot}
-                          style={{ background: i === slideIdx ? '#5a3e28' : 'rgba(255,255,255,0.6)' }}
-                          onClick={() => setSlideIdx(i)}
-                        />
-                      ))}
+          <div className={modalStyles.pvPhotoCol}>
+            <div className={modalStyles.pvPhotoMain}>
+              {currentSlide ? (
+                <>
+                  {currentSlide.type === 'youtube' ? (
+                    <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${currentSlide.id}`}
+                        title="매물 영상"
+                        style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
                     </div>
-                    <div className={modalStyles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
-                  </>
-                )}
-              </>
-            ) : (
-              <div className={modalStyles.pvPhotoArea}>
-                <span className={modalStyles.pvPhotoGhost}>사진위치</span>
-                <div className={modalStyles.pvPhotoFallback}>
-                  <p className={modalStyles.pvFallbackSub}>사진 첨부 없을시 아래 내용</p>
-                  <p className={modalStyles.pvFallbackName}>"공인중개사 한민희"</p>
-                  <p className={modalStyles.pvFallbackPhone}>"010-4706-8253"</p>
+                  ) : (
+                    <img src={currentSlide.url} alt={`사진 ${slideIdx + (youtubeId ? 0 : 1)}`} className={modalStyles.pvPhotoImg} />
+                  )}
+                  {slides.length > 1 && (
+                    <>
+                      <button onClick={prevSlide} className={modalStyles.pvSlidePrev} aria-label="이전">&#8249;</button>
+                      <button onClick={nextSlide} className={modalStyles.pvSlideNext} aria-label="다음">&#8250;</button>
+                      <div className={modalStyles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div className={modalStyles.pvPhotoArea}>
+                  <span className={modalStyles.pvPhotoGhost}>사진위치</span>
+                  <div className={modalStyles.pvPhotoFallback}>
+                    <p className={modalStyles.pvFallbackSub}>사진 첨부 없을시 아래 내용</p>
+                    <p className={modalStyles.pvFallbackName}>"공인중개사 한민희"</p>
+                    <p className={modalStyles.pvFallbackPhone}>"010-4706-8253"</p>
+                  </div>
                 </div>
+              )}
+            </div>
+            {slides.length > 1 && (
+              <div className={modalStyles.pvThumbs}>
+                {slides.map((s, i) => (
+                  <div key={i} className={`${modalStyles.pvThumb} ${i === slideIdx ? modalStyles.pvThumbActive : ''}`} onClick={() => setSlideIdx(i)}>
+                    <img src={s.type === 'youtube' ? `https://img.youtube.com/vi/${s.id}/mqdefault.jpg` : s.url} alt={`${i + 1}`} />
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -432,7 +433,7 @@ function PropertyItem({ property, onClick }) {
         <div className={styles.cardBadges}>
           <span className={styles.cardBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{property.category}</span>
           <span className={styles.cardBadge} style={{ background: txStyle.bg, color: txStyle.color }}>{property.transaction}</span>
-          {property.recommended && <span className={styles.cardRec}>추천</span>}
+
         </div>
 
         {property.property_id && (
@@ -488,8 +489,11 @@ function PropertiesPageInner() {
   const [filterOpen,    setFilterOpen]   = useState(false);
   const [viewMode,      setViewMode]     = useState('list');
   const [mapSheetItems, setMapSheetItems] = useState(null);
+  const [listPage,     setListPage]     = useState(1);
+  const LIST_PAGE_SIZE = 10;
 
   useEffect(() => { setClusterProps(null); setBoundsProps(null); setMapBounds(null); setGeocodedIds(new Set()); }, [selectedType, selectedTx, keyword]);
+  useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps, clusterProps]);
 
   useEffect(() => {
     fetch('/api/listings')
@@ -688,9 +692,24 @@ function PropertiesPageInner() {
                 )}
               </div>
             ) : (
-              listItems.map(prop => (
-                <PropertyItem key={prop.id} property={prop} onClick={() => handleCardClick(prop)} />
-              ))
+              <>
+                {listItems.slice((listPage - 1) * LIST_PAGE_SIZE, listPage * LIST_PAGE_SIZE).map(prop => (
+                  <PropertyItem key={prop.id} property={prop} onClick={() => handleCardClick(prop)} />
+                ))}
+                {Math.ceil(listItems.length / LIST_PAGE_SIZE) > 1 && (
+                  <div className={styles.listPagination}>
+                    <button className={styles.listPageBtn} onClick={() => setListPage(p => Math.max(1, p - 1))} disabled={listPage === 1}>이전</button>
+                    {Array.from({ length: Math.ceil(listItems.length / LIST_PAGE_SIZE) }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === Math.ceil(listItems.length / LIST_PAGE_SIZE) || Math.abs(p - listPage) <= 1)
+                      .reduce((acc, p, i, arr) => { if (i > 0 && arr[i-1] !== p-1) acc.push('…'); acc.push(p); return acc; }, [])
+                      .map((p, i) => p === '…'
+                        ? <span key={`d${i}`} className={styles.listPageDots}>…</span>
+                        : <button key={p} className={`${styles.listPageBtn} ${p === listPage ? styles.listPageBtnActive : ''}`} onClick={() => setListPage(p)}>{p}</button>
+                      )}
+                    <button className={styles.listPageBtn} onClick={() => setListPage(p => Math.min(Math.ceil(listItems.length / LIST_PAGE_SIZE), p + 1))} disabled={listPage === Math.ceil(listItems.length / LIST_PAGE_SIZE)}>다음</button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

@@ -14,7 +14,7 @@
 @media (max-width: 768px) {
   .wrap {
     left: 0;
-    top: calc(80px + 48px); /* 메인헤더 80px + 관리자 상단바 48px */
-    bottom: 62px; /* mobileNav height */
+    top: 128px; /* 사이트 헤더 80px + 관리자 바 48px */
+    bottom: 0;
   }
 }

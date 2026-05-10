@@ -98,6 +98,18 @@ const NAV_LINKS = [
       </svg>
     ),
   },
+  {
+    href: '/web-design',
+    label: '홈페이지 제작 문의',
+    featured: true,
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M3 9h18"/>
+        <path d="M9 21V9"/>
+      </svg>
+    ),
+  },
 ];
 
 export default function Header() {

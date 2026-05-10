@@ -36,8 +36,8 @@
 
   addR('아파트명', d.apt_name);
   addR('평형', d.pyeong);
-  addN('공급면적_㎡', d.supply_area);
-  addN('전용면적_㎡', d.exclusive_area);
+  addR('공급면적_㎡', d.supply_area);
+  addR('전용면적_㎡', d.exclusive_area);
   addS('분양구분', d.presale_type);
   addS('분양가유무', d.has_presale_price);
   addN('분양금액_만원', d.presale_price);

@@ -32,8 +32,8 @@
     if (d.ho.adminMemo) addR('호수_관리자메모', d.ho.adminMemo);
   }
 
-  addN('공급면적_㎡', d.supply_area);
-  addN('전용면적_㎡', d.exclusive_area);
+  addR('공급면적_㎡', d.supply_area);
+  addR('전용면적_㎡', d.exclusive_area);
   addN('매매가격_만원', d.sale_price);
   if (d.loan_info && typeof d.loan_info === 'object') {
     const amt = d.loan_info.amount;

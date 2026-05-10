@@ -2,12 +2,9 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef, Suspense } from 'react';
 import { createPortal } from 'react-dom';
-import dynamic from 'next/dynamic';
 import styles from '../../properties/properties.module.css';
-import localStyles from './map.module.css';
+import localStyles from '../map/map.module.css';
 import modalStyles from '../../page.module.css';
-
-const KakaoMap = dynamic(() => import('@/components/KakaoMap'), { ssr: false });
 
 const KAKAO_APP_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || '';
 
@@ -33,7 +30,9 @@ const TX_COLORS = {
   '월세': { bg: '#f0fdf4', color: '#15803d' },
 };
 
-const TYPES = ['전체', '아파트', '오피스텔', '단독주택', '다가구', '다세대', '원룸', '투룸', '쓰리룸', '상가', '오피스', '공장/창고', '빌딩', '토지', '재개발', '분양'];
+const TX_BG = { '매매': '#b85c2c', '전세': '#1d4ed8', '월세': '#15803d' };
+
+const TYPES = ['전체', '아파트', '오피스텔', '단독주택', '다가구', '다세대', '원룸', '상가', '오피스', '공장/창고', '빌딩', '토지', '재개발', '분양'];
 const TX_TYPES = ['전체', '매매', '전세', '월세'];
 
 const CATEGORY_GROUP = {
@@ -81,8 +80,30 @@ function formatPrice(item) {
   return '';
 }
 
-let _kakaoPromise = null;
+function formatPriceLabel(item) {
+  const { transaction, sale_price, jeonse_price, deposit, monthly_rent, maintenance } = item;
+  const c = maintenance || 0;
+  if (transaction === '매매' && sale_price)
+    return c ? `${fmtMan(sale_price)} / 관${fmtMan(c)}` : fmtMan(sale_price);
+  if (transaction === '전세' && jeonse_price)
+    return c ? `${fmtMan(jeonse_price)} / 관${fmtMan(c)}` : fmtMan(jeonse_price);
+  if (transaction === '월세') {
+    const d = deposit || 0;
+    const m = monthly_rent || 0;
+    if (d || m) return c
+      ? `${fmtMan(d) || '0'} / ${fmtMan(m) || '0'} / 관${fmtMan(c)}`
+      : `${fmtMan(d) || '0'} / ${fmtMan(m) || '0'}`;
+  }
+  return null;
+}
 
+function getYouTubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+let _kakaoPromise = null;
 function loadKakaoSdk() {
   if (_kakaoPromise) return _kakaoPromise;
   _kakaoPromise = new Promise((resolve, reject) => {
@@ -109,86 +130,209 @@ function loadKakaoSdk() {
   return _kakaoPromise;
 }
 
-function PreviewMap({ lat, lng, radius }) {
+const geoKey = addr => `geo_v1_${addr}`;
+function tryGetCache(addr) {
+  try { const v = sessionStorage.getItem(geoKey(addr)); return v ? JSON.parse(v) : null; } catch { return null; }
+}
+function trySetCache(addr, c) {
+  try { sessionStorage.setItem(geoKey(addr), JSON.stringify(c)); } catch {}
+}
+
+function makePriceDiv(item, onClick) {
+  const priceText = formatPriceLabel(item);
+  if (!priceText) return null;
+  const bg = TX_BG[item.transaction] || '#78716c';
+  const div = document.createElement('div');
+  div.style.cssText = [
+    `background:${bg}`,
+    'color:#fff',
+    'border-radius:14px',
+    'padding:4px 11px 5px',
+    'font-size:12px',
+    'font-weight:700',
+    'white-space:nowrap',
+    'cursor:pointer',
+    'box-shadow:0 2px 8px rgba(0,0,0,0.38)',
+    'line-height:1.3',
+    'pointer-events:auto',
+    'user-select:none',
+    'text-align:center',
+    'border:1.5px solid rgba(255,255,255,0.4)',
+    'transition:transform 0.12s',
+  ].join(';');
+  div.innerHTML = `<div style="font-size:9px;opacity:0.78;margin-bottom:1px;">${item.category || ''}</div><div>${priceText}</div>`;
+  div.addEventListener('mouseenter', () => { div.style.transform = 'scale(1.1)'; });
+  div.addEventListener('mouseleave', () => { div.style.transform = ''; });
+  div.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  return div;
+}
+
+// ── Cluster / region helpers (mirrors KakaoMap.js) ──────────────────────────
+function haversineM(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function buildClusters(items, radiusM) {
+  const assigned = new Set();
+  const clusters = [];
+  items.forEach((seed, i) => {
+    if (assigned.has(i)) return;
+    assigned.add(i);
+    const group = [seed];
+    items.forEach((other, j) => {
+      if (assigned.has(j)) return;
+      if (haversineM(seed.lat, seed.lng, other.lat, other.lng) <= radiusM) { group.push(other); assigned.add(j); }
+    });
+    const lat = group.reduce((s, p) => s + p.lat, 0) / group.length;
+    const lng = group.reduce((s, p) => s + p.lng, 0) / group.length;
+    clusters.push({ lat, lng, items: group });
+  });
+  return clusters;
+}
+
+function extractGu(address) {
+  const m = address.match(/([가-힣]+(?:구|군))(?:\s|$)/);
+  return m ? m[1] : null;
+}
+
+const FULL_CITY_MAP = {
+  '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시',
+  '인천': '인천광역시', '광주': '광주광역시', '대전': '대전광역시',
+  '울산': '울산광역시', '세종': '세종특별자치시',
+  '경기': '경기도', '강원': '강원도',
+  '충북': '충청북도', '충남': '충청남도',
+  '전북': '전라북도', '전남': '전라남도',
+  '경북': '경상북도', '경남': '경상남도', '제주': '제주특별자치도',
+};
+
+function extractFullCity(address) {
+  if (!address) return null;
+  for (const full of Object.values(FULL_CITY_MAP)) {
+    if (address.startsWith(full)) return full;
+  }
+  for (const [short, full] of Object.entries(FULL_CITY_MAP)) {
+    if (address.startsWith(short)) return full;
+  }
+  const m = address.match(/^([가-힣]+(?:특별시|광역시|특별자치시|도|특별자치도))/);
+  return m ? m[1] : null;
+}
+
+function groupByCity(geocoded) {
+  const groups = {};
+  geocoded.forEach(item => {
+    const addr = item.prop.address || item.prop.location || '';
+    const key = extractFullCity(addr) || item.regionName || '기타';
+    if (!groups[key]) groups[key] = { items: [], lats: [], lngs: [] };
+    groups[key].items.push(item);
+    groups[key].lats.push(item.lat);
+    groups[key].lngs.push(item.lng);
+  });
+  return groups;
+}
+
+function groupBy(geocoded, keyFn) {
+  const groups = {};
+  geocoded.forEach(item => {
+    const addr = item.prop.address || item.prop.location || '';
+    const key = keyFn(addr) || '기타';
+    if (!groups[key]) groups[key] = { items: [], lats: [], lngs: [] };
+    groups[key].items.push(item);
+    groups[key].lats.push(item.lat);
+    groups[key].lngs.push(item.lng);
+  });
+  return groups;
+}
+
+function getClusterMode(level) {
+  if (level >= 10) return 'city';
+  if (level >= 7)  return 'gu';
+  return 'cluster';
+}
+
+const MODE_STYLE = {
+  cluster: { single: 'rgba(193,154,107,0.90)', multi: 'rgba(168,123,81,0.95)' },
+  gu:      { bg: 'rgba(168,123,81,0.95)',  border: '#fff' },
+  city:    { bg: 'rgba(110,72,34,0.97)',   border: 'rgba(255,255,255,0.9)' },
+};
+
+function makeLabelDiv(label, count, style, onClick) {
+  const div = document.createElement('div');
+  div.style.cssText = [
+    `background:${style.bg}`,
+    `border:2px solid ${style.border}`,
+    'border-radius:20px',
+    'box-shadow:0 2px 10px rgba(0,0,0,0.3)',
+    'display:flex', 'flex-direction:column', 'align-items:center', 'justify-content:center',
+    'color:#fff', 'font-weight:700', 'cursor:pointer', 'pointer-events:auto',
+    'padding:5px 14px', 'white-space:nowrap', 'min-width:64px', 'text-align:center',
+  ].join(';');
+  div.innerHTML = `<span style="font-size:12px;line-height:1.4;">${label}</span><span style="font-size:18px;line-height:1.3;">${count}</span>`;
+  div.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  return div;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function PreviewMap({ lat, lng }) {
   const mapRef = useRef(null);
   useEffect(() => {
     let cancelled = false;
     loadKakaoSdk().then(() => {
       if (cancelled || !mapRef.current) return;
-      if (!mapRef.current.offsetWidth && !mapRef.current.offsetHeight) return;
-      const { kakao } = window;
-      const center = new kakao.maps.LatLng(lat, lng);
-      const map = new kakao.maps.Map(mapRef.current, { center, level: 3 });
+      const center = new window.kakao.maps.LatLng(lat, lng);
+      const map = new window.kakao.maps.Map(mapRef.current, { center, level: 3 });
       map.setZoomable(false);
-      new kakao.maps.Marker({ position: center, map });
+      new window.kakao.maps.Marker({ position: center, map });
     }).catch(() => {});
     return () => { cancelled = true; };
-  }, [lat, lng, radius]);
+  }, [lat, lng]);
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
-}
-
-function getYouTubeId(url) {
-  if (!url) return null;
-  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : null;
 }
 
 function PreviewModal({ item, onClose }) {
   const catStyle = CATEGORY_COLORS[item.category] || { bg: '#f3f4f6', color: '#374151' };
   const txStyle  = TX_COLORS[item.transaction]    || { bg: '#f3f4f6', color: '#374151' };
-
-  const [detail,     setDetail]     = useState(null);
+  const [detail, setDetail]         = useState(null);
   const [detLoading, setDetLoading] = useState(true);
 
   useEffect(() => {
     setDetLoading(true);
     fetch(`/api/property-detail/${item.id}`)
-      .then(r => r.json())
-      .then(d => setDetail(d))
-      .catch(() => setDetail(null))
-      .finally(() => setDetLoading(false));
+      .then(r => r.json()).then(d => setDetail(d)).catch(() => setDetail(null)).finally(() => setDetLoading(false));
   }, [item.id]);
 
   const imageUrls = detail?.imageUrls?.length ? detail.imageUrls
                   : (detail?.imageUrl || item.imageUrl) ? [detail?.imageUrl || item.imageUrl] : [];
-
-  const youtubeUrl = detail?.youtube_url || item.youtube_url || null;
-  const youtubeId  = getYouTubeId(youtubeUrl);
+  const youtubeId = getYouTubeId(detail?.youtube_url || item.youtube_url);
   const slides = [
     ...(youtubeId ? [{ type: 'youtube', id: youtubeId }] : []),
     ...imageUrls.map(url => ({ type: 'photo', url })),
   ];
-
   const [slideIdx, setSlideIdx] = useState(0);
   useEffect(() => { setSlideIdx(0); }, [item.id]);
-  const currentSlide = slides[slideIdx] || null;
-  const prevSlide = () => setSlideIdx(i => (i - 1 + slides.length) % slides.length);
-  const nextSlide = () => setSlideIdx(i => (i + 1) % slides.length);
+  const currentSlide = slides[slideIdx];
 
-  const hasMap    = (detail?.map_lat ?? item.map_lat) && (detail?.map_lng ?? item.map_lng);
-  const mapLat    = detail?.map_lat    ?? item.map_lat;
-  const mapLng    = detail?.map_lng    ?? item.map_lng;
-  const mapRadius = 0;
-
+  const hasMap     = (detail?.map_lat ?? item.map_lat) && (detail?.map_lng ?? item.map_lng);
+  const mapLat     = detail?.map_lat ?? item.map_lat;
+  const mapLng     = detail?.map_lng ?? item.map_lng;
   const titleRow   = detail?.rows?.find(r => r.label === '매물 특징');
   const modalTitle = titleRow?.value || item.building_name || '';
 
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    const handler = e => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', handler);
-      document.body.style.overflow = '';
-    };
+    return () => { window.removeEventListener('keydown', handler); document.body.style.overflow = ''; };
   }, [onClose]);
 
   return createPortal(
     <div className={modalStyles.pvOverlay} onClick={onClose}>
       <div className={modalStyles.pvBox} onClick={e => e.stopPropagation()}>
-
         <button className={modalStyles.pvClose} onClick={onClose}>✕</button>
-
         <div className={modalStyles.pvLayout}>
           <div className={modalStyles.pvPhotoCol}>
             <div className={modalStyles.pvPhotoMain}>
@@ -197,7 +341,6 @@ function PreviewModal({ item, onClose }) {
                   {currentSlide.type === 'youtube' ? (
                     <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <iframe
-                        key={currentSlide.id}
                         src={`https://www.youtube.com/embed/${currentSlide.id}?rel=0`}
                         title="매물 영상"
                         style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
@@ -210,8 +353,8 @@ function PreviewModal({ item, onClose }) {
                   )}
                   {slides.length > 1 && (
                     <>
-                      <button onClick={prevSlide} className={modalStyles.pvSlidePrev} aria-label="이전">&#8249;</button>
-                      <button onClick={nextSlide} className={modalStyles.pvSlideNext} aria-label="다음">&#8250;</button>
+                      <button onClick={() => setSlideIdx(i => (i - 1 + slides.length) % slides.length)} className={modalStyles.pvSlidePrev}>&#8249;</button>
+                      <button onClick={() => setSlideIdx(i => (i + 1) % slides.length)} className={modalStyles.pvSlideNext}>&#8250;</button>
                       <div className={modalStyles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
                     </>
                   )}
@@ -219,11 +362,6 @@ function PreviewModal({ item, onClose }) {
               ) : (
                 <div className={modalStyles.pvPhotoArea}>
                   <span className={modalStyles.pvPhotoGhost}>사진위치</span>
-                  <div className={modalStyles.pvPhotoFallback}>
-                    <p className={modalStyles.pvFallbackSub}>사진 첨부 없을시 아래 내용</p>
-                    <p className={modalStyles.pvFallbackName}>"공인중개사 한민희"</p>
-                    <p className={modalStyles.pvFallbackPhone}>"010-4706-8253"</p>
-                  </div>
                 </div>
               )}
             </div>
@@ -237,67 +375,39 @@ function PreviewModal({ item, onClose }) {
               </div>
             )}
           </div>
-
           <div className={modalStyles.pvDataCol}>
             <div className={modalStyles.pvMapBox}>
-              {hasMap ? (
-                <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
-              ) : (
-                <span className={modalStyles.pvMapPlaceholder}>지도 위치 미등록</span>
-              )}
+              {hasMap ? <PreviewMap lat={mapLat} lng={mapLng} /> : <span className={modalStyles.pvMapPlaceholder}>지도 위치 미등록</span>}
             </div>
-
             <div className={modalStyles.pvDataScroll}>
               <div className={modalStyles.pvDataHeader}>
                 <div className={modalStyles.pvHeaderSub}>
                   <span className={modalStyles.fBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
                   <span className={modalStyles.fBadge} style={{ background: txStyle.bg,  color: txStyle.color  }}>{item.transaction}</span>
-                  {item.map_hidden && (
-                    <span className={modalStyles.fBadge} style={{ background: '#fee2e2', color: '#991b1b' }}>🔒 위치숨김</span>
-                  )}
                 </div>
-                <div className={modalStyles.pvTitle}>
-                  {modalTitle || <span className={modalStyles.pvTitleEmpty}>매물제목 미입력</span>}
-                </div>
+                <div className={modalStyles.pvTitle}>{modalTitle || <span className={modalStyles.pvTitleEmpty}>매물제목 미입력</span>}</div>
               </div>
-
-              {!detLoading && hasMap && (
-                <div className={modalStyles.pvMobileMap}>
-                  <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
-                </div>
-              )}
-
               {detLoading ? (
-                <div className={modalStyles.pvDetailLoading}>
-                  <div className={modalStyles.spinner} />
-                </div>
+                <div className={modalStyles.pvDetailLoading}><div className={modalStyles.spinner} /></div>
               ) : (() => {
                 const rows = detail?.rows || [];
                 const sections = [];
                 for (const r of rows) {
                   const sec = r.section || '기타';
-                  if (!sections.length || sections[sections.length - 1].title !== sec)
-                    sections.push({ title: sec, rows: [] });
+                  if (!sections.length || sections[sections.length - 1].title !== sec) sections.push({ title: sec, rows: [] });
                   sections[sections.length - 1].rows.push(r);
                 }
                 return sections.map(sec => (
                   <div key={sec.title}>
                     <div className={modalStyles.pvRowSection}>{sec.title}</div>
-                    {sec.rows.map(r => {
-                      const cs = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
-                      const ts = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
-                      return (
-                        <div key={r.label} className={`${modalStyles.pvRow} ${r.isPrice ? modalStyles.pvRowHighlight : ''}`}>
-                          <div className={modalStyles.pvLabel}>{r.label}</div>
-                          <div className={`${modalStyles.pvValue} ${r.isPrivate ? modalStyles.pvPrivate : ''}`}>
-                            {r.isCategory    && <span className={modalStyles.pvBadge} style={{ background: cs.bg, color: cs.color }}>{r.value}</span>}
-                            {r.isTransaction && <span className={modalStyles.pvBadge} style={{ background: ts.bg, color: ts.color }}>{r.value}</span>}
-                            {r.isPrice       && <span className={modalStyles.pvPriceBadge}>{r.value}</span>}
-                            {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
-                          </div>
+                    {sec.rows.map(r => (
+                      <div key={r.label} className={`${modalStyles.pvRow} ${r.isPrice ? modalStyles.pvRowHighlight : ''}`}>
+                        <div className={modalStyles.pvLabel}>{r.label}</div>
+                        <div className={`${modalStyles.pvValue} ${r.isPrivate ? modalStyles.pvPrivate : ''}`}>
+                          {r.isPrice ? <span className={modalStyles.pvPriceBadge}>{r.value}</span> : r.value}
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 ));
               })()}
@@ -308,6 +418,178 @@ function PreviewModal({ item, onClose }) {
     </div>,
     document.body
   );
+}
+
+function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsChange }) {
+  const mapRef              = useRef(null);
+  const mapInstanceRef      = useRef(null);
+  const mapReadyRef         = useRef(false);
+  const geocacheRef         = useRef({});
+  const overlaysRef         = useRef([]);
+  const filteredRef         = useRef(filtered);
+  const geocodedRef         = useRef([]);
+  const onPropertyClickRef  = useRef(onPropertyClick);
+  const onClusterClickRef   = useRef(onClusterClick);
+  const onBoundsChangeRef   = useRef(onBoundsChange);
+  filteredRef.current         = filtered;
+  onPropertyClickRef.current  = onPropertyClick;
+  onClusterClickRef.current   = onClusterClick;
+  onBoundsChangeRef.current   = onBoundsChange;
+
+  function clearOverlays() {
+    overlaysRef.current.forEach(o => o.setMap(null));
+    overlaysRef.current = [];
+  }
+
+  function renderAll(geocoded) {
+    const map = mapInstanceRef.current;
+    if (!map || geocoded.length === 0) { clearOverlays(); return; }
+    clearOverlays();
+
+    const level  = map.getLevel();
+    const bounds = map.getBounds();
+    const visible = geocoded.filter(({ lat, lng }) =>
+      bounds.contain(new window.kakao.maps.LatLng(lat, lng))
+    );
+    if (visible.length === 0) return;
+
+    // level ≤ 5 (≈ 500m) → individual price labels for visible items
+    if (level <= 5) {
+      visible.forEach(({ lat, lng, prop }) => {
+        const div = makePriceDiv(prop, () => onPropertyClickRef.current(prop));
+        if (!div) return;
+        const overlay = new window.kakao.maps.CustomOverlay({
+          position: new window.kakao.maps.LatLng(lat, lng),
+          content: div, map, zIndex: 10, xAnchor: 0.5, yAnchor: 1.3,
+        });
+        div.addEventListener('mouseenter', () => overlay.setZIndex(50));
+        div.addEventListener('mouseleave', () => overlay.setZIndex(10));
+        overlaysRef.current.push(overlay);
+      });
+      return;
+    }
+
+    // level 6+ → cluster / gu / city (use all geocoded for grouping, visible for clusters)
+    const mode = getClusterMode(level);
+    if (mode === 'cluster') {
+      const clusters = buildClusters(visible, 100);
+      clusters.forEach(cluster => {
+        const count = cluster.items.length;
+        const pos   = new window.kakao.maps.LatLng(cluster.lat, cluster.lng);
+        const size  = count >= 10 ? 48 : count >= 5 ? 44 : 38;
+        const bg    = count > 1 ? MODE_STYLE.cluster.multi : MODE_STYLE.cluster.single;
+        const div   = document.createElement('div');
+        div.style.cssText = `width:${size}px;height:${size}px;background:${bg};border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:${count >= 10 ? 15 : 14}px;font-weight:700;cursor:pointer;pointer-events:auto;`;
+        div.textContent = count;
+        div.addEventListener('click', e => {
+          e.stopPropagation();
+          if (onClusterClickRef.current) onClusterClickRef.current(cluster.items.map(it => it.prop));
+        });
+        overlaysRef.current.push(new window.kakao.maps.CustomOverlay({
+          position: pos, content: div, map, zIndex: 10, xAnchor: 0.5, yAnchor: 0.5,
+        }));
+      });
+      return;
+    }
+
+    // gu / city — group all geocoded (not just visible) so label appears even if center is off-screen
+    const style  = MODE_STYLE[mode] || MODE_STYLE.city;
+    const groups = mode === 'city' ? groupByCity(geocoded) : groupBy(geocoded, extractGu);
+    Object.entries(groups).forEach(([label, { items, lats, lngs }]) => {
+      const lat = lats.reduce((s, v) => s + v, 0) / lats.length;
+      const lng = lngs.reduce((s, v) => s + v, 0) / lngs.length;
+      const div = makeLabelDiv(label, items.length, style, () => {
+        if (onClusterClickRef.current) onClusterClickRef.current(items.map(it => it.prop));
+      });
+      overlaysRef.current.push(new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(lat, lng),
+        content: div, map, zIndex: 10, xAnchor: 0.5, yAnchor: 0.5,
+      }));
+    });
+  }
+
+  function geocodeAndRender(props) {
+    if (!mapInstanceRef.current || !props) return;
+    const geocoded    = [];
+    const needsGeocode = [];
+
+    props.forEach(p => {
+      if (p.map_lat && p.map_lng) {
+        geocoded.push({ lat: p.map_lat, lng: p.map_lng, prop: p });
+      } else {
+        const addr = p.address || p.location || '';
+        if (!addr) return;
+        const cached = geocacheRef.current[addr] || tryGetCache(addr);
+        if (cached) {
+          geocacheRef.current[addr] = cached;
+          geocoded.push({ lat: cached.lat, lng: cached.lng, prop: p });
+        } else {
+          needsGeocode.push({ prop: p, addr });
+        }
+      }
+    });
+
+    geocodedRef.current = geocoded;
+    renderAll(geocoded);
+
+    if (needsGeocode.length === 0) return;
+
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    let resolved = 0;
+    needsGeocode.forEach(({ prop, addr }, i) => {
+      setTimeout(() => {
+        geocoder.addressSearch(addr, (result, status) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const c = { lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) };
+            trySetCache(addr, c);
+            geocacheRef.current[addr] = c;
+            geocoded.push({ lat: c.lat, lng: c.lng, prop });
+          }
+          resolved++;
+          if (resolved === needsGeocode.length) {
+            geocodedRef.current = geocoded;
+            renderAll(geocoded);
+          }
+        });
+      }, i * 250);
+    });
+  }
+
+  useEffect(() => {
+    loadKakaoSdk().then(() => {
+      if (!mapRef.current) return;
+      const map = new window.kakao.maps.Map(mapRef.current, {
+        center: new window.kakao.maps.LatLng(35.1336, 129.1010),
+        level: 5,
+        minLevel: 3,
+      });
+      mapInstanceRef.current = map;
+      mapReadyRef.current    = true;
+      new ResizeObserver(() => map.relayout()).observe(mapRef.current);
+
+      window.kakao.maps.event.addListener(map, 'idle', () => {
+        if (geocodedRef.current.length === 0) return;
+        renderAll(geocodedRef.current);
+        if (onBoundsChangeRef.current) {
+          const b = map.getBounds();
+          const visibleProps = geocodedRef.current
+            .filter(({ lat, lng }) => b.contain(new window.kakao.maps.LatLng(lat, lng)))
+            .map(it => it.prop);
+          onBoundsChangeRef.current(visibleProps);
+        }
+      });
+
+      geocodeAndRender(filteredRef.current);
+    }).catch(() => {});
+    return () => { clearOverlays(); };
+  }, []);
+
+  useEffect(() => {
+    if (!mapReadyRef.current) return;
+    geocodeAndRender(filtered);
+  }, [filtered]);
+
+  return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
 }
 
 function PropertyItem({ property, onClick }) {
@@ -323,7 +605,7 @@ function PropertyItem({ property, onClick }) {
   if (property.total_area)     chips.push(`연면적 ${property.total_area}㎡`);
   if (property.expected_area)  chips.push(`예상 ${property.expected_area}㎡`);
   const floorText = property.curr_floor ? (property.total_floors ? `${property.curr_floor}/${property.total_floors}층` : `${property.curr_floor}층`) : null;
-  if (floorText)         chips.push(floorText);
+  if (floorText)          chips.push(floorText);
   if (property.direction) chips.push(`${property.direction}향`);
   if (property.rooms)     chips.push(`방 ${property.rooms}개`);
 
@@ -336,7 +618,6 @@ function PropertyItem({ property, onClick }) {
         <div className={styles.cardBadges}>
           <span className={styles.cardBadge} style={{ background: cs.bg, color: cs.color }}>{property.category}</span>
           <span className={styles.cardBadge} style={{ background: ts.bg, color: ts.color }}>{property.transaction}</span>
-          {property.map_hidden && <span className={styles.cardBadge} style={{ background: 'rgba(30,30,30,0.7)', color: '#fff' }}>🔒</span>}
         </div>
         {property.property_id && (
           <div className={styles.cardPropId}>{property.property_id}</div>
@@ -379,25 +660,19 @@ function BottomSheet({ items, onClose, onCardClick }) {
   );
 }
 
-function AdminMapInner() {
+function PriceMapInner() {
   const [properties,    setProperties]    = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [selectedType,  setSelectedType]  = useState('전체');
-  const [selectedTx,    setSelectedTx]    = useState('전세');
+  const [selectedTx,    setSelectedTx]    = useState('전체');
   const [keyword,       setKeyword]       = useState('');
   const [selectedItem,  setSelectedItem]  = useState(null);
-  const [clusterProps,  setClusterProps]  = useState(null);
-  const [boundsProps,   setBoundsProps]   = useState(null);
-  const [mapBounds,     setMapBounds]     = useState(null);
-  const [geocodedIds,   setGeocodedIds]   = useState(new Set());
   const [filterOpen,    setFilterOpen]    = useState(false);
   const [viewMode,      setViewMode]      = useState('list');
   const [mapSheetItems, setMapSheetItems] = useState(null);
+  const [boundsProps,   setBoundsProps]   = useState(null);
   const [listPage,      setListPage]      = useState(1);
   const LIST_PAGE_SIZE = 10;
-
-  useEffect(() => { setClusterProps(null); setBoundsProps(null); setMapBounds(null); setGeocodedIds(new Set()); }, [selectedType, selectedTx, keyword]);
-  useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps, clusterProps]);
 
   useEffect(() => {
     fetch('/api/listings')
@@ -407,42 +682,22 @@ function AdminMapInner() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleCardClick = useCallback((item) => {
-    setSelectedItem(item);
-  }, []);
+  const handleCardClick = useCallback((item) => { setSelectedItem(item); }, []);
+  const handleClose     = useCallback(() => setSelectedItem(null), []);
 
-  const handleClose = useCallback(() => setSelectedItem(null), []);
+  useEffect(() => { setBoundsProps(null); }, [selectedType, selectedTx, keyword]);
 
-  const filtered = useMemo(() => {
-    return properties.filter(p => {
-      if (p.contract_status === '계약완료') return false;
-      const matchType     = matchCategory(p.category, selectedType);
-      const matchTx       = selectedTx === '전체' || p.transaction === selectedTx;
-      const matchKw       = !keyword ||
-        p.building_name?.includes(keyword) ||
-        p.location?.includes(keyword) ||
-        p.title?.includes(keyword);
-      return matchType && matchTx && matchKw;
-    });
-  }, [properties, selectedType, selectedTx, keyword]);
+  const filtered = useMemo(() => properties.filter(p => {
+    if (p.contract_status === '계약완료') return false;
+    if (!matchCategory(p.category, selectedType)) return false;
+    if (selectedTx !== '전체' && p.transaction !== selectedTx) return false;
+    if (keyword && !p.building_name?.includes(keyword) && !p.location?.includes(keyword) && !p.title?.includes(keyword)) return false;
+    return true;
+  }), [properties, selectedType, selectedTx, keyword]);
 
-  // 관리자: 숨김 구분 없이 전체 매물을 지도에 표시
-  const mapProps = useMemo(() => filtered, [filtered]);
+  const listItems = boundsProps ?? filtered;
 
-  const listItems = useMemo(() => {
-    if (clusterProps) return clusterProps;
-    const dedup = (arr) => {
-      const seen = new Set();
-      return arr.filter(p => { if (seen.has(p.id)) return false; seen.add(p.id); return true; });
-    };
-    if (boundsProps !== null) {
-      const boundsIds = new Set(boundsProps.map(p => p.id));
-      const inBounds  = filtered.filter(p => boundsIds.has(p.id));
-      const ungeocoded = filtered.filter(p => !geocodedIds.has(p.id));
-      return dedup([...inBounds, ...ungeocoded]);
-    }
-    return dedup(filtered);
-  }, [clusterProps, boundsProps, filtered, geocodedIds]);
+  useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps]);
 
   return (
     <div className={localStyles.wrap}>
@@ -462,7 +717,7 @@ function AdminMapInner() {
           </button>
           <button
             className={`${styles.viewTab} ${viewMode === 'map' ? styles.viewTabActive : ''}`}
-            onClick={() => setViewMode('map')}
+            onClick={() => { setViewMode('map'); setMapSheetItems(null); }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
@@ -473,14 +728,13 @@ function AdminMapInner() {
         </div>
 
         <div className={styles.layout}>
-          {/* 지도 */}
+          {/* 지도 — 가격 라벨 표시 */}
           <div className={styles.mapPane}>
-            <KakaoMap
-              properties={mapProps}
-              adminMode={true}
-              onGeocodedIds={ids => setGeocodedIds(ids)}
-              onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
-              onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); setMapSheetItems(null); }}
+            <PriceMapCanvas
+              filtered={filtered}
+              onPropertyClick={setSelectedItem}
+              onClusterClick={props => setMapSheetItems(props)}
+              onBoundsChange={props => setBoundsProps(props)}
             />
           </div>
 
@@ -535,18 +789,6 @@ function AdminMapInner() {
               </div>
             </div>
 
-            {clusterProps && (
-              <div className={styles.clusterBanner}>
-                <span>반경 100m 내 {clusterProps.length}개 매물</span>
-                <button className={styles.clusterClear} onClick={() => setClusterProps(null)}>전체 보기 ✕</button>
-              </div>
-            )}
-            {!clusterProps && boundsProps && (
-              <div className={styles.boundsBanner}>
-                📍 지도 범위 내 {listItems.length}개 매물
-              </div>
-            )}
-
             <div className={styles.listBody}>
               {loading ? (
                 <div className={styles.loading}>
@@ -589,9 +831,9 @@ function AdminMapInner() {
 
         {selectedItem && <PreviewModal item={selectedItem} onClose={handleClose} />}
 
-        {viewMode === 'map' && !mapSheetItems && boundsProps !== null && listItems.length > 0 && (
+        {viewMode === 'map' && !mapSheetItems && listItems.length > 0 && (
           <div className={styles.mapBoundsBar} onClick={() => setMapSheetItems(listItems)}>
-            <span>📍 이 지역 매물 {listItems.length}건</span>
+            <span>💰 금액지도 매물 {listItems.length}건</span>
             <span className={styles.mapBoundsBarArrow}>목록 보기 →</span>
           </div>
         )}
@@ -608,10 +850,10 @@ function AdminMapInner() {
   );
 }
 
-export default function AdminMapPage() {
+export default function PriceMapPage() {
   return (
     <Suspense fallback={null}>
-      <AdminMapInner />
+      <PriceMapInner />
     </Suspense>
   );
 }

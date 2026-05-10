@@ -1,26 +1,10 @@
-﻿const NOTION_API = 'https://api.notion.com/v1';
+﻿import { queryAllPages } from '@/lib/notionList';
 const DB_ID = 'ddd43c2d10ed4553aeea333890b39238';
 
 export async function GET() {
   try {
-    const res = await fetch(`${NOTION_API}/databases/${DB_ID}/query`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
-        'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        sorts: [{ timestamp: 'created_time', direction: 'descending' }],
-        page_size: 100,
-      }),
-      cache: 'no-store',
-    });
-
-    if (!res.ok) throw new Error(`Notion ${res.status}`);
-    const data = await res.json();
-
-    const items = data.results.map(page => {
+    const results = await queryAllPages(DB_ID);
+    const items = results.map(page => {
       const p = page.properties;
       const gT  = f => f?.title?.[0]?.plain_text  || '';
       const gR  = f => f?.rich_text?.[0]?.plain_text || '';
@@ -46,8 +30,8 @@ export async function GET() {
         maintenance:           gN(p['관리비_만원']),
         maintenance_note:  gR(p['관리비_상세']),
         maintenance_items: gM(p['관리비_포함항목']),
-        supply_area:           gN(p['공급면적_㎡']),
-        exclusive_area:        gN(p['전용면적_㎡']),
+        supply_area:           gR(p['공급면적_㎡']),
+        exclusive_area:        gR(p['전용면적_㎡']),
         dong:                  gR(p['동']),
         ho:                    gR(p['호수']),
         ho_privacy:            gS(p['호수_공개여부']),

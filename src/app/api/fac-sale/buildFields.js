@@ -34,10 +34,10 @@
     addC('지도_숨김', d.map_config.mapHidden);
   }
 
-  addN('연면적_㎡', d.total_floor_area);
-  addN('대지면적_㎡', d.land_area);
-  addN('건축면적_㎡', d.building_area);
-  addN('전용면적_㎡', d.exclusive_area);
+  addR('연면적_㎡', d.total_floor_area);
+  addR('대지면적_㎡', d.land_area);
+  addR('건축면적_㎡', d.building_area);
+  addR('전용면적_㎡', d.exclusive_area);
   addR('입주가능일', d.move_in);
   addN('매매가격_만원', d.sale_price);
   addN('현보증금_만원', d.curr_deposit);

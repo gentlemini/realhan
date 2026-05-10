@@ -1,26 +1,10 @@
-﻿const NOTION_API = 'https://api.notion.com/v1';
+﻿import { queryAllPages } from '@/lib/notionList';
 const DB_ID = 'cdeac614af184791b75653e6aa256868';
 
 export async function GET() {
   try {
-    const res = await fetch(`${NOTION_API}/databases/${DB_ID}/query`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
-        'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        sorts: [{ timestamp: 'created_time', direction: 'descending' }],
-        page_size: 100,
-      }),
-      cache: 'no-store',
-    });
-
-    if (!res.ok) throw new Error(`Notion ${res.status}`);
-    const data = await res.json();
-
-    const items = data.results.map(page => {
+    const results = await queryAllPages(DB_ID);
+    const items = results.map(page => {
       const p = page.properties;
       const gT = f => f?.title?.[0]?.plain_text  || '';
       const gR = f => f?.rich_text?.[0]?.plain_text || '';
@@ -46,10 +30,10 @@ export async function GET() {
         address_detail_memo:     gR(p['상세주소_메모']),
         address_public:          gS(p['지번노출여부']),
         building_type:           gS(p['건물유형']),
-        total_floor_area:        gN(p['연면적_㎡']),
-        land_area:               gN(p['대지면적_㎡']),
-        building_area:           gN(p['건축면적_㎡']),
-        exclusive_area:          gN(p['전용면적_㎡']),
+        total_floor_area:        gR(p['연면적_㎡']),
+        land_area:               gR(p['대지면적_㎡']),
+        building_area:           gR(p['건축면적_㎡']),
+        exclusive_area:          gR(p['전용면적_㎡']),
         sale_price:              gN(p['매매가격_만원']),
         curr_jeonse:             gN(p['전보증금_만원']),
         curr_monthly_rent:       gN(p['전월세_만원']),

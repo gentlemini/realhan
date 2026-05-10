@@ -34,7 +34,7 @@
     addC('지도_숨김', d.map_config.mapHidden);
   }
 
-  addN('면적_㎡', d.land_area);
+  addR('면적_㎡', d.land_area);
   addR('입주가능일', d.move_in);
   addN('보증금_만원', d.deposit);
   addN('월세_만원', d.monthly_rent);

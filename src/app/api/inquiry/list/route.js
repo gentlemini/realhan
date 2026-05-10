@@ -1,4 +1,4 @@
-const NOTION_API = 'https://api.notion.com/v1';
+﻿import { queryAllPages } from '@/lib/notionList';
 const DB_ID = process.env.NOTION_INQUIRY_DB_ID;
 
 export async function GET() {

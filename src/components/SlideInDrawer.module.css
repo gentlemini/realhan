@@ -162,6 +162,7 @@
   overflow-x: auto;
   background: #0a0a0a;
   flex-shrink: 0;
+  justify-content: center;
 }
 
 .thumbnails::-webkit-scrollbar { height: 3px; }

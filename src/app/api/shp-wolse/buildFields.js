@@ -35,8 +35,8 @@
   }
 
   addS('건물유형', d.building_type);
-  addN('임대계약면적_㎡', d.contract_area);
-  addN('전용면적_㎡', d.exclusive_area);
+  addR('임대계약면적_㎡', d.contract_area);
+  addR('전용면적_㎡', d.exclusive_area);
   addN('보증금_만원', d.deposit);
   addN('월세_만원', d.monthly_rent);
   if (d.loan_info && typeof d.loan_info === 'object') {

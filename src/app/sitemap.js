@@ -12,6 +12,7 @@ export default function sitemap() {
     { url: `${BASE_URL}/news`,                priority: 0.6,  changeFrequency: 'daily' },
     { url: `${BASE_URL}/calculator`,          priority: 0.6,  changeFrequency: 'monthly' },
     { url: `${BASE_URL}/blog`,                priority: 0.5,  changeFrequency: 'weekly' },
+    { url: `${BASE_URL}/web-design`,          priority: 0.8,  changeFrequency: 'monthly' },
     { url: `${BASE_URL}/links`,               priority: 0.4,  changeFrequency: 'monthly' },
   ];
 

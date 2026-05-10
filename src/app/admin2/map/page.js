@@ -401,9 +401,12 @@ function AdminMapInner() {
   const [viewSession,   setViewSession]   = useState('');
   const [sessions,      setSessions]      = useState([]);
   const [pinListOpen,   setPinListOpen]   = useState(false);
-  const [showSaveInput, setShowSaveInput] = useState(false);
-  const [newSessionName,setNewSessionName]= useState('');
-  const [savingSession, setSavingSession] = useState(false);
+  const [showSaveInput,  setShowSaveInput]  = useState(false);
+  const [newSessionName, setNewSessionName] = useState('');
+  const [savingSession,  setSavingSession]  = useState(false);
+  const [renamingSession,setRenamingSession]= useState(false);
+  const [renameValue,    setRenameValue]    = useState('');
+  const [renamingSaving, setRenamingSaving] = useState(false);
   const watchIdRef = useRef(null);
   const hasInitRef = useRef(false);
   const LIST_PAGE_SIZE = 10;
@@ -494,6 +497,39 @@ function AdminMapInner() {
     } catch {}
     setSavingSession(false);
   }, [newSessionName]);
+
+  const handleRenameSession = useCallback(async () => {
+    const name = renameValue.trim();
+    if (!name || name === viewSession) { setRenamingSession(false); return; }
+    setRenamingSaving(true);
+    try {
+      await fetch('/api/map-pins', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: '매물지도', fromSession: viewSession, toSession: name }),
+      });
+      setAllPins(prev => prev.map(p => p.memo === viewSession ? { ...p, memo: name } : p));
+      setSessions(prev => prev.map(s => s === viewSession ? name : s));
+      setViewSession(name);
+      setRenamingSession(false);
+      setRenameValue('');
+    } catch {}
+    setRenamingSaving(false);
+  }, [viewSession, renameValue]);
+
+  const handleDeleteSession = useCallback(async () => {
+    if (!window.confirm(`"${viewSession}" 세션의 핀을 모두 삭제할까요?`)) return;
+    try {
+      await fetch('/api/map-pins', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: '매물지도', session: viewSession }),
+      });
+      setAllPins(prev => prev.filter(p => p.memo !== viewSession));
+      setSessions(prev => prev.filter(s => s !== viewSession));
+      setViewSession('');
+    } catch {}
+  }, [viewSession]);
 
   useEffect(() => { setClusterProps(null); setBoundsProps(null); setMapBounds(null); setGeocodedIds(new Set()); }, [selectedType, selectedTx, keyword]);
   useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps, clusterProps]);
@@ -669,9 +705,26 @@ function AdminMapInner() {
                     </div>
                   </div>
                 )}
-                {viewSession !== '' && (
+                {viewSession !== '' && !renamingSession && (
                   <div className={localStyles.pinActions}>
+                    <button className={localStyles.pinActionBtn} onClick={() => { setRenamingSession(true); setRenameValue(viewSession); }}>✏️ 이름변경</button>
+                    <button className={localStyles.pinActionBtn} style={{ color: '#ef4444', borderColor: '#fca5a5' }} onClick={handleDeleteSession}>🗑 삭제</button>
                     <button className={localStyles.pinActionBtn} onClick={() => { setViewSession(''); setShowSaveInput(false); }}>➕ 새로 찍기</button>
+                  </div>
+                )}
+                {viewSession !== '' && renamingSession && (
+                  <div className={localStyles.pinSaveRow}>
+                    <input
+                      className={localStyles.pinSaveInput}
+                      value={renameValue}
+                      onChange={e => setRenameValue(e.target.value)}
+                      autoFocus
+                      onKeyDown={e => { if (e.key === 'Enter') handleRenameSession(); if (e.key === 'Escape') setRenamingSession(false); }}
+                    />
+                    <div className={localStyles.pinActions} style={{ padding: 0, borderTop: 'none' }}>
+                      <button className={localStyles.pinActionBtn} onClick={() => setRenamingSession(false)}>취소</button>
+                      <button className={`${localStyles.pinActionBtn} ${localStyles.pinActionBtnPrimary}`} onClick={handleRenameSession} disabled={renamingSaving}>{renamingSaving ? '저장중...' : '저장'}</button>
+                    </div>
                   </div>
                 )}
               </div>

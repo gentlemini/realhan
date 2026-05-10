@@ -277,16 +277,14 @@ function makeLabelDiv(label, count, style, onClick) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-function makePinDiv(name, onClick) {
+function makePinDiv(onClick) {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;';
+  wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;width:16px;height:16px;';
   const dot = document.createElement('div');
-  dot.style.cssText = 'width:12px;height:12px;border-radius:50%;background:#ef4444;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.45);';
-  const label = document.createElement('div');
-  label.style.cssText = 'margin-top:3px;background:rgba(239,68,68,0.93);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3);max-width:130px;overflow:hidden;text-overflow:ellipsis;';
-  label.textContent = name;
+  dot.style.cssText = 'width:14px;height:14px;border-radius:50%;background:#ef4444;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.5);transition:transform 0.12s;';
+  dot.addEventListener('mouseenter', () => { dot.style.transform = 'scale(1.25)'; });
+  dot.addEventListener('mouseleave', () => { dot.style.transform = ''; });
   wrap.appendChild(dot);
-  wrap.appendChild(label);
   wrap.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
   return wrap;
 }
@@ -472,7 +470,7 @@ function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsCha
     clearPinOverlays();
     if (!mapInstanceRef.current || !pins?.length) return;
     pins.forEach(pin => {
-      const div = makePinDiv(pin.name, () => {
+      const div = makePinDiv(() => {
         if (onPinClickRef.current) onPinClickRef.current(pin);
       });
       const overlay = new window.kakao.maps.CustomOverlay({
@@ -807,9 +805,6 @@ function PriceMapInner() {
   const [myLocDot,      setMyLocDot]      = useState(null);
   const [locDotVisible, setLocDotVisible] = useState(false);
   const [pins,          setPins]          = useState([]);
-  const [pendingPin,    setPendingPin]    = useState(null);
-  const [pinLabel,      setPinLabel]      = useState('');
-  const [pinSaving,     setPinSaving]     = useState(false);
   const [pinListOpen,   setPinListOpen]   = useState(false);
   const watchIdRef = useRef(null);
   const hasInitRef = useRef(false);
@@ -822,24 +817,19 @@ function PriceMapInner() {
       .catch(() => {});
   }, []);
 
-  const handleSavePin = useCallback(async () => {
-    if (!pinLabel.trim() || !pendingPin) return;
-    setPinSaving(true);
+  const handleAddPin = useCallback(async ({ lat, lng }) => {
     try {
       const res = await fetch('/api/map-pins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: pinLabel.trim(), lat: pendingPin.lat, lng: pendingPin.lng, page: '금액지도' }),
+        body: JSON.stringify({ name: '핀', lat, lng, page: '금액지도' }),
       });
       const data = await res.json();
       if (data.ok) {
-        setPins(prev => [...prev, { id: data.id, name: pinLabel.trim(), lat: pendingPin.lat, lng: pendingPin.lng }]);
+        setPins(prev => [...prev, { id: data.id, name: '핀', lat, lng }]);
       }
     } catch {}
-    setPinSaving(false);
-    setPendingPin(null);
-    setPinLabel('');
-  }, [pinLabel, pendingPin]);
+  }, []);
 
   const handleDeletePin = useCallback(async (pin) => {
     try {
@@ -938,7 +928,7 @@ function PriceMapInner() {
               centerLatLng={myLocation}
               myLocationLatLng={locDotVisible ? myLocDot : null}
               mapPins={pins}
-              onMapRightClick={setPendingPin}
+              onMapRightClick={handleAddPin}
               onPinClick={handlePinClick}
               onPropertyClick={setSelectedItem}
               onClusterClick={props => setMapSheetItems(props)}
@@ -971,14 +961,14 @@ function PriceMapInner() {
                 </div>
                 {pins.length === 0 ? (
                   <div style={{ padding: '12px', fontSize: '12px', color: '#9ca3af', textAlign: 'center' }}>
-                    우클릭/길게눌러 핀 추가
+                    우클릭으로 핀 추가
                   </div>
-                ) : pins.map(pin => (
+                ) : pins.map((pin, idx) => (
                   <div key={pin.id} className={localStyles.pinListItem}>
                     <span
                       className={localStyles.pinListName}
                       onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })}
-                    >{pin.name}</span>
+                    >📍 {idx + 1}</span>
                     <button
                       className={localStyles.pinListDelete}
                       onClick={() => handleDeletePin(pin)}
@@ -1135,33 +1125,6 @@ function PriceMapInner() {
 
         {selectedItem && <PreviewModal item={selectedItem} onClose={handleClose} />}
 
-        {/* 핀 추가 팝업 */}
-        {pendingPin && (
-          <>
-            <div className={localStyles.pinPopupBg} onClick={() => { setPendingPin(null); setPinLabel(''); }} />
-            <div className={localStyles.pinPopup}>
-              <div className={localStyles.pinPopupTitle}>📍 핀 마커 추가</div>
-              <input
-                className={localStyles.pinPopupInput}
-                type="text"
-                value={pinLabel}
-                onChange={e => setPinLabel(e.target.value)}
-                placeholder="예: 500/60 손님"
-                autoFocus
-                onKeyDown={e => {
-                  if (e.key === 'Enter') handleSavePin();
-                  if (e.key === 'Escape') { setPendingPin(null); setPinLabel(''); }
-                }}
-              />
-              <div className={localStyles.pinPopupBtns}>
-                <button className={localStyles.pinPopupCancel} onClick={() => { setPendingPin(null); setPinLabel(''); }}>취소</button>
-                <button className={localStyles.pinPopupSave} onClick={handleSavePin} disabled={!pinLabel.trim() || pinSaving}>
-                  {pinSaving ? '저장중...' : '저장'}
-                </button>
-              </div>
-            </div>
-          </>
-        )}
 
         {viewMode === 'map' && !mapSheetItems && listItems.length > 0 && (
           <div className={styles.mapBoundsBar} onClick={() => setMapSheetItems(listItems)}>

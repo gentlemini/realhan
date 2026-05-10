@@ -398,9 +398,6 @@ function AdminMapInner() {
   const [myLocDot,      setMyLocDot]      = useState(null);
   const [locDotVisible, setLocDotVisible] = useState(false);
   const [pins,          setPins]          = useState([]);
-  const [pendingPin,    setPendingPin]    = useState(null);
-  const [pinLabel,      setPinLabel]      = useState('');
-  const [pinSaving,     setPinSaving]     = useState(false);
   const [pinListOpen,   setPinListOpen]   = useState(false);
   const watchIdRef = useRef(null);
   const hasInitRef = useRef(false);
@@ -436,24 +433,19 @@ function AdminMapInner() {
       .catch(() => {});
   }, []);
 
-  const handleSavePin = useCallback(async () => {
-    if (!pinLabel.trim() || !pendingPin) return;
-    setPinSaving(true);
+  const handleAddPin = useCallback(async ({ lat, lng }) => {
     try {
       const res = await fetch('/api/map-pins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: pinLabel.trim(), lat: pendingPin.lat, lng: pendingPin.lng, page: '매물지도' }),
+        body: JSON.stringify({ name: `핀 ${Date.now().toString().slice(-4)}`, lat, lng, page: '매물지도' }),
       });
       const data = await res.json();
       if (data.ok) {
-        setPins(prev => [...prev, { id: data.id, name: pinLabel.trim(), lat: pendingPin.lat, lng: pendingPin.lng }]);
+        setPins(prev => [...prev, { id: data.id, name: `핀`, lat, lng }]);
       }
     } catch {}
-    setPinSaving(false);
-    setPendingPin(null);
-    setPinLabel('');
-  }, [pinLabel, pendingPin]);
+  }, []);
 
   const handleDeletePin = useCallback(async (pin) => {
     try {
@@ -553,7 +545,7 @@ function AdminMapInner() {
               centerLatLng={myLocation}
               myLocationLatLng={locDotVisible ? myLocDot : null}
               mapPins={pins}
-              onMapRightClick={setPendingPin}
+              onMapRightClick={handleAddPin}
               onPinClick={handlePinClick}
               onGeocodedIds={ids => setGeocodedIds(ids)}
               onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
@@ -586,14 +578,14 @@ function AdminMapInner() {
                 </div>
                 {pins.length === 0 ? (
                   <div style={{ padding: '12px', fontSize: '12px', color: '#9ca3af', textAlign: 'center' }}>
-                    우클릭/길게눌러 핀 추가
+                    우클릭으로 핀 추가
                   </div>
-                ) : pins.map(pin => (
+                ) : pins.map((pin, idx) => (
                   <div key={pin.id} className={localStyles.pinListItem}>
                     <span
                       className={localStyles.pinListName}
                       onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })}
-                    >{pin.name}</span>
+                    >📍 {idx + 1}</span>
                     <button
                       className={localStyles.pinListDelete}
                       onClick={() => handleDeletePin(pin)}
@@ -762,33 +754,6 @@ function AdminMapInner() {
 
         {selectedItem && <PreviewModal item={selectedItem} onClose={handleClose} />}
 
-        {/* 핀 추가 팝업 */}
-        {pendingPin && (
-          <>
-            <div className={localStyles.pinPopupBg} onClick={() => { setPendingPin(null); setPinLabel(''); }} />
-            <div className={localStyles.pinPopup}>
-              <div className={localStyles.pinPopupTitle}>📍 핀 마커 추가</div>
-              <input
-                className={localStyles.pinPopupInput}
-                type="text"
-                value={pinLabel}
-                onChange={e => setPinLabel(e.target.value)}
-                placeholder="예: 500/60 손님"
-                autoFocus
-                onKeyDown={e => {
-                  if (e.key === 'Enter') handleSavePin();
-                  if (e.key === 'Escape') { setPendingPin(null); setPinLabel(''); }
-                }}
-              />
-              <div className={localStyles.pinPopupBtns}>
-                <button className={localStyles.pinPopupCancel} onClick={() => { setPendingPin(null); setPinLabel(''); }}>취소</button>
-                <button className={localStyles.pinPopupSave} onClick={handleSavePin} disabled={!pinLabel.trim() || pinSaving}>
-                  {pinSaving ? '저장중...' : '저장'}
-                </button>
-              </div>
-            </div>
-          </>
-        )}
 
         {viewMode === 'map' && !mapSheetItems && boundsProps !== null && listItems.length > 0 && (
           <div className={styles.mapBoundsBar} onClick={() => setMapSheetItems(listItems)}>

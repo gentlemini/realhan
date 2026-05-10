@@ -160,12 +160,16 @@ function PreviewModal({ item, onClose }) {
   const imageUrls = detail?.imageUrls?.length ? detail.imageUrls
                   : (detail?.imageUrl || item.imageUrl) ? [detail?.imageUrl || item.imageUrl] : [];
   const imageUrl  = imageUrls[0] || '';
-
-  const [photoIdx, setPhotoIdx] = useState(0);
-  useEffect(() => { setPhotoIdx(0); }, [item.id]);
-  const currentPhoto = imageUrls[photoIdx] || '';
-  const prevPhoto = () => setPhotoIdx(i => (i - 1 + imageUrls.length) % imageUrls.length);
-  const nextPhoto = () => setPhotoIdx(i => (i + 1) % imageUrls.length);
+  const youtubeId = getYouTubeId(detail?.youtube_url);
+  const slides = [
+    ...(youtubeId ? [{ type: 'youtube', id: youtubeId }] : []),
+    ...imageUrls.map(url => ({ type: 'photo', url })),
+  ];
+  const [slideIdx, setSlideIdx] = useState(0);
+  useEffect(() => { setSlideIdx(0); }, [item.id]);
+  const prevSlide = () => setSlideIdx(i => (i - 1 + slides.length) % slides.length);
+  const nextSlide = () => setSlideIdx(i => (i + 1) % slides.length);
+  const currentSlide = slides[slideIdx];
 
   const hasMap    = (detail?.map_lat ?? item.map_lat) && (detail?.map_lng ?? item.map_lng);
   const mapLat    = detail?.map_lat    ?? item.map_lat;
@@ -210,24 +214,35 @@ function PreviewModal({ item, onClose }) {
 
         <div className={modalStyles.pvLayout}>
           <div className={modalStyles.pvPhotoCol} style={{ position: 'relative' }}>
-            {currentPhoto ? (
+            {currentSlide ? (
               <>
-                <img src={currentPhoto} alt={`사진 ${photoIdx + 1}`} className={modalStyles.pvPhotoImg} />
-                {imageUrls.length > 1 && (
+                {currentSlide.type === 'youtube' ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${currentSlide.id}`}
+                    title="매물 영상"
+                    className={modalStyles.pvPhotoImg}
+                    style={{ border: 'none' }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <img src={currentSlide.url} alt={`사진 ${slideIdx + (youtubeId ? 0 : 1)}`} className={modalStyles.pvPhotoImg} />
+                )}
+                {slides.length > 1 && (
                   <>
-                    <button onClick={prevPhoto} className={modalStyles.pvSlidePrev} aria-label="이전">&#8249;</button>
-                    <button onClick={nextPhoto} className={modalStyles.pvSlideNext} aria-label="다음">&#8250;</button>
+                    <button onClick={prevSlide} className={modalStyles.pvSlidePrev} aria-label="이전">&#8249;</button>
+                    <button onClick={nextSlide} className={modalStyles.pvSlideNext} aria-label="다음">&#8250;</button>
                     <div className={modalStyles.pvSlideDots}>
-                      {imageUrls.map((_, i) => (
+                      {slides.map((s, i) => (
                         <span
                           key={i}
                           className={modalStyles.pvSlideDot}
-                          style={{ background: i === photoIdx ? '#5a3e28' : 'rgba(255,255,255,0.6)' }}
-                          onClick={() => setPhotoIdx(i)}
+                          style={{ background: i === slideIdx ? '#5a3e28' : 'rgba(255,255,255,0.6)' }}
+                          onClick={() => setSlideIdx(i)}
                         />
                       ))}
                     </div>
-                    <div className={modalStyles.pvSlideCount}>{photoIdx + 1} / {imageUrls.length}</div>
+                    <div className={modalStyles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
                   </>
                 )}
               </>
@@ -269,18 +284,6 @@ function PreviewModal({ item, onClose }) {
                   {modalTitle || <span className={modalStyles.pvTitleEmpty}>매물제목 미입력</span>}
                 </div>
               </div>
-
-              {detail?.youtube_url && getYouTubeId(detail.youtube_url) && (
-                <div style={{ margin: '12px 16px', borderRadius: '8px', overflow: 'hidden', aspectRatio: '16/9' }}>
-                  <iframe
-                    src={`https://www.youtube.com/embed/${getYouTubeId(detail.youtube_url)}`}
-                    title="매물 영상"
-                    style={{ width: '100%', height: '100%', border: 'none' }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              )}
 
               {/* 모바일 전용 지도 (헤더 아래, 스크롤 영역 내) */}
               {!detLoading && hasMap && (

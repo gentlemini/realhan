@@ -120,11 +120,16 @@ function PreviewModal({ item, onClose }) {
 
   const imageUrls = detail?.imageUrls?.length ? detail.imageUrls
                   : (detail?.imageUrl || item.imageUrl) ? [detail?.imageUrl || item.imageUrl] : [];
-  const [photoIdx, setPhotoIdx] = useState(0);
-  useEffect(() => { setPhotoIdx(0); }, [item.id]);
-  const currentPhoto = imageUrls[photoIdx] || '';
-  const prevPhoto = () => setPhotoIdx(i => (i - 1 + imageUrls.length) % imageUrls.length);
-  const nextPhoto = () => setPhotoIdx(i => (i + 1) % imageUrls.length);
+  const youtubeId = getYouTubeId(detail?.youtube_url);
+  const slides = [
+    ...(youtubeId ? [{ type: 'youtube', id: youtubeId }] : []),
+    ...imageUrls.map(url => ({ type: 'photo', url })),
+  ];
+  const [slideIdx, setSlideIdx] = useState(0);
+  useEffect(() => { setSlideIdx(0); }, [item.id]);
+  const prevSlide = () => setSlideIdx(i => (i - 1 + slides.length) % slides.length);
+  const nextSlide = () => setSlideIdx(i => (i + 1) % slides.length);
+  const currentSlide = slides[slideIdx];
 
   const hasMap    = (detail?.map_lat ?? item.map_lat) && (detail?.map_lng ?? item.map_lng);
   const mapLat    = detail?.map_lat    ?? item.map_lat;
@@ -156,21 +161,32 @@ function PreviewModal({ item, onClose }) {
         </a>
         <div className={styles.pvLayout}>
           <div className={styles.pvPhotoCol} style={{ position: 'relative' }}>
-            {currentPhoto ? (
+            {currentSlide ? (
               <>
-                <img src={currentPhoto} alt={`사진 ${photoIdx + 1}`} className={styles.pvPhotoImg} />
-                {imageUrls.length > 1 && (
+                {currentSlide.type === 'youtube' ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${currentSlide.id}`}
+                    title="매물 영상"
+                    className={styles.pvPhotoImg}
+                    style={{ border: 'none' }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <img src={currentSlide.url} alt={`사진 ${slideIdx + (youtubeId ? 0 : 1)}`} className={styles.pvPhotoImg} />
+                )}
+                {slides.length > 1 && (
                   <>
-                    <button onClick={prevPhoto} className={styles.pvSlidePrev}>&#8249;</button>
-                    <button onClick={nextPhoto} className={styles.pvSlideNext}>&#8250;</button>
+                    <button onClick={prevSlide} className={styles.pvSlidePrev}>&#8249;</button>
+                    <button onClick={nextSlide} className={styles.pvSlideNext}>&#8250;</button>
                     <div className={styles.pvSlideDots}>
-                      {imageUrls.map((_, i) => (
+                      {slides.map((s, i) => (
                         <span key={i} className={styles.pvSlideDot}
-                          style={{ background: i === photoIdx ? '#2a3e3f' : 'rgba(255,255,255,0.6)' }}
-                          onClick={() => setPhotoIdx(i)} />
+                          style={{ background: i === slideIdx ? '#2a3e3f' : 'rgba(255,255,255,0.6)' }}
+                          onClick={() => setSlideIdx(i)} />
                       ))}
                     </div>
-                    <div className={styles.pvSlideCount}>{photoIdx + 1} / {imageUrls.length}</div>
+                    <div className={styles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
                   </>
                 )}
               </>
@@ -204,18 +220,6 @@ function PreviewModal({ item, onClose }) {
                 </div>
                 <div className={styles.pvTitle}>{modalTitle || <span className={styles.pvTitleEmpty}>매물제목 미입력</span>}</div>
               </div>
-
-              {detail?.youtube_url && getYouTubeId(detail.youtube_url) && (
-                <div style={{ margin: '12px 16px', borderRadius: '8px', overflow: 'hidden', aspectRatio: '16/9' }}>
-                  <iframe
-                    src={`https://www.youtube.com/embed/${getYouTubeId(detail.youtube_url)}`}
-                    title="매물 영상"
-                    style={{ width: '100%', height: '100%', border: 'none' }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              )}
 
               {!detLoading && hasMap && (
                 <div className={styles.pvMobileMap}><PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} /></div>

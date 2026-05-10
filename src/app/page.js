@@ -202,7 +202,6 @@ function PreviewModal({ item, onClose }) {
                     }}>{item.contract_status}</span>
                   )}
                 </div>
-                <div className={styles.pvTitle}>{modalTitle || <span className={styles.pvTitleEmpty}>매물제목 미입력</span>}</div>
                 {(detail?.blog_url) && (
                   <a
                     href={detail.blog_url}
@@ -210,7 +209,7 @@ function PreviewModal({ item, onClose }) {
                     rel="noopener noreferrer"
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '6px',
-                      marginTop: '10px',
+                      marginTop: '8px',
                       padding: '6px 14px',
                       background: '#03C75A', color: '#fff',
                       borderRadius: '6px', fontSize: '12px', fontWeight: 700,
@@ -224,6 +223,7 @@ function PreviewModal({ item, onClose }) {
                     블로그 바로가기
                   </a>
                 )}
+                <div className={styles.pvTitle}>{modalTitle || <span className={styles.pvTitleEmpty}>매물제목 미입력</span>}</div>
               </div>
 
               {detail?.youtube_url && getYouTubeId(detail.youtube_url) && (

@@ -392,6 +392,11 @@ function Card({ item, onClick }) {
   const chips = [];
   if (item.supply_area)    chips.push(`공급 ${item.supply_area}㎡`);
   if (item.exclusive_area) chips.push(`전용 ${item.exclusive_area}㎡`);
+  if (item.contract_area)  chips.push(`임대 ${item.contract_area}㎡`);
+  if (item.land_area)      chips.push(`대지 ${item.land_area}㎡`);
+  if (item.build_area)     chips.push(`건축 ${item.build_area}㎡`);
+  if (item.total_area)     chips.push(`연면적 ${item.total_area}㎡`);
+  if (item.expected_area)  chips.push(`예상 ${item.expected_area}㎡`);
   if (item.curr_floor)     chips.push(item.total_floors ? `${item.curr_floor}/${item.total_floors}층` : `${item.curr_floor}층`);
   if (item.direction)      chips.push(`${item.direction}향`);
   if (item.rooms)          chips.push(`방 ${item.rooms}개`);

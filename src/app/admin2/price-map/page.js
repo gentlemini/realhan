@@ -282,7 +282,7 @@ function makePinDiv(name, onClick) {
   wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;';
   if (name) {
     const label = document.createElement('div');
-    label.style.cssText = 'background:#fff;border:1.5px solid #ef4444;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#111;box-shadow:0 2px 6px rgba(0,0,0,0.18);margin-bottom:4px;max-width:160px;white-space:pre-wrap;word-break:break-all;overflow-wrap:break-word;line-height:1.5;max-height:52px;overflow:hidden;text-align:center;';
+    label.style.cssText = 'background:#fff;border:1.5px solid #ef4444;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#111;box-shadow:0 2px 6px rgba(0,0,0,0.18);margin-bottom:4px;min-width:60px;max-width:160px;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;line-height:1.5;max-height:52px;overflow:hidden;text-align:center;';
     label.textContent = name;
     wrap.appendChild(label);
   }

@@ -822,6 +822,8 @@ function PriceMapInner() {
   const [renamingSaving, setRenamingSaving] = useState(false);
   const [pendingPin,     setPendingPin]     = useState(null);
   const [pinLabelInput,  setPinLabelInput]  = useState('');
+  const [editingPinId,   setEditingPinId]   = useState(null);
+  const [editingPinVal,  setEditingPinVal]  = useState('');
   const watchIdRef = useRef(null);
   const hasInitRef = useRef(false);
   const LIST_PAGE_SIZE = 10;
@@ -917,6 +919,19 @@ function PriceMapInner() {
     } catch {}
     setRenamingSaving(false);
   }, [viewSession, renameValue]);
+
+  const handleUpdatePinName = useCallback(async (pin) => {
+    const name = editingPinVal.trim();
+    setEditingPinId(null);
+    try {
+      await fetch(`/api/map-pins/${pin.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      setAllPins(prev => prev.map(p => p.id === pin.id ? { ...p, name } : p));
+    } catch {}
+  }, [editingPinVal]);
 
   const handleDeleteSession = useCallback(async () => {
     if (!window.confirm(`"${viewSession}" 세션의 핀을 모두 삭제할까요?`)) return;
@@ -1068,8 +1083,25 @@ function PriceMapInner() {
                   </div>
                 ) : pins.map((pin, idx) => (
                   <div key={pin.id} className={localStyles.pinListItem}>
-                    <span className={localStyles.pinListName} onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })}>📍 {pin.name ? pin.name : idx + 1}</span>
-                    <button className={localStyles.pinListDelete} onClick={() => handleDeletePin(pin)} title="삭제">🗑</button>
+                    {editingPinId === pin.id ? (
+                      <>
+                        <input
+                          value={editingPinVal}
+                          onChange={e => setEditingPinVal(e.target.value)}
+                          autoFocus
+                          onKeyDown={e => { if (e.key === 'Enter') handleUpdatePinName(pin); if (e.key === 'Escape') setEditingPinId(null); }}
+                          style={{ flex: 1, fontSize: '12px', padding: '3px 6px', border: '1.5px solid #ef4444', borderRadius: '6px', outline: 'none', fontFamily: 'inherit', minWidth: 0 }}
+                        />
+                        <button className={localStyles.pinListDelete} style={{ color: '#22c55e' }} onClick={() => handleUpdatePinName(pin)} title="저장">✓</button>
+                        <button className={localStyles.pinListDelete} onClick={() => setEditingPinId(null)} title="취소">✕</button>
+                      </>
+                    ) : (
+                      <>
+                        <span className={localStyles.pinListName} style={{ flexShrink: 0, paddingRight: 2 }} onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })} title="지도 이동">📍</span>
+                        <span className={localStyles.pinListName} onClick={() => { setEditingPinId(pin.id); setEditingPinVal(pin.name || ''); }} title="클릭하여 내용 수정" style={{ color: pin.name ? '#374151' : '#9ca3af' }}>{pin.name || `핀 ${idx + 1}`}</span>
+                        <button className={localStyles.pinListDelete} onClick={() => handleDeletePin(pin)} title="삭제">🗑</button>
+                      </>
+                    )}
                   </div>
                 ))}
 

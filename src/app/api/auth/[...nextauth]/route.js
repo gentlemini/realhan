@@ -1,22 +1,17 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
-// Vercel 배포 시 NEXTAUTH_URL이 localhost로 잘못 설정된 경우 자동으로 수정
-if (process.env.VERCEL_URL && (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes('localhost'))) {
-  process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
-}
-
 const ALLOWED_EMAILS = ['air.minisoul@gmail.com', 'air.minisoul2@gmail.com'];
 
 const isProd = process.env.NODE_ENV === 'production';
 
 const authOptions = {
-  trustHost: true,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: { params: { prompt: 'select_account' } },
+      checks: ['state'],  // PKCE 비활성화 — Vercel 서버리스 환경에서 쿠키 검증 실패 방지
     }),
   ],
   session: {
@@ -31,7 +26,6 @@ const authOptions = {
         sameSite: 'lax',
         path: '/',
         secure: isProd,
-        // maxAge 없음 = 브라우저 종료 시 쿠키 삭제
       },
     },
   },
@@ -48,6 +42,11 @@ const authOptions = {
     error: '/admin2/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  logger: {
+    error(code, metadata) {
+      console.error('[AUTH]', code, JSON.stringify(metadata));
+    },
+  },
 };
 
 const handler = NextAuth(authOptions);

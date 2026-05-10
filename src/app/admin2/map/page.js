@@ -407,6 +407,8 @@ function AdminMapInner() {
   const [renamingSession,setRenamingSession]= useState(false);
   const [renameValue,    setRenameValue]    = useState('');
   const [renamingSaving, setRenamingSaving] = useState(false);
+  const [pendingPin,     setPendingPin]     = useState(null);
+  const [pinLabelInput,  setPinLabelInput]  = useState('');
   const watchIdRef = useRef(null);
   const hasInitRef = useRef(false);
   const LIST_PAGE_SIZE = 10;
@@ -453,20 +455,29 @@ function AdminMapInner() {
     [allPins, viewSession]
   );
 
-  const handleAddPin = useCallback(async ({ lat, lng }) => {
+  const handleAddPin = useCallback(({ lat, lng }) => {
+    setPendingPin({ lat, lng });
+    setPinLabelInput('');
+  }, []);
+
+  const confirmAddPin = useCallback(async () => {
+    if (!pendingPin) return;
+    const label = pinLabelInput.trim();
+    const { lat, lng } = pendingPin;
+    setPendingPin(null);
     try {
       const res = await fetch('/api/map-pins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: '핀', lat, lng, page: '매물지도', memo: '' }),
+        body: JSON.stringify({ name: label, lat, lng, page: '매물지도', memo: '' }),
       });
       const data = await res.json();
       if (data.ok) {
-        setAllPins(prev => [...prev, { id: data.id, name: '핀', lat, lng, memo: '' }]);
+        setAllPins(prev => [...prev, { id: data.id, name: label, lat, lng, memo: '' }]);
         setViewSession('');
       }
     } catch {}
-  }, []);
+  }, [pendingPin, pinLabelInput]);
 
   const handleDeletePin = useCallback(async (pin) => {
     try {
@@ -670,7 +681,7 @@ function AdminMapInner() {
                     <span
                       className={localStyles.pinListName}
                       onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })}
-                    >📍 {idx + 1}</span>
+                    >📍 {pin.name ? pin.name : idx + 1}</span>
                     <button className={localStyles.pinListDelete} onClick={() => handleDeletePin(pin)} title="삭제">🗑</button>
                   </div>
                 ))}
@@ -905,6 +916,29 @@ function AdminMapInner() {
         )}
       </div>
     </div>
+
+    {/* 핀 추가 팝업 */}
+    {pendingPin && typeof document !== 'undefined' && createPortal(
+      <>
+        <div className={localStyles.pinPopupBg} onClick={() => setPendingPin(null)} />
+        <div className={localStyles.pinPopup}>
+          <p className={localStyles.pinPopupTitle}>📍 메모 입력 (선택사항)</p>
+          <input
+            className={localStyles.pinPopupInput}
+            value={pinLabelInput}
+            onChange={e => setPinLabelInput(e.target.value)}
+            placeholder="내용 없으면 비워두세요"
+            autoFocus
+            onKeyDown={e => { if (e.key === 'Enter') confirmAddPin(); if (e.key === 'Escape') setPendingPin(null); }}
+          />
+          <div className={localStyles.pinPopupBtns}>
+            <button className={localStyles.pinPopupCancel} onClick={() => setPendingPin(null)}>취소</button>
+            <button className={localStyles.pinPopupSave} onClick={confirmAddPin}>확인</button>
+          </div>
+        </div>
+      </>,
+      document.body
+    )}
   );
 }
 

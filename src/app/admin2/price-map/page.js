@@ -277,11 +277,17 @@ function makeLabelDiv(label, count, style, onClick) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-function makePinDiv(onClick) {
+function makePinDiv(name, onClick) {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;width:26px;height:26px;';
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;';
+  if (name) {
+    const label = document.createElement('div');
+    label.style.cssText = 'background:#fff;border:1.5px solid #ef4444;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;color:#111;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.18);margin-bottom:4px;max-width:140px;overflow:hidden;text-overflow:ellipsis;';
+    label.textContent = name;
+    wrap.appendChild(label);
+  }
   const dot = document.createElement('div');
-  dot.style.cssText = 'width:22px;height:22px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.5);transition:transform 0.12s;';
+  dot.style.cssText = 'width:22px;height:22px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.5);transition:transform 0.12s;flex-shrink:0;';
   dot.addEventListener('mouseenter', () => { dot.style.transform = 'scale(1.2)'; });
   dot.addEventListener('mouseleave', () => { dot.style.transform = ''; });
   wrap.appendChild(dot);
@@ -470,7 +476,7 @@ function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsCha
     clearPinOverlays();
     if (!mapInstanceRef.current || !pins?.length) return;
     pins.forEach(pin => {
-      const div = makePinDiv(() => {
+      const div = makePinDiv(pin.name || '', () => {
         if (onPinClickRef.current) onPinClickRef.current(pin);
       });
       const overlay = new window.kakao.maps.CustomOverlay({
@@ -814,6 +820,8 @@ function PriceMapInner() {
   const [renamingSession,setRenamingSession]= useState(false);
   const [renameValue,    setRenameValue]    = useState('');
   const [renamingSaving, setRenamingSaving] = useState(false);
+  const [pendingPin,     setPendingPin]     = useState(null);
+  const [pinLabelInput,  setPinLabelInput]  = useState('');
   const watchIdRef = useRef(null);
   const hasInitRef = useRef(false);
   const LIST_PAGE_SIZE = 10;
@@ -837,20 +845,29 @@ function PriceMapInner() {
     [allPins, viewSession]
   );
 
-  const handleAddPin = useCallback(async ({ lat, lng }) => {
+  const handleAddPin = useCallback(({ lat, lng }) => {
+    setPendingPin({ lat, lng });
+    setPinLabelInput('');
+  }, []);
+
+  const confirmAddPin = useCallback(async () => {
+    if (!pendingPin) return;
+    const label = pinLabelInput.trim();
+    const { lat, lng } = pendingPin;
+    setPendingPin(null);
     try {
       const res = await fetch('/api/map-pins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: '핀', lat, lng, page: '금액지도', memo: '' }),
+        body: JSON.stringify({ name: label, lat, lng, page: '금액지도', memo: '' }),
       });
       const data = await res.json();
       if (data.ok) {
-        setAllPins(prev => [...prev, { id: data.id, name: '핀', lat, lng, memo: '' }]);
+        setAllPins(prev => [...prev, { id: data.id, name: label, lat, lng, memo: '' }]);
         setViewSession('');
       }
     } catch {}
-  }, []);
+  }, [pendingPin, pinLabelInput]);
 
   const handleDeletePin = useCallback(async (pin) => {
     try {
@@ -1050,7 +1067,7 @@ function PriceMapInner() {
                   </div>
                 ) : pins.map((pin, idx) => (
                   <div key={pin.id} className={localStyles.pinListItem}>
-                    <span className={localStyles.pinListName} onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })}>📍 {idx + 1}</span>
+                    <span className={localStyles.pinListName} onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })}>📍 {pin.name ? pin.name : idx + 1}</span>
                     <button className={localStyles.pinListDelete} onClick={() => handleDeletePin(pin)} title="삭제">🗑</button>
                   </div>
                 ))}
@@ -1273,6 +1290,29 @@ function PriceMapInner() {
         )}
       </div>
     </div>
+
+    {/* 핀 추가 팝업 */}
+    {pendingPin && typeof document !== 'undefined' && createPortal(
+      <>
+        <div className={localStyles.pinPopupBg} onClick={() => setPendingPin(null)} />
+        <div className={localStyles.pinPopup}>
+          <p className={localStyles.pinPopupTitle}>📍 메모 입력 (선택사항)</p>
+          <input
+            className={localStyles.pinPopupInput}
+            value={pinLabelInput}
+            onChange={e => setPinLabelInput(e.target.value)}
+            placeholder="내용 없으면 비워두세요"
+            autoFocus
+            onKeyDown={e => { if (e.key === 'Enter') confirmAddPin(); if (e.key === 'Escape') setPendingPin(null); }}
+          />
+          <div className={localStyles.pinPopupBtns}>
+            <button className={localStyles.pinPopupCancel} onClick={() => setPendingPin(null)}>취소</button>
+            <button className={localStyles.pinPopupSave} onClick={confirmAddPin}>확인</button>
+          </div>
+        </div>
+      </>,
+      document.body
+    )}
   );
 }
 

@@ -153,11 +153,17 @@ function makeMyLocContent() {
   return wrap;
 }
 
-function makePinDiv(onClick) {
+function makePinDiv(name, onClick) {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;width:26px;height:26px;';
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;';
+  if (name) {
+    const label = document.createElement('div');
+    label.style.cssText = 'background:#fff;border:1.5px solid #ef4444;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;color:#111;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.18);margin-bottom:4px;max-width:140px;overflow:hidden;text-overflow:ellipsis;';
+    label.textContent = name;
+    wrap.appendChild(label);
+  }
   const dot = document.createElement('div');
-  dot.style.cssText = 'width:22px;height:22px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.5);transition:transform 0.12s;';
+  dot.style.cssText = 'width:22px;height:22px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.5);transition:transform 0.12s;flex-shrink:0;';
   dot.addEventListener('mouseenter', () => { dot.style.transform = 'scale(1.2)'; });
   dot.addEventListener('mouseleave', () => { dot.style.transform = ''; });
   wrap.appendChild(dot);
@@ -361,7 +367,7 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
     clearPinOverlays();
     if (!mapInstanceRef.current || !pins?.length) return;
     pins.forEach(pin => {
-      const div = makePinDiv(() => {
+      const div = makePinDiv(pin.name || '', () => {
         if (onPinClickRef.current) onPinClickRef.current(pin);
       });
       const overlay = new window.kakao.maps.CustomOverlay({

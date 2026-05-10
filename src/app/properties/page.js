@@ -217,14 +217,15 @@ function PreviewModal({ item, onClose }) {
             {currentSlide ? (
               <>
                 {currentSlide.type === 'youtube' ? (
-                  <iframe
-                    src={`https://www.youtube.com/embed/${currentSlide.id}`}
-                    title="매물 영상"
-                    className={modalStyles.pvPhotoImg}
-                    style={{ border: 'none' }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+                  <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <iframe
+                      src={`https://www.youtube.com/embed/${currentSlide.id}`}
+                      title="매물 영상"
+                      style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
                 ) : (
                   <img src={currentSlide.url} alt={`사진 ${slideIdx + (youtubeId ? 0 : 1)}`} className={modalStyles.pvPhotoImg} />
                 )}

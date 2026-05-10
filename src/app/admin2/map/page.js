@@ -383,7 +383,7 @@ function AdminMapInner() {
   const [properties,    setProperties]    = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [selectedType,  setSelectedType]  = useState('전체');
-  const [selectedTx,    setSelectedTx]    = useState('전세');
+  const [selectedTx,    setSelectedTx]    = useState('전체');
   const [keyword,       setKeyword]       = useState('');
   const [selectedItem,  setSelectedItem]  = useState(null);
   const [clusterProps,  setClusterProps]  = useState(null);
@@ -394,7 +394,28 @@ function AdminMapInner() {
   const [viewMode,      setViewMode]      = useState('list');
   const [mapSheetItems, setMapSheetItems] = useState(null);
   const [listPage,      setListPage]      = useState(1);
+  const [myLocation,    setMyLocation]    = useState(null);
+  const [locLoading,    setLocLoading]    = useState(false);
   const LIST_PAGE_SIZE = 10;
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      pos => setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, level: 7 }),
+      () => {},
+      { enableHighAccuracy: false, timeout: 6000 }
+    );
+  }, []);
+
+  const goToMyLocation = useCallback(() => {
+    if (!navigator.geolocation || locLoading) return;
+    setLocLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => { setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, level: 5 }); setLocLoading(false); },
+      () => setLocLoading(false),
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }, [locLoading]);
 
   useEffect(() => { setClusterProps(null); setBoundsProps(null); setMapBounds(null); setGeocodedIds(new Set()); }, [selectedType, selectedTx, keyword]);
   useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps, clusterProps]);
@@ -478,11 +499,80 @@ function AdminMapInner() {
             <KakaoMap
               properties={mapProps}
               adminMode={true}
+              centerLatLng={myLocation}
               onGeocodedIds={ids => setGeocodedIds(ids)}
               onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
               onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); setMapSheetItems(null); }}
             />
+            <button
+              className={`${styles.myLocBtn} ${locLoading ? styles.myLocBtnLoading : ''} ${myLocation ? styles.myLocBtnActive : ''}`}
+              onClick={goToMyLocation}
+              title="현재 위치"
+            >
+              {locLoading ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                  <path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z"/>
+                </svg>
+              )}
+            </button>
           </div>
+
+          {/* 지도보기 모드 상단 검색+필터 오버레이 */}
+          {viewMode === 'map' && (
+            <div className={localStyles.mapFilterBar}>
+              <div className={styles.searchRow}>
+                <div className={styles.searchWrap}>
+                  <svg className={styles.searchIcon} width="15" height="15" viewBox="0 0 20 20" fill="none">
+                    <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M14 14L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <input
+                    type="text"
+                    value={keyword}
+                    onChange={e => setKeyword(e.target.value)}
+                    placeholder="건물명, 위치 검색"
+                    className={styles.searchInput}
+                  />
+                </div>
+                <span className={styles.countBadge}>{listItems.length}건</span>
+                <button
+                  className={`${styles.filterToggleBtn} ${(selectedType !== '전체' || selectedTx !== '전체') ? styles.filterToggleBtnActive : ''}`}
+                  onClick={() => setFilterOpen(v => !v)}
+                >
+                  필터{(selectedType !== '전체' || selectedTx !== '전체') ? ' ●' : ''} {filterOpen ? '▲' : '▼'}
+                </button>
+              </div>
+              <div className={`${styles.filterContent} ${filterOpen ? styles.filterContentOpen : ''}`}>
+                <div className={styles.filterGroup}>
+                  <span className={styles.filterLabel}>건물유형</span>
+                  <div className={styles.filterRow}>
+                    {TYPES.map(t => (
+                      <button key={t}
+                        className={`${styles.filterTab} ${selectedType === t ? styles.filterTabActive : ''}`}
+                        onClick={() => setSelectedType(t)}
+                      >{t}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className={styles.filterGroup}>
+                  <span className={styles.filterLabel}>거래유형</span>
+                  <div className={styles.filterRow}>
+                    {TX_TYPES.map(t => (
+                      <button key={t}
+                        className={`${styles.filterTab} ${selectedTx === t ? styles.filterTabActive : ''}`}
+                        onClick={() => setSelectedTx(t)}
+                      >{t}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 우측 목록 패널 */}
           <div className={`${styles.listPane} ${viewMode === 'map' ? styles.listPaneHidden : ''}`}>

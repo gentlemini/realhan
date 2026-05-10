@@ -420,7 +420,7 @@ function PreviewModal({ item, onClose }) {
   );
 }
 
-function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsChange }) {
+function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsChange, centerLatLng = null }) {
   const mapRef              = useRef(null);
   const mapInstanceRef      = useRef(null);
   const mapReadyRef         = useRef(false);
@@ -431,10 +431,12 @@ function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsCha
   const onPropertyClickRef  = useRef(onPropertyClick);
   const onClusterClickRef   = useRef(onClusterClick);
   const onBoundsChangeRef   = useRef(onBoundsChange);
+  const centerLatLngRef     = useRef(centerLatLng);
   filteredRef.current         = filtered;
   onPropertyClickRef.current  = onPropertyClick;
   onClusterClickRef.current   = onClusterClick;
   onBoundsChangeRef.current   = onBoundsChange;
+  centerLatLngRef.current     = centerLatLng;
 
   function clearOverlays() {
     overlaysRef.current.forEach(o => o.setMap(null));
@@ -558,13 +560,18 @@ function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsCha
   useEffect(() => {
     loadKakaoSdk().then(() => {
       if (!mapRef.current) return;
+      const cl = centerLatLngRef.current;
+      const initCenter = cl
+        ? new window.kakao.maps.LatLng(cl.lat, cl.lng)
+        : new window.kakao.maps.LatLng(35.1336, 129.1010);
       const map = new window.kakao.maps.Map(mapRef.current, {
-        center: new window.kakao.maps.LatLng(35.1336, 129.1010),
-        level: 5,
-        minLevel: 3,
+        center: initCenter,
+        level: 7,
       });
       mapInstanceRef.current = map;
       mapReadyRef.current    = true;
+      map.setLevel(7);
+      setTimeout(() => { if (mapInstanceRef.current) mapInstanceRef.current.setLevel(7); }, 200);
       new ResizeObserver(() => map.relayout()).observe(mapRef.current);
 
       window.kakao.maps.event.addListener(map, 'idle', () => {
@@ -588,6 +595,13 @@ function PriceMapCanvas({ filtered, onPropertyClick, onClusterClick, onBoundsCha
     if (!mapReadyRef.current) return;
     geocodeAndRender(filtered);
   }, [filtered]);
+
+  useEffect(() => {
+    if (!centerLatLng || !mapReadyRef.current || !mapInstanceRef.current) return;
+    const latlng = new window.kakao.maps.LatLng(centerLatLng.lat, centerLatLng.lng);
+    mapInstanceRef.current.setLevel(centerLatLng.level ?? 5);
+    mapInstanceRef.current.setCenter(latlng);
+  }, [centerLatLng]);
 
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
 }
@@ -672,7 +686,28 @@ function PriceMapInner() {
   const [mapSheetItems, setMapSheetItems] = useState(null);
   const [boundsProps,   setBoundsProps]   = useState(null);
   const [listPage,      setListPage]      = useState(1);
+  const [myLocation,    setMyLocation]    = useState(null);
+  const [locLoading,    setLocLoading]    = useState(false);
   const LIST_PAGE_SIZE = 10;
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      pos => setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, level: 7 }),
+      () => {},
+      { enableHighAccuracy: false, timeout: 6000 }
+    );
+  }, []);
+
+  const goToMyLocation = useCallback(() => {
+    if (!navigator.geolocation || locLoading) return;
+    setLocLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => { setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, level: 5 }); setLocLoading(false); },
+      () => setLocLoading(false),
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }, [locLoading]);
 
   useEffect(() => {
     fetch('/api/listings')
@@ -732,11 +767,80 @@ function PriceMapInner() {
           <div className={styles.mapPane}>
             <PriceMapCanvas
               filtered={filtered}
+              centerLatLng={myLocation}
               onPropertyClick={setSelectedItem}
               onClusterClick={props => setMapSheetItems(props)}
               onBoundsChange={props => setBoundsProps(props)}
             />
+            <button
+              className={`${styles.myLocBtn} ${locLoading ? styles.myLocBtnLoading : ''} ${myLocation ? styles.myLocBtnActive : ''}`}
+              onClick={goToMyLocation}
+              title="현재 위치"
+            >
+              {locLoading ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                  <path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z"/>
+                </svg>
+              )}
+            </button>
           </div>
+
+          {/* 지도보기 모드 상단 검색+필터 오버레이 */}
+          {viewMode === 'map' && (
+            <div className={localStyles.mapFilterBar}>
+              <div className={styles.searchRow}>
+                <div className={styles.searchWrap}>
+                  <svg className={styles.searchIcon} width="15" height="15" viewBox="0 0 20 20" fill="none">
+                    <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M14 14L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <input
+                    type="text"
+                    value={keyword}
+                    onChange={e => setKeyword(e.target.value)}
+                    placeholder="건물명, 위치 검색"
+                    className={styles.searchInput}
+                  />
+                </div>
+                <span className={styles.countBadge}>{listItems.length}건</span>
+                <button
+                  className={`${styles.filterToggleBtn} ${(selectedType !== '전체' || selectedTx !== '전체') ? styles.filterToggleBtnActive : ''}`}
+                  onClick={() => setFilterOpen(v => !v)}
+                >
+                  필터{(selectedType !== '전체' || selectedTx !== '전체') ? ' ●' : ''} {filterOpen ? '▲' : '▼'}
+                </button>
+              </div>
+              <div className={`${styles.filterContent} ${filterOpen ? styles.filterContentOpen : ''}`}>
+                <div className={styles.filterGroup}>
+                  <span className={styles.filterLabel}>건물유형</span>
+                  <div className={styles.filterRow}>
+                    {TYPES.map(t => (
+                      <button key={t}
+                        className={`${styles.filterTab} ${selectedType === t ? styles.filterTabActive : ''}`}
+                        onClick={() => setSelectedType(t)}
+                      >{t}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className={styles.filterGroup}>
+                  <span className={styles.filterLabel}>거래유형</span>
+                  <div className={styles.filterRow}>
+                    {TX_TYPES.map(t => (
+                      <button key={t}
+                        className={`${styles.filterTab} ${selectedTx === t ? styles.filterTabActive : ''}`}
+                        onClick={() => setSelectedTx(t)}
+                      >{t}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 우측 목록 패널 */}
           <div className={`${styles.listPane} ${viewMode === 'map' ? styles.listPaneHidden : ''}`}>

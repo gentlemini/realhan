@@ -132,7 +132,7 @@ function groupBy(geocoded, keyFn) {
   return groups;
 }
 
-export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds, adminMode = false }) {
+export default function KakaoMap({ address, radius = 20, level = 5, properties = null, hiddenProperties = null, onPropertyClick, onClusterClick, onBoundsChange, onGeocodedIds, adminMode = false, centerLatLng = null }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapReadyRef = useRef(false);
@@ -150,6 +150,8 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
   onBoundsChangeRef.current = onBoundsChange;
   const onGeocodedIdsRef = useRef(onGeocodedIds);
   onGeocodedIdsRef.current = onGeocodedIds;
+  const centerLatLngRef = useRef(centerLatLng);
+  centerLatLngRef.current = centerLatLng;
   propertiesRef.current = properties;
   hiddenPropertiesRef.current = hiddenProperties;
 
@@ -186,6 +188,13 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
   }, []);
 
   useEffect(() => {
+    if (!centerLatLng || !mapReadyRef.current || !mapInstanceRef.current) return;
+    const latlng = new window.kakao.maps.LatLng(centerLatLng.lat, centerLatLng.lng);
+    mapInstanceRef.current.setLevel(centerLatLng.level ?? 5);
+    mapInstanceRef.current.setCenter(latlng);
+  }, [centerLatLng]);
+
+  useEffect(() => {
     if (!mapReadyRef.current || !isMulti) return;
     prevModeRef.current = null;
     updateMarkers(properties);
@@ -201,13 +210,18 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
       setTimeout(initMultiMap, 100);
       return;
     }
+    const cl = centerLatLngRef.current;
+    const initCenter = cl
+      ? new window.kakao.maps.LatLng(cl.lat, cl.lng)
+      : new window.kakao.maps.LatLng(35.1336, 129.1010);
+    const initLevel = adminMode ? 7 : 5;
     const map = new window.kakao.maps.Map(mapRef.current, {
-      center: new window.kakao.maps.LatLng(35.1336, 129.1010),
-      level: 5,
-      minLevel: 3,
+      center: initCenter,
+      level: initLevel,
     });
     mapInstanceRef.current = map;
     mapReadyRef.current = true;
+    if (adminMode) boundsLockedRef.current = true;
     new ResizeObserver(() => map.relayout()).observe(mapRef.current);
 
     window.kakao.maps.event.addListener(map, 'idle', () => {
@@ -410,9 +424,11 @@ export default function KakaoMap({ address, radius = 20, level = 5, properties =
         prevModeRef.current = getMode(map.getLevel());
         renderOverlays(geocoded);
         if (!boundsLockedRef.current) {
-          const b = new window.kakao.maps.LatLngBounds();
-          geocoded.forEach(it => b.extend(new window.kakao.maps.LatLng(it.lat, it.lng)));
-          try { map.setBounds(b, 80); } catch {}
+          if (!adminMode) {
+            const b = new window.kakao.maps.LatLngBounds();
+            geocoded.forEach(it => b.extend(new window.kakao.maps.LatLng(it.lat, it.lng)));
+            try { map.setBounds(b, 80); } catch {}
+          }
           boundsLockedRef.current = true;
         }
       };

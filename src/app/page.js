@@ -260,25 +260,26 @@ function PreviewModal({ item, onClose }) {
                 ));
               })()}
               {detail?.blog_url && (
-                <a
-                  href={detail.blog_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    margin: '12px 16px 0',
-                    padding: '8px 16px',
-                    background: '#03C75A', color: '#fff',
-                    borderRadius: '6px', fontSize: '13px', fontWeight: 700,
-                    textDecoration: 'none',
-                  }}
-                  onClick={e => e.stopPropagation()}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M16.5 3h-9A4.5 4.5 0 003 7.5v9A4.5 4.5 0 007.5 21h9A4.5 4.5 0 0021 16.5v-9A4.5 4.5 0 0016.5 3zm-4.25 13.25c-2.9 0-5.25-2.35-5.25-5.25S9.35 5.75 12.25 5.75 17.5 8.1 17.5 11s-2.35 5.25-5.25 5.25zm0-8.5a3.25 3.25 0 100 6.5 3.25 3.25 0 000-6.5z"/>
-                  </svg>
-                  블로그 바로가기
-                </a>
+                <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0 0' }}>
+                  <a
+                    href={detail.blog_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      padding: '8px 16px',
+                      background: '#03C75A', color: '#fff',
+                      borderRadius: '6px', fontSize: '13px', fontWeight: 700,
+                      textDecoration: 'none',
+                    }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M16.5 3h-9A4.5 4.5 0 003 7.5v9A4.5 4.5 0 007.5 21h9A4.5 4.5 0 0021 16.5v-9A4.5 4.5 0 0016.5 3zm-4.25 13.25c-2.9 0-5.25-2.35-5.25-5.25S9.35 5.75 12.25 5.75 17.5 8.1 17.5 11s-2.35 5.25-5.25 5.25zm0-8.5a3.25 3.25 0 100 6.5 3.25 3.25 0 000-6.5z"/>
+                    </svg>
+                    블로그 바로가기
+                  </a>
+                </div>
               )}
               <div className={styles.pvAgentCard}>
                 <img src="/profile.png" alt="한민희" className={styles.pvAgentAvatar} />

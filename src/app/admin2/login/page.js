@@ -1,9 +1,22 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import styles from '../admin2.module.css';
 
+const ERROR_MSG = {
+  Callback: '로그인 처리 중 오류가 발생했습니다. 다시 시도해 주세요.',
+  AccessDenied: '접근 권한이 없는 계정입니다.',
+  OAuthSignin: 'Google 로그인을 시작할 수 없습니다.',
+  OAuthCallback: '로그인 콜백 처리에 실패했습니다. 다시 시도해 주세요.',
+  Default: '로그인 중 오류가 발생했습니다.',
+};
+
 export default function AdminLoginPage() {
+  const params = useSearchParams();
+  const error = params.get('error');
+  const errorMsg = error ? (ERROR_MSG[error] ?? ERROR_MSG.Default) : null;
+
   return (
     <div className={styles.loginWrap}>
       <div className={styles.loginBox}>
@@ -12,6 +25,11 @@ export default function AdminLoginPage() {
           <span className={styles.loginLogoReal}>부동산</span>
         </div>
         <p className={styles.loginSub}>관리자 로그인</p>
+        {errorMsg && (
+          <p style={{ color: '#e53e3e', fontSize: '13px', marginBottom: '12px', textAlign: 'center' }}>
+            {errorMsg}
+          </p>
+        )}
         <button
           className={styles.loginBtn}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}

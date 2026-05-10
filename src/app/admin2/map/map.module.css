@@ -204,3 +204,71 @@
   line-height: 1;
 }
 .pinListDelete:hover { color: #ef4444; }
+
+/* 세션 선택 드롭다운 */
+.pinSessionWrap {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.pinSessionSelect {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  background: #f9fafb;
+  color: #374151;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.pinSessionSelect:focus { border-color: #ef4444; }
+
+/* 하단 액션 영역 */
+.pinActions {
+  padding: 8px 10px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  gap: 6px;
+}
+.pinActionBtn {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  white-space: nowrap;
+}
+.pinActionBtn:hover { border-color: #9ca3af; }
+.pinActionBtnPrimary {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+.pinActionBtnPrimary:hover { background: #dc2626; border-color: #dc2626; }
+.pinActionBtn:disabled { opacity: 0.45; cursor: default; }
+
+/* 저장 이름 입력 행 */
+.pinSaveRow {
+  padding: 8px 10px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pinSaveInput {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  outline: none;
+  font-family: inherit;
+}
+.pinSaveInput:focus { border-color: #ef4444; }

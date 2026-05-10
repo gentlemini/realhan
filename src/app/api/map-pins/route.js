@@ -74,3 +74,53 @@ export async function POST(request) {
     return Response.json({ error: err.message }, { status: 500 });
   }
 }
+
+// 현재(미저장) 핀들을 세션 이름으로 일괄 저장
+export async function PATCH(request) {
+  try {
+    const { page, toSession } = await request.json();
+
+    // 1. 해당 페이지의 메모(세션)가 비어있는 핀 조회
+    const queryRes = await fetch(`${NOTION_API}/databases/${DB_ID}/query`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filter: {
+          and: [
+            { property: '페이지', select: { equals: page } },
+            { property: '메모', rich_text: { is_empty: true } },
+          ],
+        },
+        page_size: 100,
+      }),
+    });
+
+    if (!queryRes.ok) throw new Error(`Notion query ${queryRes.status}`);
+    const queryData = await queryRes.json();
+    const ids = queryData.results.map(p => p.id);
+
+    // 2. 각 핀의 메모를 세션 이름으로 업데이트
+    await Promise.all(ids.map(id =>
+      fetch(`${NOTION_API}/pages/${id}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
+          'Notion-Version': '2022-06-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          properties: { 메모: { rich_text: [{ text: { content: toSession } }] } },
+        }),
+      })
+    ));
+
+    return Response.json({ ok: true, count: ids.length });
+  } catch (err) {
+    console.error('[map-pins/PATCH]', err);
+    return Response.json({ error: err.message }, { status: 500 });
+  }
+}

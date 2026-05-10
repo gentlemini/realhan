@@ -397,8 +397,13 @@ function AdminMapInner() {
   const [myLocation,    setMyLocation]    = useState(null);
   const [myLocDot,      setMyLocDot]      = useState(null);
   const [locDotVisible, setLocDotVisible] = useState(false);
-  const [pins,          setPins]          = useState([]);
+  const [allPins,       setAllPins]       = useState([]);
+  const [viewSession,   setViewSession]   = useState('');
+  const [sessions,      setSessions]      = useState([]);
   const [pinListOpen,   setPinListOpen]   = useState(false);
+  const [showSaveInput, setShowSaveInput] = useState(false);
+  const [newSessionName,setNewSessionName]= useState('');
+  const [savingSession, setSavingSession] = useState(false);
   const watchIdRef = useRef(null);
   const hasInitRef = useRef(false);
   const LIST_PAGE_SIZE = 10;
@@ -426,23 +431,36 @@ function AdminMapInner() {
     setMyLocation({ ...myLocDot, level: 7 });
   }, [myLocDot]);
 
-  useEffect(() => {
+  const loadPins = useCallback(() => {
     fetch('/api/map-pins?page=매물지도')
       .then(r => r.json())
-      .then(data => setPins(Array.isArray(data) ? data : []))
+      .then(data => {
+        const list = Array.isArray(data) ? data : [];
+        setAllPins(list);
+        const saved = [...new Set(list.map(p => p.memo || '').filter(Boolean))];
+        setSessions(saved);
+      })
       .catch(() => {});
   }, []);
+
+  useEffect(() => { loadPins(); }, [loadPins]);
+
+  const pins = useMemo(
+    () => allPins.filter(p => (p.memo || '') === viewSession),
+    [allPins, viewSession]
+  );
 
   const handleAddPin = useCallback(async ({ lat, lng }) => {
     try {
       const res = await fetch('/api/map-pins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: `핀 ${Date.now().toString().slice(-4)}`, lat, lng, page: '매물지도' }),
+        body: JSON.stringify({ name: '핀', lat, lng, page: '매물지도', memo: '' }),
       });
       const data = await res.json();
       if (data.ok) {
-        setPins(prev => [...prev, { id: data.id, name: `핀`, lat, lng }]);
+        setAllPins(prev => [...prev, { id: data.id, name: '핀', lat, lng, memo: '' }]);
+        setViewSession('');
       }
     } catch {}
   }, []);
@@ -450,15 +468,32 @@ function AdminMapInner() {
   const handleDeletePin = useCallback(async (pin) => {
     try {
       await fetch(`/api/map-pins/${pin.id}`, { method: 'DELETE' });
-      setPins(prev => prev.filter(p => p.id !== pin.id));
+      setAllPins(prev => prev.filter(p => p.id !== pin.id));
     } catch {}
   }, []);
 
   const handlePinClick = useCallback((pin) => {
-    if (window.confirm(`"${pin.name}" 핀을 삭제할까요?`)) {
-      handleDeletePin(pin);
-    }
+    if (window.confirm('이 핀을 삭제할까요?')) handleDeletePin(pin);
   }, [handleDeletePin]);
+
+  const handleSaveSession = useCallback(async () => {
+    const name = newSessionName.trim();
+    if (!name) return;
+    setSavingSession(true);
+    try {
+      await fetch('/api/map-pins', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: '매물지도', toSession: name }),
+      });
+      setAllPins(prev => prev.map(p => p.memo === '' ? { ...p, memo: name } : p));
+      setSessions(prev => [...new Set([...prev, name])]);
+      setViewSession(name);
+      setShowSaveInput(false);
+      setNewSessionName('');
+    } catch {}
+    setSavingSession(false);
+  }, [newSessionName]);
 
   useEffect(() => { setClusterProps(null); setBoundsProps(null); setMapBounds(null); setGeocodedIds(new Set()); }, [selectedType, selectedTx, keyword]);
   useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps, clusterProps]);
@@ -576,9 +611,23 @@ function AdminMapInner() {
                   <span>📍 핀 마커</span>
                   <button className={localStyles.pinListClose} onClick={() => setPinListOpen(false)}>✕</button>
                 </div>
+
+                {/* 세션 선택 */}
+                <div className={localStyles.pinSessionWrap}>
+                  <select
+                    className={localStyles.pinSessionSelect}
+                    value={viewSession}
+                    onChange={e => { setViewSession(e.target.value); setShowSaveInput(false); }}
+                  >
+                    <option value="">현재 (미저장)</option>
+                    {sessions.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+
+                {/* 핀 목록 */}
                 {pins.length === 0 ? (
                   <div style={{ padding: '12px', fontSize: '12px', color: '#9ca3af', textAlign: 'center' }}>
-                    우클릭으로 핀 추가
+                    {viewSession === '' ? '우클릭으로 핀 추가' : '핀 없음'}
                   </div>
                 ) : pins.map((pin, idx) => (
                   <div key={pin.id} className={localStyles.pinListItem}>
@@ -586,13 +635,45 @@ function AdminMapInner() {
                       className={localStyles.pinListName}
                       onClick={() => setMyLocation({ lat: pin.lat, lng: pin.lng, level: 5 })}
                     >📍 {idx + 1}</span>
-                    <button
-                      className={localStyles.pinListDelete}
-                      onClick={() => handleDeletePin(pin)}
-                      title="삭제"
-                    >🗑</button>
+                    <button className={localStyles.pinListDelete} onClick={() => handleDeletePin(pin)} title="삭제">🗑</button>
                   </div>
                 ))}
+
+                {/* 액션 버튼 */}
+                {viewSession === '' && !showSaveInput && (
+                  <div className={localStyles.pinActions}>
+                    <button
+                      className={`${localStyles.pinActionBtn} ${localStyles.pinActionBtnPrimary}`}
+                      onClick={() => setShowSaveInput(true)}
+                      disabled={pins.length === 0}
+                    >💾 저장하기</button>
+                  </div>
+                )}
+                {viewSession === '' && showSaveInput && (
+                  <div className={localStyles.pinSaveRow}>
+                    <input
+                      className={localStyles.pinSaveInput}
+                      value={newSessionName}
+                      onChange={e => setNewSessionName(e.target.value)}
+                      placeholder="이름 입력 (예: 김손님)"
+                      autoFocus
+                      onKeyDown={e => { if (e.key === 'Enter') handleSaveSession(); if (e.key === 'Escape') setShowSaveInput(false); }}
+                    />
+                    <div className={localStyles.pinActions} style={{ padding: 0, borderTop: 'none' }}>
+                      <button className={localStyles.pinActionBtn} onClick={() => { setShowSaveInput(false); setNewSessionName(''); }}>취소</button>
+                      <button
+                        className={`${localStyles.pinActionBtn} ${localStyles.pinActionBtnPrimary}`}
+                        onClick={handleSaveSession}
+                        disabled={!newSessionName.trim() || savingSession}
+                      >{savingSession ? '저장중...' : '저장'}</button>
+                    </div>
+                  </div>
+                )}
+                {viewSession !== '' && (
+                  <div className={localStyles.pinActions}>
+                    <button className={localStyles.pinActionBtn} onClick={() => { setViewSession(''); setShowSaveInput(false); }}>➕ 새로 찍기</button>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 /* ── 설정 ── */
 const WINDOW_MS   = 60_000;  // 1분 윈도우
-const MAX_PER_WIN = 60;      // IP당 분당 최대 요청 수
+const MAX_PER_WIN = 200;     // IP당 분당 최대 요청 수
 
 const ALLOWED_ORIGINS = [
   'https://realhan.vercel.app',
@@ -45,6 +45,12 @@ export function proxy(request) {
     '/api/address-search',
   ];
   if (exempt.some(p => pathname.startsWith(p))) return NextResponse.next();
+
+  /* 쓰기 요청(등록·수정·삭제)은 rate-limit 제외 */
+  const method = request.method;
+  if (method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE') {
+    return NextResponse.next();
+  }
 
   /* 1. 스크래퍼 User-Agent 차단 */
   const ua = (request.headers.get('user-agent') || '').toLowerCase();

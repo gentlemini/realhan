@@ -282,7 +282,7 @@ function makePinDiv(name, onClick) {
   wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;';
   if (name) {
     const label = document.createElement('div');
-    label.style.cssText = 'background:#fff;border:1.5px solid #ef4444;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#111;box-shadow:0 2px 6px rgba(0,0,0,0.18);margin-bottom:4px;width:150px;white-space:normal;word-break:break-all;overflow-wrap:break-word;line-height:1.5;max-height:52px;overflow:hidden;text-align:center;';
+    label.style.cssText = 'background:#fff;border:1.5px solid #ef4444;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#111;box-shadow:0 2px 6px rgba(0,0,0,0.18);margin-bottom:4px;max-width:160px;white-space:pre-wrap;word-break:break-all;overflow-wrap:break-word;line-height:1.5;max-height:52px;overflow:hidden;text-align:center;';
     label.textContent = name;
     wrap.appendChild(label);
   }
@@ -1330,13 +1330,15 @@ function PriceMapInner() {
         <div className={localStyles.pinPopupBg} onClick={() => setPendingPin(null)} />
         <div className={localStyles.pinPopup}>
           <p className={localStyles.pinPopupTitle}>📍 메모 입력 (선택사항)</p>
-          <input
+          <textarea
             className={localStyles.pinPopupInput}
             value={pinLabelInput}
             onChange={e => setPinLabelInput(e.target.value)}
-            placeholder="내용 없으면 비워두세요"
+            placeholder="내용 없으면 비워두세요&#10;Enter로 줄바꿈"
+            rows={3}
             autoFocus
-            onKeyDown={e => { if (e.key === 'Enter') confirmAddPin(); if (e.key === 'Escape') setPendingPin(null); }}
+            style={{ resize: 'none', height: '80px' }}
+            onKeyDown={e => { if (e.key === 'Escape') setPendingPin(null); }}
           />
           <div className={localStyles.pinPopupBtns}>
             <button className={localStyles.pinPopupCancel} onClick={() => setPendingPin(null)}>취소</button>

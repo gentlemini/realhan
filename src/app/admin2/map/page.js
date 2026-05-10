@@ -963,13 +963,15 @@ function AdminMapInner() {
         <div className={localStyles.pinPopupBg} onClick={() => setPendingPin(null)} />
         <div className={localStyles.pinPopup}>
           <p className={localStyles.pinPopupTitle}>📍 메모 입력 (선택사항)</p>
-          <input
+          <textarea
             className={localStyles.pinPopupInput}
             value={pinLabelInput}
             onChange={e => setPinLabelInput(e.target.value)}
-            placeholder="내용 없으면 비워두세요"
+            placeholder="내용 없으면 비워두세요&#10;Enter로 줄바꿈"
+            rows={3}
             autoFocus
-            onKeyDown={e => { if (e.key === 'Enter') confirmAddPin(); if (e.key === 'Escape') setPendingPin(null); }}
+            style={{ resize: 'none', height: '80px' }}
+            onKeyDown={e => { if (e.key === 'Escape') setPendingPin(null); }}
           />
           <div className={localStyles.pinPopupBtns}>
             <button className={localStyles.pinPopupCancel} onClick={() => setPendingPin(null)}>취소</button>

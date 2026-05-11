@@ -16,6 +16,7 @@
     left: 0;
     top: 128px; /* 사이트 헤더 80px + 관리자 바 48px */
     bottom: 0;
+    --header-height: 128px; /* 레이아웃 높이 계산이 wrap에 맞도록 */
   }
 }
 

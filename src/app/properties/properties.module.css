@@ -510,7 +510,7 @@
   .viewToggle {
     display: flex;
     position: sticky;
-    top: var(--header-height);
+    top: 0;
     z-index: 20;
     background: var(--bg-primary);
     border-bottom: 2px solid var(--bg-tertiary);

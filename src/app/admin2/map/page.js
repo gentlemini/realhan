@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import styles from '../../properties/properties.module.css';
 import localStyles from './map.module.css';
 import modalStyles from '../../page.module.css';
+import { fetchListings } from '@/lib/listingsCache';
 
 const KakaoMap = dynamic(() => import('@/components/KakaoMap'), { ssr: false });
 
@@ -561,9 +562,8 @@ function AdminMapInner() {
   useEffect(() => { setListPage(1); }, [selectedType, selectedTx, keyword, boundsProps, clusterProps]);
 
   useEffect(() => {
-    fetch('/api/listings')
-      .then(r => r.json())
-      .then(data => setProperties(Array.isArray(data) ? data : []))
+    fetchListings()
+      .then(data => setProperties(data))
       .catch(() => setProperties([]))
       .finally(() => setLoading(false));
   }, []);

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import styles from '../../properties/properties.module.css';
 import localStyles from '../map/map.module.css';
 import modalStyles from '../../page.module.css';
+import { fetchListings } from '@/lib/listingsCache';
 
 const KAKAO_APP_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || '';
 
@@ -971,9 +972,8 @@ function PriceMapInner() {
   }, [myLocDot]);
 
   useEffect(() => {
-    fetch('/api/listings')
-      .then(r => r.json())
-      .then(data => setProperties(Array.isArray(data) ? data : []))
+    fetchListings()
+      .then(data => setProperties(data))
       .catch(() => setProperties([]))
       .finally(() => setLoading(false));
   }, []);

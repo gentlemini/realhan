@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // 서버에서 60초 캐시
 
 const NOTION_API = 'https://api.notion.com/v1';
 

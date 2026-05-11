@@ -316,7 +316,7 @@ const COMMON_SECTIONS_DGU_SALE = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -370,7 +370,7 @@ const COMMON_SECTIONS_DGU_RENTAL = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -425,7 +425,7 @@ const COMMON_SECTIONS_DSE = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -480,7 +480,7 @@ const COMMON_SECTIONS_ROM = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -534,7 +534,7 @@ const COMMON_SECTIONS_SHP = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -589,7 +589,7 @@ const COMMON_SECTIONS_OFI = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -649,7 +649,7 @@ const COMMON_SECTIONS_FAC = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -708,7 +708,7 @@ const COMMON_SECTIONS_BLD = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -748,7 +748,7 @@ const COMMON_SECTIONS_LND = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -792,7 +792,7 @@ const COMMON_SECTIONS_RDV = [
   ]},
   { title: '🔒 관리자 전용', fields: [
     { key: 'admin_memo',      label: '관리자메모', type: 'memo' },
-    { key: 'registered_date', label: '매물 등록일' },
+    { key: 'created_time', label: '매물 등록일', type: 'date' },
   ]},
 ];
 
@@ -2409,13 +2409,25 @@ function DetailModal({ item, detailSections, onClose }) {
 
               {detailSections.map(section => (
                 <div key={section.title}>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: '#a87b51', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '10px 14px 4px', background: '#faf7f4', borderBottom: '1px solid #f0ebe4' }}>
+                  <div className={modalStyles.pvRowSection}>
                     {section.title}
                   </div>
                   {section.fields.map(f => {
                     const v = item[f.key];
+                    const isPrice = f.type === 'price';
                     let display;
-                    if (f.type === 'price')        display = <span className={styles.dPrice}>{formatPrice(v)}</span>;
+                    if (isPrice) {
+                      const formatted = formatPrice(v);
+                      display = formatted && formatted !== '—'
+                        ? <span className={modalStyles.pvPriceBadge}>{formatted}</span>
+                        : <span className={styles.dEmpty}>—</span>;
+                    } else if (f.key === 'category') {
+                      const cs = CATEGORY_COLORS[v] || { bg: '#f3f4f6', color: '#374151' };
+                      display = v ? <span className={modalStyles.pvBadge} style={{ background: cs.bg, color: cs.color }}>{v}</span> : <span className={styles.dEmpty}>—</span>;
+                    } else if (f.key === 'transaction') {
+                      const ts = TX_COLORS[v] || { bg: '#f3f4f6', color: '#374151' };
+                      display = v ? <span className={modalStyles.pvBadge} style={{ background: ts.bg, color: ts.color }}>{v}</span> : <span className={styles.dEmpty}>—</span>;
+                    } else if (f.type === 'date')     display = <span>{v ? String(v).slice(0, 10) : '—'}</span>;
                     else if (f.type === 'num')      display = <span>{v != null ? v : '—'}</span>;
                     else if (f.type === 'privacy')  display = <span className={v === '비공개' ? styles.dPrivate : styles.dPublic}>{v || '—'}</span>;
                     else if (f.type === 'memo')     display = v && v !== '-' ? <span className={styles.dMemo}>{v}</span> : <span className={styles.dEmpty}>—</span>;
@@ -2429,7 +2441,7 @@ function DetailModal({ item, detailSections, onClose }) {
                     ) : <span className={styles.dEmpty}>—</span>;
                     else display = <span>{(!v || v === '-') ? '—' : v}</span>;
                     return (
-                      <div key={f.key} className={modalStyles.pvRow}>
+                      <div key={f.key} className={`${modalStyles.pvRow} ${isPrice ? modalStyles.pvRowHighlight : ''}`}>
                         <div className={modalStyles.pvLabel}>{f.label}</div>
                         <div className={modalStyles.pvValue}>{display}</div>
                       </div>

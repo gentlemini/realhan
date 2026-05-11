@@ -646,7 +646,7 @@ function AdminMapInner() {
               onMapRightClick={handleAddPin}
               onPinClick={handlePinClick}
               onGeocodedIds={ids => setGeocodedIds(ids)}
-              onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
+              onClusterClick={props => { setClusterProps(props); if (window.innerWidth <= 900) setMapSheetItems(props); }}
               onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); setMapSheetItems(null); }}
             />
             <button

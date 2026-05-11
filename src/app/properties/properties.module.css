@@ -219,7 +219,9 @@
   border-bottom-color: var(--accent-primary);
 }
 
-.listPaneHidden { display: none !important; }
+@media (max-width: 900px) {
+  .listPaneHidden { display: none !important; }
+}
 
 /* 필터 접기 토글 버튼 (모바일 전용) */
 .filterToggleBtn {

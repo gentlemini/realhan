@@ -487,7 +487,7 @@ function PropertiesPageInner() {
   const [mapBounds,    setMapBounds]    = useState(null);
   const [geocodedIds,  setGeocodedIds]  = useState(new Set());
   const [filterOpen,    setFilterOpen]   = useState(false);
-  const [viewMode,      setViewMode]     = useState('list');
+  const [viewMode,      setViewMode]     = useState('map');
   const [mapSheetItems, setMapSheetItems] = useState(null);
   const [listPage,     setListPage]     = useState(1);
   const LIST_PAGE_SIZE = 10;

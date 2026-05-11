@@ -114,6 +114,6 @@ async function queryDB({ id, nameField }) {
 
 export async function GET() {
   const results = await Promise.all(DBS.map(queryDB));
-  const items = results.flat();
+  const items = results.flat().sort((a, b) => new Date(b.created_time) - new Date(a.created_time));
   return Response.json(items);
 }

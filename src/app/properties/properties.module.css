@@ -22,14 +22,14 @@
 
 .hiddenBanner {
   position: absolute;
-  top: 14px;
+  top: 7px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(51, 65, 85, 0.88);
   color: #fff;
-  padding: 10px 26px;
+  padding: 5px 13px;
   border-radius: 100px;
-  font-size: 1.2rem;
+  font-size: 0.6rem;
   font-weight: 600;
   white-space: nowrap;
   pointer-events: none;

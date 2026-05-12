@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import styles from './properties.module.css';
 import modalStyles from '../../page.module.css';
+import BlogPostModal from '@/components/BlogPostModal';
 
 function getYouTubeId(url) {
   if (!url) return null;
@@ -1861,8 +1862,9 @@ function formatPrice(n) {
   return `${n.toLocaleString()}만원`;
 }
 
-// ── 블로그 포스팅 모달 ─────────────────────────────
-function BlogPostModal({ item, onClose }) {
+// BlogPostModal은 @/components/BlogPostModal에서 import됨
+// !! 아래 함수는 제거됨 — 아래줄 삭제 필요 시 이 주석도 삭제
+function _BlogPostModal_REMOVED_PLACEHOLDER({ item, onClose }) {
   const [step, setStep] = useState('select'); // select | generating | preview | preview_multi | creds_tistory | creds_wp | publishing | done
   const [platform, setPlatform] = useState(null);
   const [postTitle, setPostTitle] = useState('');

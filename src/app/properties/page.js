@@ -457,18 +457,48 @@ function PropertyItem({ property, onClick }) {
   );
 }
 
+const SHEET_PAGE_SIZE = 20;
+
 function BottomSheet({ items, onClose, onCardClick }) {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(items.length / SHEET_PAGE_SIZE);
+  const paged = items.slice((page - 1) * SHEET_PAGE_SIZE, page * SHEET_PAGE_SIZE);
+
+  // 아이템이 바뀌면 1페이지로 초기화
+  useEffect(() => { setPage(1); }, [items]);
+
   return (
     <div className={styles.bottomSheet}>
       <div className={styles.bottomSheetHandle} />
       <div className={styles.bottomSheetHeader}>
-        <span className={styles.bottomSheetTitle}>매물 {items.length}건</span>
+        <span className={styles.bottomSheetTitle}>
+          매물 {items.length}건
+          {totalPages > 1 && <span style={{ fontSize: '11px', color: '#a0998e', fontWeight: 400, marginLeft: '6px' }}>({page}/{totalPages}페이지)</span>}
+        </span>
         <button className={styles.bottomSheetClose} onClick={onClose}>✕</button>
       </div>
       <div className={styles.bottomSheetBody}>
-        {items.map(prop => (
+        {paged.map(prop => (
           <PropertyItem key={prop.id} property={prop} onClick={() => onCardClick(prop)} />
         ))}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px', padding: '12px 0 4px' }}>
+            <button className={styles.listPageBtn} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>이전</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+              .reduce((acc, p, i, arr) => {
+                if (i > 0 && p - arr[i - 1] > 1) acc.push('dots' + p);
+                acc.push(p);
+                return acc;
+              }, [])
+              .map(p =>
+                typeof p === 'string'
+                  ? <span key={p} className={styles.listPageDots}>…</span>
+                  : <button key={p} className={`${styles.listPageBtn} ${p === page ? styles.listPageBtnActive : ''}`} onClick={() => setPage(p)}>{p}</button>
+              )}
+            <button className={styles.listPageBtn} onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>다음</button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import styles from '../../properties/properties.module.css';
 import localStyles from './map.module.css';
 import modalStyles from '../../page.module.css';
 import { fetchListings } from '@/lib/listingsCache';
+import BlogPostModal from '@/components/BlogPostModal';
 
 const KakaoMap = dynamic(() => import('@/components/KakaoMap'), { ssr: false });
 
@@ -138,17 +139,36 @@ function PreviewModal({ item, onClose }) {
   const catStyle = CATEGORY_COLORS[item.category] || { bg: '#f3f4f6', color: '#374151' };
   const txStyle  = TX_COLORS[item.transaction]    || { bg: '#f3f4f6', color: '#374151' };
 
-  const [detail,     setDetail]     = useState(null);
-  const [detLoading, setDetLoading] = useState(true);
+  const [detail,      setDetail]      = useState(null);
+  const [detLoading,  setDetLoading]  = useState(true);
+  const [showBlogModal, setShowBlogModal] = useState(false);
+  const [memoEdit,    setMemoEdit]    = useState(false);
+  const [memoVal,     setMemoVal]     = useState('');
+  const [memoSaving,  setMemoSaving]  = useState(false);
 
   useEffect(() => {
     setDetLoading(true);
     fetch(`/api/property-detail/${item.id}`)
       .then(r => r.json())
-      .then(d => setDetail(d))
+      .then(d => { setDetail(d); setMemoVal(d?.admin_memo || ''); })
       .catch(() => setDetail(null))
       .finally(() => setDetLoading(false));
   }, [item.id]);
+
+  async function saveMemo() {
+    setMemoSaving(true);
+    try {
+      await fetch(`/api/property-detail/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_memo: memoVal }),
+      });
+      setDetail(d => ({ ...d, admin_memo: memoVal || null }));
+      setMemoEdit(false);
+    } finally {
+      setMemoSaving(false);
+    }
+  }
 
   const imageUrls = detail?.imageUrls?.length ? detail.imageUrls
                   : (detail?.imageUrl || item.imageUrl) ? [detail?.imageUrl || item.imageUrl] : [];
@@ -184,130 +204,211 @@ function PreviewModal({ item, onClose }) {
     };
   }, [onClose]);
 
-  return createPortal(
-    <div className={modalStyles.pvOverlay} onClick={onClose}>
-      <div className={modalStyles.pvBox} onClick={e => e.stopPropagation()}>
+  const blogItem = { ...item, ...(detail || {}) };
 
-        <button className={modalStyles.pvClose} onClick={onClose}>✕</button>
+  return (
+    <>
+      {createPortal(
+        <div className={modalStyles.pvOverlay} onClick={onClose}>
+          <div className={modalStyles.pvBox} onClick={e => e.stopPropagation()}>
 
-        <div className={modalStyles.pvLayout}>
-          <div className={modalStyles.pvPhotoCol}>
-            <div className={modalStyles.pvPhotoMain}>
-              {currentSlide ? (
-                <>
-                  {currentSlide.type === 'youtube' ? (
-                    <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <iframe
-                        key={currentSlide.id}
-                        src={`https://www.youtube.com/embed/${currentSlide.id}?rel=0`}
-                        title="매물 영상"
-                        style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  ) : (
-                    <img src={currentSlide.url} alt={`사진 ${slideIdx + 1}`} className={modalStyles.pvPhotoImg} />
-                  )}
-                  {slides.length > 1 && (
+            <button className={modalStyles.pvClose} onClick={onClose}>✕</button>
+
+            <div className={modalStyles.pvLayout}>
+              <div className={modalStyles.pvPhotoCol}>
+                <div className={modalStyles.pvPhotoMain}>
+                  {currentSlide ? (
                     <>
-                      <button onClick={prevSlide} className={modalStyles.pvSlidePrev} aria-label="이전">&#8249;</button>
-                      <button onClick={nextSlide} className={modalStyles.pvSlideNext} aria-label="다음">&#8250;</button>
-                      <div className={modalStyles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
-                    </>
-                  )}
-                </>
-              ) : (
-                <div className={modalStyles.pvPhotoArea}>
-                  <span className={modalStyles.pvPhotoGhost}>사진위치</span>
-                  <div className={modalStyles.pvPhotoFallback}>
-                    <p className={modalStyles.pvFallbackSub}>사진 첨부 없을시 아래 내용</p>
-                    <p className={modalStyles.pvFallbackName}>"공인중개사 한민희"</p>
-                    <p className={modalStyles.pvFallbackPhone}>"010-4706-8253"</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            {slides.length > 1 && (
-              <div className={modalStyles.pvThumbs}>
-                {slides.map((s, i) => (
-                  <div key={i} className={`${modalStyles.pvThumb} ${i === slideIdx ? modalStyles.pvThumbActive : ''}`} onClick={() => setSlideIdx(i)}>
-                    <img src={s.type === 'youtube' ? `https://img.youtube.com/vi/${s.id}/mqdefault.jpg` : s.url} alt={`${i + 1}`} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className={modalStyles.pvDataCol}>
-            <div className={modalStyles.pvMapBox}>
-              {hasMap ? (
-                <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
-              ) : (
-                <span className={modalStyles.pvMapPlaceholder}>지도 위치 미등록</span>
-              )}
-            </div>
-
-            <div className={modalStyles.pvDataScroll}>
-              <div className={modalStyles.pvDataHeader}>
-                <div className={modalStyles.pvHeaderSub}>
-                  <span className={modalStyles.fBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
-                  <span className={modalStyles.fBadge} style={{ background: txStyle.bg,  color: txStyle.color  }}>{item.transaction}</span>
-                  {item.map_hidden && (
-                    <span className={modalStyles.fBadge} style={{ background: '#fee2e2', color: '#991b1b' }}>🔒 위치숨김</span>
-                  )}
-                </div>
-                <div className={modalStyles.pvTitle}>
-                  {modalTitle || <span className={modalStyles.pvTitleEmpty}>매물제목 미입력</span>}
-                </div>
-              </div>
-
-              {!detLoading && hasMap && (
-                <div className={modalStyles.pvMobileMap}>
-                  <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
-                </div>
-              )}
-
-              {detLoading ? (
-                <div className={modalStyles.pvDetailLoading}>
-                  <div className={modalStyles.spinner} />
-                </div>
-              ) : (() => {
-                const rows = detail?.rows || [];
-                const sections = [];
-                for (const r of rows) {
-                  const sec = r.section || '기타';
-                  if (!sections.length || sections[sections.length - 1].title !== sec)
-                    sections.push({ title: sec, rows: [] });
-                  sections[sections.length - 1].rows.push(r);
-                }
-                return sections.map(sec => (
-                  <div key={sec.title}>
-                    <div className={modalStyles.pvRowSection}>{sec.title}</div>
-                    {sec.rows.map(r => {
-                      const cs = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
-                      const ts = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
-                      return (
-                        <div key={r.label} className={`${modalStyles.pvRow} ${r.isPrice ? modalStyles.pvRowHighlight : ''}`}>
-                          <div className={modalStyles.pvLabel}>{r.label}</div>
-                          <div className={`${modalStyles.pvValue} ${r.isPrivate ? modalStyles.pvPrivate : ''}`}>
-                            {r.isCategory    && <span className={modalStyles.pvBadge} style={{ background: cs.bg, color: cs.color }}>{r.value}</span>}
-                            {r.isTransaction && <span className={modalStyles.pvBadge} style={{ background: ts.bg, color: ts.color }}>{r.value}</span>}
-                            {r.isPrice       && <span className={modalStyles.pvPriceBadge}>{r.value}</span>}
-                            {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
-                          </div>
+                      {currentSlide.type === 'youtube' ? (
+                        <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <iframe
+                            key={currentSlide.id}
+                            src={`https://www.youtube.com/embed/${currentSlide.id}?rel=0`}
+                            title="매물 영상"
+                            style={{ width: '100%', aspectRatio: '16/9', maxHeight: '100%', border: 'none', display: 'block' }}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
                         </div>
-                      );
-                    })}
+                      ) : (
+                        <img src={currentSlide.url} alt={`사진 ${slideIdx + 1}`} className={modalStyles.pvPhotoImg} />
+                      )}
+                      {slides.length > 1 && (
+                        <>
+                          <button onClick={prevSlide} className={modalStyles.pvSlidePrev} aria-label="이전">&#8249;</button>
+                          <button onClick={nextSlide} className={modalStyles.pvSlideNext} aria-label="다음">&#8250;</button>
+                          <div className={modalStyles.pvSlideCount}>{slideIdx + 1} / {slides.length}</div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <div className={modalStyles.pvPhotoArea}>
+                      <span className={modalStyles.pvPhotoGhost}>사진위치</span>
+                      <div className={modalStyles.pvPhotoFallback}>
+                        <p className={modalStyles.pvFallbackSub}>사진 첨부 없을시 아래 내용</p>
+                        <p className={modalStyles.pvFallbackName}>"공인중개사 한민희"</p>
+                        <p className={modalStyles.pvFallbackPhone}>"010-4706-8253"</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {slides.length > 1 && (
+                  <div className={modalStyles.pvThumbs}>
+                    {slides.map((s, i) => (
+                      <div key={i} className={`${modalStyles.pvThumb} ${i === slideIdx ? modalStyles.pvThumbActive : ''}`} onClick={() => setSlideIdx(i)}>
+                        <img src={s.type === 'youtube' ? `https://img.youtube.com/vi/${s.id}/mqdefault.jpg` : s.url} alt={`${i + 1}`} />
+                      </div>
+                    ))}
                   </div>
-                ));
-              })()}
+                )}
+              </div>
+
+              <div className={modalStyles.pvDataCol}>
+                <div className={modalStyles.pvMapBox}>
+                  {hasMap ? (
+                    <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
+                  ) : (
+                    <span className={modalStyles.pvMapPlaceholder}>지도 위치 미등록</span>
+                  )}
+                </div>
+
+                <div className={modalStyles.pvDataScroll}>
+                  <div className={modalStyles.pvDataHeader}>
+                    <div className={modalStyles.pvHeaderSub}>
+                      <span className={modalStyles.fBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
+                      <span className={modalStyles.fBadge} style={{ background: txStyle.bg,  color: txStyle.color  }}>{item.transaction}</span>
+                      {item.contract_status && (
+                        <span className={modalStyles.fBadge} style={{
+                          background: item.contract_status === '계약진행중' ? '#fffbeb' : '#f0fdf4',
+                          color:      item.contract_status === '계약진행중' ? '#92400e' : '#166534',
+                        }}>{item.contract_status}</span>
+                      )}
+                      {item.map_hidden && (
+                        <span className={modalStyles.fBadge} style={{ background: '#fee2e2', color: '#991b1b' }}>🔒 위치숨김</span>
+                      )}
+                    </div>
+                    <div className={modalStyles.pvTitle}>
+                      {modalTitle || <span className={modalStyles.pvTitleEmpty}>매물제목 미입력</span>}
+                    </div>
+                  </div>
+
+                  {/* 관리자 전용 — 최상단 */}
+                  <div style={{ margin: '8px 0', padding: '10px 12px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: memoEdit ? '8px' : 0 }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#92400e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        🔒 관리자메모
+                      </span>
+                      {!memoEdit && (
+                        <button onClick={() => setMemoEdit(true)}
+                          style={{ background: 'none', border: '1px solid #d97706', borderRadius: '4px', cursor: 'pointer', padding: '2px 8px', fontSize: '11px', color: '#92400e', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          ✏️ 수정
+                        </button>
+                      )}
+                    </div>
+                    {memoEdit ? (
+                      <>
+                        <textarea
+                          value={memoVal}
+                          onChange={e => setMemoVal(e.target.value)}
+                          rows={3}
+                          style={{ width: '100%', padding: '6px 8px', border: '1px solid #fcd34d', borderRadius: '6px', fontSize: '12px', resize: 'vertical', boxSizing: 'border-box', outline: 'none', background: '#fff', fontFamily: 'inherit' }}
+                        />
+                        <div style={{ display: 'flex', gap: '6px', marginTop: '6px', justifyContent: 'flex-end' }}>
+                          <button onClick={() => { setMemoEdit(false); setMemoVal(detail?.admin_memo || ''); }}
+                            style={{ padding: '4px 12px', border: '1px solid #e5e7eb', borderRadius: '5px', background: '#fff', fontSize: '12px', cursor: 'pointer', color: '#374151' }}>
+                            취소
+                          </button>
+                          <button onClick={saveMemo} disabled={memoSaving}
+                            style={{ padding: '4px 12px', border: 'none', borderRadius: '5px', background: memoSaving ? '#d1d5db' : '#2a3e3f', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: memoSaving ? 'not-allowed' : 'pointer' }}>
+                            {memoSaving ? '저장 중...' : '저장'}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ fontSize: '12px', color: memoVal ? '#78350f' : '#a16207', marginTop: '4px', whiteSpace: 'pre-wrap', minHeight: '16px' }}>
+                        {memoVal || <span style={{ fontStyle: 'italic', opacity: 0.6 }}>메모 없음</span>}
+                      </div>
+                    )}
+                  </div>
+
+                  {!detLoading && hasMap && (
+                    <div className={modalStyles.pvMobileMap}>
+                      <PreviewMap lat={mapLat} lng={mapLng} radius={mapRadius} />
+                    </div>
+                  )}
+
+                  {detLoading ? (
+                    <div className={modalStyles.pvDetailLoading}>
+                      <div className={modalStyles.spinner} />
+                    </div>
+                  ) : (() => {
+                    const rows = detail?.rows || [];
+                    const sections = [];
+                    for (const r of rows) {
+                      const sec = r.section || '기타';
+                      if (!sections.length || sections[sections.length - 1].title !== sec)
+                        sections.push({ title: sec, rows: [] });
+                      sections[sections.length - 1].rows.push(r);
+                    }
+                    return (
+                      <>
+                        {sections.map(sec => (
+                          <div key={sec.title}>
+                            <div className={modalStyles.pvRowSection}>{sec.title}</div>
+                            {sec.rows.map(r => {
+                              const cs = CATEGORY_COLORS[r.value] || { bg: '#f3f4f6', color: '#374151' };
+                              const ts = TX_COLORS[r.value]       || { bg: '#f3f4f6', color: '#374151' };
+                              return (
+                                <div key={r.label} className={`${modalStyles.pvRow} ${r.isPrice ? modalStyles.pvRowHighlight : ''}`}>
+                                  <div className={modalStyles.pvLabel}>{r.label}</div>
+                                  <div className={`${modalStyles.pvValue} ${r.isPrivate ? modalStyles.pvPrivate : ''}`}>
+                                    {r.isCategory    && <span className={modalStyles.pvBadge} style={{ background: cs.bg, color: cs.color }}>{r.value}</span>}
+                                    {r.isTransaction && <span className={modalStyles.pvBadge} style={{ background: ts.bg, color: ts.color }}>{r.value}</span>}
+                                    {r.isPrice       && <span className={modalStyles.pvPriceBadge}>{r.value}</span>}
+                                    {!r.isCategory && !r.isTransaction && !r.isPrice && r.value}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
+                        {item.created_time && (
+                          <div className={modalStyles.pvRow}>
+                            <div className={modalStyles.pvLabel}>매물 등록일</div>
+                            <div className={modalStyles.pvValue}>{String(item.created_time).slice(0, 10)}</div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+
+                  {detail?.blog_url && (
+                    <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+                      <a href={detail.blog_url} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#03C75A', color: '#fff', borderRadius: '6px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}
+                        onClick={e => e.stopPropagation()}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M16.5 3h-9A4.5 4.5 0 003 7.5v9A4.5 4.5 0 007.5 21h9A4.5 4.5 0 0021 16.5v-9A4.5 4.5 0 0016.5 3zm-4.25 13.25c-2.9 0-5.25-2.35-5.25-5.25S9.35 5.75 12.25 5.75 17.5 8.1 17.5 11s-2.35 5.25-5.25 5.25zm0-8.5a3.25 3.25 0 100 6.5 3.25 3.25 0 000-6.5z"/>
+                        </svg>
+                        블로그 바로가기
+                      </a>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0 16px' }}>
+                    <button onClick={() => setShowBlogModal(true)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '9px 20px', background: '#2a3e3f', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                      ✍️ AI 블로그 포스팅
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>,
-    document.body
+        </div>,
+        document.body
+      )}
+      {showBlogModal && <BlogPostModal item={blogItem} onClose={() => setShowBlogModal(false)} />}
+    </>
   );
 }
 
@@ -363,18 +464,41 @@ function PropertyItem({ property, onClick }) {
   );
 }
 
+const SHEET_PAGE_SIZE = 20;
+
 function BottomSheet({ items, onClose, onCardClick }) {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(items.length / SHEET_PAGE_SIZE);
+  const paged = items.slice((page - 1) * SHEET_PAGE_SIZE, page * SHEET_PAGE_SIZE);
+  useEffect(() => { setPage(1); }, [items]);
+
   return (
     <div className={styles.bottomSheet}>
       <div className={styles.bottomSheetHandle} />
       <div className={styles.bottomSheetHeader}>
-        <span className={styles.bottomSheetTitle}>매물 {items.length}건</span>
+        <span className={styles.bottomSheetTitle}>
+          매물 {items.length}건
+          {totalPages > 1 && <span style={{ fontSize: '11px', color: '#a0998e', fontWeight: 400, marginLeft: '6px' }}>({page}/{totalPages}페이지)</span>}
+        </span>
         <button className={styles.bottomSheetClose} onClick={onClose}>✕</button>
       </div>
       <div className={styles.bottomSheetBody}>
-        {items.map(prop => (
+        {paged.map(prop => (
           <PropertyItem key={prop.id} property={prop} onClick={() => onCardClick(prop)} />
         ))}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px', padding: '12px 0 4px' }}>
+            <button className={styles.listPageBtn} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>이전</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+              .reduce((acc, p, i, arr) => { if (i > 0 && p - arr[i - 1] > 1) acc.push('dots' + p); acc.push(p); return acc; }, [])
+              .map(p => typeof p === 'string'
+                ? <span key={p} className={styles.listPageDots}>…</span>
+                : <button key={p} className={`${styles.listPageBtn} ${p === page ? styles.listPageBtnActive : ''}`} onClick={() => setPage(p)}>{p}</button>
+              )}
+            <button className={styles.listPageBtn} onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>다음</button>
+          </div>
+        )}
       </div>
     </div>
   );

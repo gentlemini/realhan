@@ -339,9 +339,38 @@ export async function GET(request, { params }) {
     const map_radius = p['지도_반경']?.number   ?? null;
 
     const allImages  = imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : []);
-    const blog_url   = p['블로그URL']?.url   || null;
+    const blog_url    = p['블로그URL']?.url   || null;
     const youtube_url = p['유튜브URL']?.url  || null;
-    return Response.json({ rows: finalRows, imageUrl, imageUrls: allImages, map_lat, map_lng, map_radius, blog_url, youtube_url });
+    const admin_memo  = p['관리자메모']?.rich_text?.[0]?.plain_text || null;
+    return Response.json({ rows: finalRows, imageUrl, imageUrls: allImages, map_lat, map_lng, map_radius, blog_url, youtube_url, admin_memo });
+  } catch (err) {
+    return Response.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request, { params }) {
+  const { id } = await params;
+  try {
+    const { admin_memo } = await request.json();
+    const res = await fetch(`${NOTION_API}/pages/${id}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        properties: {
+          '관리자메모': {
+            rich_text: admin_memo
+              ? [{ type: 'text', text: { content: admin_memo } }]
+              : [],
+          },
+        },
+      }),
+    });
+    if (!res.ok) return Response.json({ error: 'update failed' }, { status: res.status });
+    return Response.json({ ok: true });
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });
   }

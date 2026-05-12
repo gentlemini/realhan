@@ -630,7 +630,7 @@ function PropertiesPageInner() {
             properties={mapProps}
             hiddenProperties={hiddenMapProps}
             onGeocodedIds={ids => setGeocodedIds(ids)}
-            onClusterClick={props => { setClusterProps(props); setMapSheetItems(props); }}
+            onClusterClick={props => { setClusterProps(props); if (window.innerWidth < 900) setMapSheetItems(props); }}
             onBoundsChange={(props, bounds) => { setClusterProps(null); setBoundsProps(props); setMapBounds(bounds); setMapSheetItems(null); }}
           />
           {hiddenInBoundsCount > 0 && (
@@ -749,7 +749,7 @@ function PropertiesPageInner() {
 
       {/* 지도 모드: 범위 내 매물 알림 바 */}
       {viewMode === 'map' && !mapSheetItems && boundsProps !== null && listItems.length > 0 && (
-        <div className={styles.mapBoundsBar} onClick={() => setMapSheetItems(listItems)}>
+        <div className={styles.mapBoundsBar} onClick={() => { if (window.innerWidth < 900) setMapSheetItems(listItems); }}>
           <span>📍 이 지역 매물 {listItems.length}건</span>
           <span className={styles.mapBoundsBarArrow}>목록 보기 →</span>
         </div>

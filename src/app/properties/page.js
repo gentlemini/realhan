@@ -148,10 +148,18 @@ function PreviewModal({ item, onClose }) {
 
   const [detail,     setDetail]     = useState(null);
   const [detLoading, setDetLoading] = useState(true);
+  const [copied,     setCopied]     = useState(false);
+
+  const copyUrl = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   useEffect(() => {
     setDetLoading(true);
-    fetch(`/api/property-detail/${item.id}`)
+    fetch(`/api/property-public/${item.id}`)
       .then(r => r.json())
       .then(d => setDetail(d))
       .catch(() => setDetail(null))
@@ -273,15 +281,31 @@ function PreviewModal({ item, onClose }) {
 
             <div className={modalStyles.pvDataScroll}>
               <div className={modalStyles.pvDataHeader}>
-                <div className={modalStyles.pvHeaderSub}>
-                  <span className={modalStyles.fBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
-                  <span className={modalStyles.fBadge} style={{ background: txStyle.bg,  color: txStyle.color  }}>{item.transaction}</span>
-                  {item.contract_status && (
-                    <span className={modalStyles.fBadge} style={{
-                      background: item.contract_status === '계약진행중' ? '#fffbeb' : '#f0fdf4',
-                      color:      item.contract_status === '계약진행중' ? '#92400e' : '#166534',
-                    }}>{item.contract_status}</span>
-                  )}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+                  <div className={modalStyles.pvHeaderSub}>
+                    <span className={modalStyles.fBadge} style={{ background: catStyle.bg, color: catStyle.color }}>{item.category}</span>
+                    <span className={modalStyles.fBadge} style={{ background: txStyle.bg,  color: txStyle.color  }}>{item.transaction}</span>
+                    {item.contract_status && (
+                      <span className={modalStyles.fBadge} style={{
+                        background: item.contract_status === '계약진행중' ? '#fffbeb' : '#f0fdf4',
+                        color:      item.contract_status === '계약진행중' ? '#92400e' : '#166534',
+                      }}>{item.contract_status}</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={copyUrl}
+                    style={{
+                      flexShrink: 0,
+                      display: 'flex', alignItems: 'center', gap: '4px',
+                      padding: '4px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                      background: copied ? '#166534' : 'rgba(255,255,255,0.15)',
+                      color: '#fff', fontSize: '11px', fontWeight: 600,
+                      transition: 'background 0.2s',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {copied ? '✓ 복사됨' : '🔗 URL 복사'}
+                  </button>
                 </div>
                 <div className={modalStyles.pvTitle}>
                   {modalTitle || <span className={modalStyles.pvTitleEmpty}>매물제목 미입력</span>}
@@ -528,7 +552,14 @@ function PropertiesPageInner() {
 
   useEffect(() => {
     fetchListings()
-      .then(data => setProperties(data))
+      .then(data => {
+        setProperties(data);
+        const shareId = new URLSearchParams(window.location.search).get('id');
+        if (shareId) {
+          const found = data.find(p => p.property_id === shareId);
+          if (found) setSelectedItem(found);
+        }
+      })
       .catch(() => setProperties([]))
       .finally(() => setLoading(false));
   }, []);
@@ -536,6 +567,11 @@ function PropertiesPageInner() {
   const handleCardClick = useCallback((item) => {
     const newCount = (item.view_count || 0) + 1;
     setSelectedItem({ ...item, view_count: newCount });
+    if (item.property_id) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('id', item.property_id);
+      window.history.replaceState(null, '', url.toString());
+    }
     fetch('/api/view-count', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -543,7 +579,12 @@ function PropertiesPageInner() {
     }).catch(() => {});
   }, []);
 
-  const handleClose = useCallback(() => setSelectedItem(null), []);
+  const handleClose = useCallback(() => {
+    setSelectedItem(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('id');
+    window.history.replaceState(null, '', url.toString());
+  }, []);
 
   const filtered = useMemo(() => {
     return properties.filter(p => {

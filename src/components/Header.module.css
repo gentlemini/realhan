@@ -2,7 +2,7 @@
 .header {
   position: fixed;
   top: 0; left: 0; right: 0;
-  z-index: 100;
+  z-index: 400;
   height: var(--header-height);
   background: #1e2d2e;
   border-bottom: 1px solid rgba(184,151,90,0.22);

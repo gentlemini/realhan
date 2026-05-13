@@ -188,22 +188,26 @@ export default function BuildingLookup({ 종류 = '아파트', 거래유형 = '�
         needsLandData ? fetch(`/api/land-lookup?${params}`) : null,
       ];
       const [bldRes, landRes] = await Promise.all(fetches);
+      let bldNm = '';
       if (bldRes?.ok) {
         const d = await bldRes.json();
-        setTitleData(d.titleData?.[0] || null);
+        const title = d.titleData?.[0] || null;
+        setTitleData(title);
         setParkingData(d.parkingData || null);
+        bldNm = title?.bldNm || '';
       }
       if (landRes?.ok) setLandData((await landRes.json()).landData || null);
+
+      if (addr.sigunguCd) {
+        setLoadingPrice(true);
+        const p = new URLSearchParams({ lawdCd: addr.sigunguCd, txn: 거래유형 });
+        if (bldNm) p.set('aptName', bldNm);
+        const pr = await fetch(`/api/real-price?${p}`);
+        if (pr.ok) setRealPrices(await pr.json());
+        setLoadingPrice(false);
+      }
     }
     setLoadingBld(false);
-
-    if (addr.sigunguCd) {
-      setLoadingPrice(true);
-      const p = new URLSearchParams({ lawdCd: addr.sigunguCd, txn: 거래유형 });
-      const pr = await fetch(`/api/real-price?${p}`);
-      if (pr.ok) setRealPrices(await pr.json());
-      setLoadingPrice(false);
-    }
   }
 
   async function fetchHoData(hoVal, dongVal) {
@@ -506,6 +510,7 @@ export default function BuildingLookup({ 종류 = '아파트', 거래유형 = '�
                   <div className={styles.priceTable}>
                     <div className={styles.priceHeader}>
                       <span>아파트명</span>
+                      <span>동</span>
                       <span>면적(㎡)</span>
                       <span>층</span>
                       <span>거래금액</span>
@@ -514,6 +519,7 @@ export default function BuildingLookup({ 종류 = '아파트', 거래유형 = '�
                     {realPrices.map((item, i) => (
                       <div key={i} className={styles.priceRow}>
                         <span>{item['아파트'] || '-'}</span>
+                        <span>{item['동'] || '-'}</span>
                         <span>{item['전용면적'] || '-'}</span>
                         <span>{item['층'] || '-'}층</span>
                         <span className={styles.priceAmount}>{(item['거래금액'] || '-').trim()}만</span>

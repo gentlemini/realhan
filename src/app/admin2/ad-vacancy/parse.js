@@ -20,7 +20,9 @@ export function parseListing(text) {
     `(?:${sidoLong}|${sidoShort})\\s+\\S+(?:구|군|시)\\s+\\S+?(?:동|읍|면|리|로|길|가)(?:\\s+\\S+)?\\s*\\d+(?:-\\d+)?`
   );
   const phoneRe = /(?:0(?:10|2|[3-9]\d?))[-\s.]?\d{3,4}[-\s.]?\d{4}/;
-  const priceRe = /^[\d,]{1,7}\s*[\/／]\s*[\d,]{1,5}/;
+  // 가격 라인: 첫 두 숫자 사이 구분자가 "/" 또는 공백 모두 허용
+  // 예) "1,000/45", "1,000 / 45 / 관 포함", "7100 2000/55" (전세+월세 병기)
+  const priceRe = /^[\d,]{1,7}(?:\s+[\d,]{1,5})?\s*[\/／]\s*[\d,]{1,5}/;
   const buildingHints =
     /(층|호|동|아파트|빌라|오피스텔|원룸|투룸|쓰리룸|상가|사무실|타워|하이츠|맨션|파크|캐슬|자이|푸르지오|래미안|아이파크|힐스테이트|롯데캐슬|이편한|sk뷰|sk view)/i;
 
@@ -40,7 +42,7 @@ export function parseListing(text) {
   for (let i = 0; i < lines.length; i++) {
     if (used.has(i)) continue;
     if (priceRe.test(lines[i])) {
-      result.price = lines[i];
+      result.price = normalizePrice(lines[i]);
       markUsed(i);
       break;
     }
@@ -50,7 +52,7 @@ export function parseListing(text) {
       if (used.has(i)) continue;
       const slashes = (lines[i].match(/[\/／]/g) || []).length;
       if (slashes >= 2 && /\d/.test(lines[i]) && !addrRe.test(lines[i])) {
-        result.price = lines[i];
+        result.price = normalizePrice(lines[i]);
         markUsed(i);
         break;
       }
@@ -117,7 +119,7 @@ export function splitListings(raw) {
 
   // 빈 줄 구분이 없을 때: 가격 라인 기준 분리
   const lines = raw.split(/\r?\n/);
-  const priceRe = /^\s*\d{1,5}\s*[\/／]\s*\d{1,4}/;
+  const priceRe = /^\s*[\d,]{1,7}(?:\s+[\d,]{1,5})?\s*[\/／]\s*[\d,]{1,4}/;
   const grouped = [];
   let current = [];
   for (const line of lines) {
@@ -130,6 +132,43 @@ export function splitListings(raw) {
   }
   if (current.length) grouped.push(current.join('\n').trim());
   return grouped.filter(Boolean);
+}
+
+// 가격 텍스트 정규화: 숫자는 1,000 단위 콤마, 구분자는 " / " 통일, 후행 텍스트 유지
+// 예) "7100 2000/55" → "7,100 / 2,000 / 55"
+// 예) "1000 / 45 / 관 포함" → "1,000 / 45 / 관 포함"
+export function normalizePrice(line) {
+  const trimmed = String(line || '').trim();
+  if (!trimmed) return '';
+  const numbers = [];
+  let rest = trimmed;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const m = rest.match(/^([\d,]+)(?:\s*[\/／]\s*|\s+)(.*)$/s);
+    if (!m) {
+      const m2 = rest.match(/^([\d,]+)\s*$/);
+      if (m2) {
+        numbers.push(m2[1]);
+        rest = '';
+      }
+      break;
+    }
+    numbers.push(m[1]);
+    if (!/^[\d,]/.test(m[2])) {
+      rest = m[2];
+      break;
+    }
+    rest = m[2];
+  }
+  if (numbers.length === 0) return trimmed;
+  const formatted = numbers.map((n) => {
+    const cleaned = n.replace(/,/g, '');
+    const v = parseInt(cleaned, 10);
+    return Number.isFinite(v) ? v.toLocaleString('en-US') : n;
+  });
+  const parts = [...formatted];
+  if (rest) parts.push(rest);
+  return parts.join(' / ');
 }
 
 // 배지 색상 분류

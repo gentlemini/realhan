@@ -1,0 +1,104 @@
+.mapDiv {
+  width: 100%;
+  height: 100%;
+}
+
+.errorBox {
+  width: 100%;
+  height: 100%;
+  background: #f4f0ec;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #888;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 20px;
+}
+
+.marker {
+  position: relative;
+  width: 36px;
+  height: 44px;
+  cursor: pointer;
+}
+
+.pin {
+  width: 34px;
+  height: 34px;
+  background: var(--accent-primary);
+  border: 2.5px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 7px rgba(0,0,0,0.35);
+  transition: transform 0.12s, background 0.12s;
+}
+.pin:hover { background: var(--accent-hover); transform: scale(1.1); }
+.pin.active {
+  background: var(--accent-hover);
+  transform: scale(1.18);
+  box-shadow: 0 4px 14px rgba(111,78,55,0.5);
+}
+
+.tail {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 9px solid var(--accent-primary);
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+}
+.marker:has(.pin.active) .tail { border-top-color: var(--accent-hover); }
+
+/* 메모 마커 (우클릭으로 추가, 노란 노트 라벨) */
+.memoMarkerWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.memoLabel {
+  background: #fffdf5;
+  border: 1.5px solid #e6c764;
+  border-radius: 7px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5d4720;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  margin-bottom: 4px;
+  width: max-content;
+  max-width: 240px;
+  cursor: pointer;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.memoLabel:hover { border-color: #c79e3a; }
+.memoLabelEmpty { color: #aaa; font-style: italic; font-weight: 500; }
+.memoLabelMore { margin-top: 3px; font-size: 11px; color: #c79e3a; font-weight: 700; }
+
+.memoDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #e6c764;
+  border: 2.5px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  cursor: pointer;
+  transition: transform 0.12s, background 0.12s;
+}
+.memoDot:hover { background: #c79e3a; transform: scale(1.2); }

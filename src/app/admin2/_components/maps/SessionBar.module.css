@@ -1,0 +1,123 @@
+.wrap {
+  background: #fff;
+  border-bottom: 1px solid #e5e0d8;
+  padding: 10px 12px;
+}
+
+.saveRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.saveInput {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1.5px solid #e5e0d8;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  background: #faf9f7;
+  font-family: inherit;
+}
+.saveInput:focus { border-color: var(--accent-primary); background: #fff; }
+
+.saveBtn {
+  padding: 7px 14px;
+  background: var(--accent-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.saveBtn:hover { background: var(--accent-hover); }
+.saveBtn:disabled { opacity: 0.5; cursor: wait; }
+
+.listWrap {
+  max-height: 130px; /* 약 5줄 */
+  overflow-y: auto;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  transition: background 0.1s;
+}
+.item:hover { background: #faf6f0; }
+.item.active { background: #f4ebde; }
+
+.itemName {
+  flex: 1;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  color: #2c2c2c;
+  cursor: pointer;
+  padding: 4px 4px;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item.active .itemName { font-weight: 700; color: var(--accent-hover); }
+
+.renameInput {
+  flex: 1;
+  padding: 3px 6px;
+  border: 1.5px solid var(--accent-primary);
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  background: #fff;
+  font-family: inherit;
+}
+
+.itemActions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid #e5e0d8;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.iconBtn:hover { background: #fff; border-color: var(--accent-primary); color: var(--accent-primary); }
+.delBtn:hover { background: #fff5f5; border-color: #ef4444; color: #ef4444; }
+
+.empty {
+  padding: 16px 8px;
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+}
+
+/* 스크롤바 스타일 */
+.listWrap::-webkit-scrollbar { width: 6px; }
+.listWrap::-webkit-scrollbar-thumb { background: #d1c5b0; border-radius: 3px; }
+.listWrap::-webkit-scrollbar-track { background: transparent; }
